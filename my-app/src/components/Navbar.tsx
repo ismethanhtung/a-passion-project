@@ -2,6 +2,7 @@
 import LinkItem from "./LinkItem";
 import SearchButton from "./SearchButton";
 import Button from "./button";
+import Image from "next/image";
 
 export default function Navbar() {
     const links = [
@@ -19,7 +20,7 @@ export default function Navbar() {
                 {/* Group Logo và Links */}
                 <div className="flex items-center space-x-8">
                     {/* Logo */}
-                    <LinkItem href="/" iconSrc="/icons/home.svg" />
+                    <LinkItem href="/" iconSrc="images/home.svg" />
 
                     {/* Navigation Links */}
                     <div className="flex space-x-8 text-red-100">

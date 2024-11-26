@@ -1,5 +1,5 @@
 import React from "react";
-import CourseCard from "../components/courseCard"; // Import component CourseCard
+import CourseCard from "@/components/courseCard";
 
 // Định nghĩa data khóa học (có thể thay đổi từ API hoặc dữ liệu động)
 const courses = [
@@ -21,7 +21,7 @@ const courses = [
         offPrice: "$99",
     },
     {
-        img: "/image/books/RectangleBig3.svg",
+        img: "/images/courses/course1",
         category: "J.K. Rowling",
         title: "Harry Potter and the Sorcerer's Stone",
         desc: "Join Harry Potter as he discovers the magical world at Hogwarts School of Witchcraft and Wizardry.",
