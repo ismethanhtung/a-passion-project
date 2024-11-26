@@ -4,7 +4,7 @@ import CourseCard from "./courseCard";
 const CoursesList: React.FC = () => {
     const COURSES = [
         {
-            img: `/image/books/RectangleBig1.svg`,
+            img: `/`,
             category: "Frank Herbert",
             title: "Dune",
             desc: "A classic epic that explores political intrigue and power struggles on a desert planet.",
@@ -12,7 +12,7 @@ const CoursesList: React.FC = () => {
             offPrice: "$79",
         },
         {
-            img: `/image/books/RectangleBig7.svg`,
+            img: `/`,
             category: "William Gibson",
             title: "Neuromancer",
             desc: "A pioneering cyberpunk novel filled with futuristic technology and hackers.",
@@ -20,7 +20,7 @@ const CoursesList: React.FC = () => {
             offPrice: "$79",
         },
         {
-            img: `/image/books/RectangleBig1.svg`,
+            img: `/`,
             category: "J.R.R. Tolkien",
             title: "The Hobbit",
             desc: "A timeless adventure through Middle-earth, featuring Bilbo Baggins and his quest.",

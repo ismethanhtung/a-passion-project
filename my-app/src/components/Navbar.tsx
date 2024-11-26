@@ -2,7 +2,6 @@
 import LinkItem from "./LinkItem";
 import SearchButton from "./SearchButton";
 import Button from "./button";
-import Image from "next/image";
 
 export default function Navbar() {
     const links = [
@@ -15,7 +14,7 @@ export default function Navbar() {
     ];
 
     return (
-        <nav className="h-16 bg-white border-b border-gray-150">
+        <nav className="sticky top-0 h-16 bg-white border-b border-gray-150">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 {/* Group Logo và Links */}
                 <div className="flex items-center space-x-8">

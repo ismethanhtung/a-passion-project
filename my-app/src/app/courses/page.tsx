@@ -4,7 +4,7 @@ import CourseCard from "@/components/courseCard";
 // Định nghĩa data khóa học (có thể thay đổi từ API hoặc dữ liệu động)
 const courses = [
     {
-        img: "/image/books/RectangleBig1.svg",
+        img: "/",
         category: "J.R.R. Tolkien",
         title: "The Hobbit",
         desc: "A timeless adventure through Middle-earth, featuring Bilbo Baggins and his quest.",
@@ -13,7 +13,7 @@ const courses = [
     },
     // Bạn có thể thêm các khóa học khác vào đây
     {
-        img: "/image/books/RectangleBig2.svg",
+        img: "/",
         category: "George R. R. Martin",
         title: "A Game of Thrones",
         desc: "The first book in the epic A Song of Ice and Fire series.",
@@ -21,7 +21,7 @@ const courses = [
         offPrice: "$99",
     },
     {
-        img: "/images/courses/course1",
+        img: "/",
         category: "J.K. Rowling",
         title: "Harry Potter and the Sorcerer's Stone",
         desc: "Join Harry Potter as he discovers the magical world at Hogwarts School of Witchcraft and Wizardry.",

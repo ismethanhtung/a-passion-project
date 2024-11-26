@@ -1,6 +1,5 @@
 // components/LinkItem.tsx
 import Link from "next/link";
-import Image from "next/image"; // Sử dụng khi cần tối ưu hóa ảnh
 import { ReactNode } from "react";
 
 interface LinkItemProps {
