@@ -1,4 +1,5 @@
 import React from "react";
+import LinkItem from "@/components/LinkItem";
 
 function SignUp() {
     return (
@@ -121,9 +122,10 @@ function SignUp() {
                             <div className="mt-4">
                                 <p className="text-gray-600">
                                     Already have an account?{" "}
-                                    <a href="/login" className="text-blue-500">
+                                    {/* <a href="/login" className="text-blue-500">
                                         Log in
-                                    </a>
+                                    </a> */}
+                                    <LinkItem text="login"></LinkItem>
                                 </p>
                             </div>
                         </div>

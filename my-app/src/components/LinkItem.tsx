@@ -14,7 +14,7 @@ export default function LinkItem({ text, href, iconSrc }: LinkItemProps) {
     return (
         <Link
             href={linkHref}
-            className="flex items-center space-x-2 text-gray-500 hover:text-gray-900 transition duration-300"
+            className="span flex items-center space-x-2 text-gray-500 hover:text-gray-900 transition duration-300"
         >
             {/* Hiển thị icon nếu có */}
             {iconSrc && (
