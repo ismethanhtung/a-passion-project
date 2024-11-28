@@ -24,7 +24,7 @@ export default function LinkItem({ text, href, iconSrc }: LinkItemProps) {
                     className="w-16 h-16" // Tùy chỉnh kích thước
                 />
             )}
-            {/* Hiển thị text nếu có */}
+            {/* Hiển thị text nếu có  */}
             {text && <span className="text-[14px]">{text}</span>}
         </Link>
     );
