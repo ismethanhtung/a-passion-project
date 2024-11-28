@@ -1,7 +1,44 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import LinkItem from "@/components/LinkItem";
-
+import { useRouter } from "next/navigation";
 function SignUp() {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const router = useRouter();
+
+    const handleSignUp = async () => {
+        setError(""); // Reset lỗi trước khi bắt đầu
+        try {
+            const response = await fetch("http://localhost:5000/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                setError(errorData.message || "Sign up thất bại.");
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Đăng ký thành công:", data);
+
+            // Redirect hoặc cập nhật giao diện sau đăng ký thành công
+            alert("Đăng ký thành công!");
+            router.push("/login");
+        } catch (err) {
+            console.error("Lỗi khi đăng ký:", err);
+            setError("Đã xảy ra lỗi. Vui lòng thử lại.");
+        }
+    };
+
     return (
         <div className="container mx-auto p-4">
             <div className="flex flex-col md:flex-row items-center justify-between">
@@ -22,31 +59,27 @@ function SignUp() {
 
                 <div className="md:w-1/2">
                     <div className="my-5 bg-white p-6 rounded-lg shadow-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    htmlFor="first-name"
-                                    className="block text-gray-700 mb-2"
-                                >
-                                    First name
-                                </label>
-                                <input
-                                    id="first-name"
-                                    type="text"
-                                    className="w-full p-3 border border-gray-300 rounded-lg mb-4"
-                                />
+                        {error && (
+                            <div className="mb-4 text-red-500 text-sm">
+                                {error}
                             </div>
+                        )}
 
+                        <div className="mb-4">
                             <div>
                                 <label
-                                    htmlFor="last-name"
+                                    htmlFor="name"
                                     className="block text-gray-700 mb-2"
                                 >
-                                    Last name
+                                    Name
                                 </label>
                                 <input
-                                    id="last-name"
+                                    id="name"
                                     type="text"
+                                    value={name}
+                                    onChange={(e) => {
+                                        setName(e.target.value);
+                                    }}
                                     className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                                 />
                             </div>
@@ -62,6 +95,8 @@ function SignUp() {
                             <input
                                 id="email"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                             />
                         </div>
@@ -76,25 +111,16 @@ function SignUp() {
                             <input
                                 id="password"
                                 type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full p-3 border border-gray-300 rounded-lg mb-4"
                             />
                         </div>
 
-                        <div className="flex items-center mb-4">
-                            <input
-                                type="checkbox"
-                                id="subscribe"
-                                className="mr-2"
-                            />
-                            <label
-                                htmlFor="subscribe"
-                                className="text-gray-600"
-                            >
-                                Subscribe to our newsletter
-                            </label>
-                        </div>
-
-                        <button className="w-full bg-blue-500 text-white p-3 rounded-lg mb-4">
+                        <button
+                            onClick={handleSignUp}
+                            className="w-full bg-blue-500 text-white p-3 rounded-lg mb-4"
+                        >
                             Sign up
                         </button>
 
@@ -122,9 +148,6 @@ function SignUp() {
                             <div className="mt-4">
                                 <p className="text-gray-600">
                                     Already have an account?{" "}
-                                    {/* <a href="/login" className="text-blue-500">
-                                        Log in
-                                    </a> */}
                                     <LinkItem text="login"></LinkItem>
                                 </p>
                             </div>
