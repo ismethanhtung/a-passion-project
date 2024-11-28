@@ -1,36 +1,19 @@
-import React from "react";
+"use client";
+import React, { use, useEffect, useState } from "react";
 import CourseCard from "@/components/courseCard";
-
-// Định nghĩa data khóa học (có thể thay đổi từ API hoặc dữ liệu động)
-const courses = [
-    {
-        img: "/",
-        category: "J.R.R. Tolkien",
-        title: "The Hobbit",
-        desc: "A timeless adventure through Middle-earth, featuring Bilbo Baggins and his quest.",
-        price: "$99",
-        offPrice: "$79",
-    },
-    // Bạn có thể thêm các khóa học khác vào đây
-    {
-        img: "/",
-        category: "George R. R. Martin",
-        title: "A Game of Thrones",
-        desc: "The first book in the epic A Song of Ice and Fire series.",
-        price: "$119",
-        offPrice: "$99",
-    },
-    {
-        img: "/",
-        category: "J.K. Rowling",
-        title: "Harry Potter and the Sorcerer's Stone",
-        desc: "Join Harry Potter as he discovers the magical world at Hogwarts School of Witchcraft and Wizardry.",
-        price: "$89",
-        offPrice: "$69",
-    },
-];
+import Course from "@/interfaces/course";
 
 const sources: React.FC = () => {
+    const [courses, setCourses] = useState<Course[]>([]);
+    const fetchCourse = async () => {
+        const response = await fetch("http://localhost:5000/courses");
+        const data: Course[] = await response.json();
+        setCourses(data);
+    };
+
+    useEffect(() => {
+        fetchCourse();
+    }, []);
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold text-center mb-6">Our Courses</h1>

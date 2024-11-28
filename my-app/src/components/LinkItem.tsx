@@ -9,7 +9,8 @@ interface LinkItemProps {
 }
 
 export default function LinkItem({ text, href, iconSrc }: LinkItemProps) {
-    const linkHref = href || (text ? `/${text.toLowerCase()}` : "#");
+    const linkHref =
+        href || (text ? `/${text.toLowerCase().replace(/\s+/g, "-")}` : "#");
 
     return (
         <Link
