@@ -1,11 +1,13 @@
 "use client";
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
+import { useRouter } from "next/navigation";
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const router = useRouter();
 
     const handleLogin = async () => {
         try {
@@ -15,6 +17,7 @@ function Login() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ email, password }),
+                credentials: "include",
             });
 
             if (!response.ok) {
@@ -24,13 +27,11 @@ function Login() {
             }
 
             const data = await response.json();
+            // console.log(response);
             console.log("Đăng nhập thành công:", data);
 
-            // Xử lý logic sau khi đăng nhập thành công, ví dụ: lưu token vào localStorage
-            localStorage.setItem("auth_token", data.token);
-
-            // Redirect hoặc cập nhật giao diện
             alert("Đăng nhập thành công!");
+            router.push("/");
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
             setError("Đã xảy ra lỗi. Vui lòng thử lại.");
