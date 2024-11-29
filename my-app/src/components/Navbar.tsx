@@ -6,7 +6,27 @@ import Button from "./button";
 
 export default function Navbar() {
     const [user, setUser] = useState(null);
-    const [name, setName] = useState("");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen((prev) => !prev);
+    };
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/auth/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+            if (response.ok) {
+                setUser(null);
+            } else {
+                console.error("Đăng xuất không thành công");
+            }
+        } catch (error) {
+            console.error("Lỗi khi đăng xuất:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -72,42 +92,45 @@ export default function Navbar() {
                     </div>
                 ) : (
                     <div className="relative">
-                        <div className="flex items-center space-x-4 cursor-pointer group">
-                            <h1 className="text-gray-800">Hi, {user.email}!</h1>
-                            <span className="text-gray-600 group-hover:text-gray-900">
-                                ▼
-                            </span>
-                        </div>
-                        <div className="absolute top-32 mt-2 bg-white border border-gray-200 shadow-lg rounded-lg hidden group-hover:block">
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const response = await fetch(
-                                            "http://localhost:5000/auth/logout",
-                                            {
-                                                method: "POST",
-                                                credentials: "include", // Gửi cookie để xoá
-                                            }
-                                        );
-                                        if (response.ok) {
-                                            setUser(null); // Xóa trạng thái đăng nhập
-                                        } else {
-                                            console.error(
-                                                "Đăng xuất không thành công"
-                                            );
-                                        }
-                                    } catch (error) {
-                                        console.error(
-                                            "Lỗi khi đăng xuất:",
-                                            error
-                                        );
-                                    }
-                                }}
-                                className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                            >
-                                Logout
-                            </button>
-                        </div>
+                        <button
+                            onClick={toggleDropdown}
+                            className="font-medium text-sm"
+                        >
+                            Hi, {user.email}!
+                        </button>
+
+                        {/* Dropdown menu */}
+                        {isDropdownOpen && (
+                            <div className="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 absolute mt-2">
+                                <ul className="py-2 text-sm text-gray-700">
+                                    <li>
+                                        <a
+                                            href="#"
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                        >
+                                            Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="#"
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                        >
+                                            Settings
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="#"
+                                            onClick={handleLogout}
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                        >
+                                            Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

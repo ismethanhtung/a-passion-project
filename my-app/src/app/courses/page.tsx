@@ -1,6 +1,6 @@
 "use client";
 import React, { use, useEffect, useState } from "react";
-import CourseCard from "@/components/courseCard";
+import CourseCard from "@/components/CourseCard";
 import Course from "@/interfaces/course";
 
 const sources: React.FC = () => {

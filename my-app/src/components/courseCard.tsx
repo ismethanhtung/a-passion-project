@@ -1,5 +1,8 @@
 import React from "react";
+import Link from "next/link";
+
 interface CourseCardProps {
+    id: number;
     thumbnail: string;
     tag: string;
     title: string;
@@ -9,6 +12,7 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
+    id,
     thumbnail,
     tag,
     title,
@@ -17,7 +21,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
     newPrice,
 }) => {
     return (
-        <div className="max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-300">
+        <Link
+            href={`/courses/${id}`}
+            className="max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-300 cursor-pointer"
+        >
             <img
                 src={thumbnail}
                 alt={title}
@@ -36,7 +43,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     </span>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
