@@ -65,7 +65,14 @@ export default function Navbar() {
         "Flashcards",
         "Blog",
     ];
-    const manages = ["user", "course-db", "test-db", "blog-db", "question-db"];
+    const manages = [
+        "user",
+        "course-db",
+        "test-db",
+        "blog-db",
+        "question-db",
+        "category-db",
+    ];
 
     return (
         <nav className="sticky top-0 h-16 bg-white border-b border-gray-150">

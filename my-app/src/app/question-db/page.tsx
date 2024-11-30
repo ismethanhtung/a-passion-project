@@ -1,90 +1,90 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
+import Question from "@/interfaces/question";
 
 // Định nghĩa interface cho người dùng
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
 
-function UserPage() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [editingUser, setEditingUser] = useState<User | null>(null); // Dữ liệu user đang chỉnh sửa
+function QuestionPage() {
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [content, setContent] = useState("");
+    const [option, setOption] = useState("");
+    const [answer, setAnswer] = useState("");
+    const [editingQuestion, setEditingQuestion] = useState<Question | null>(
+        null
+    ); // Dữ liệu user đang chỉnh sửa
     const [showEditModal, setShowEditModal] = useState(false);
 
     // Lấy danh sách người dùng từ backend
-    const fetchUsers = async () => {
-        const response = await fetch("http://localhost:5000/users");
-        const data: User[] = await response.json();
-        setUsers(data);
+    const fetchQuestions = async () => {
+        const response = await fetch("http://localhost:5000/questions");
+        const data: Question[] = await response.json();
+        setQuestions(data);
     };
 
     // Thêm người dùng mới
-    const addUser = async () => {
-        const response = await fetch("http://localhost:5000/users", {
+    const addQuestion = async () => {
+        const response = await fetch("http://localhost:5000/questions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ name, email }),
+            body: JSON.stringify({ content, option, answer }),
         });
 
         if (response.ok) {
-            fetchUsers();
-            setName("");
-            setEmail("");
+            fetchQuestions();
+            setContent("");
+            setOption("");
+            setAnswer("");
         } else {
-            alert("Không thể thêm người dùng.");
+            alert("Không thể thêm q.");
         }
     };
 
-    // Xóa người dùng
-    const deleteUser = async (id: number) => {
-        const response = await fetch(`http://localhost:5000/users/${id}`, {
+    const deleteQuestion = async (id: number) => {
+        const response = await fetch(`http://localhost:5000/questions/${id}`, {
             method: "DELETE",
         });
 
         if (response.ok) {
-            fetchUsers();
+            fetchQuestions();
         } else {
-            alert("Không thể xóa người dùng.");
+            alert("Không thể xóa.");
         }
     };
 
     // Bắt đầu chỉnh sửa
-    const editUser = (user: User) => {
-        setEditingUser(user);
-        setName(user.name);
-        setEmail(user.email);
+    const editQuestion = (question: Question) => {
+        setEditingQuestion(question);
+        setContent(question.content);
+        setOption(question.options);
+        setAnswer(question.answer);
         setShowEditModal(true);
     };
 
-    // Cập nhật người dùng
-    const updateUser = async () => {
-        if (editingUser) {
+    const updateQuestion = async () => {
+        if (editingQuestion) {
             const response = await fetch(
-                `http://localhost:5000/users/${editingUser.id}`,
+                `http://localhost:5000/users/${editingQuestion.id}`,
                 {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ name, email }),
+                    body: JSON.stringify({ content, option, answer }),
                 }
             );
 
             if (response.ok) {
-                fetchUsers();
+                fetchQuestions();
                 setEditingUser(null);
                 setShowEditModal(false);
-                setName("");
-                setEmail("");
+                setContent("");
+                setOption("");
+                setAnswer("");
             } else {
-                alert("Không thể cập nhật người dùng.");
+                alert("Không thể cập nhật.");
             }
         }
     };
@@ -97,23 +97,32 @@ function UserPage() {
                 <div className="mb-4">
                     <input
                         type="text"
-                        placeholder="Tên"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        placeholder="content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
                         className="border p-2 w-full"
                     />
                 </div>
                 <div className="mb-4">
                     <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        type="text"
+                        placeholder="option"
+                        value={option}
+                        onChange={(e) => setOption(e.target.value)}
+                        className="border p-2 w-full"
+                    />
+                </div>{" "}
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="answer"
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
                         className="border p-2 w-full"
                     />
                 </div>
                 <button
-                    onClick={updateUser}
+                    onClick={updateQuestion}
                     className="bg-blue-500 text-white px-4 py-1 rounded"
                 >
                     Cập nhật
@@ -130,48 +139,56 @@ function UserPage() {
 
     // Gọi hàm khi trang được load
     useEffect(() => {
-        fetchUsers();
+        fetchQuestions();
     }, []);
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-xl font-bold">Quản lý Người Dùng</h1>
+            <h1 className="text-xl font-bold">Quản lý Questions</h1>
 
-            {/* Form thêm người dùng */}
             <div className="my-4">
                 <input
                     type="text"
-                    placeholder="Tên"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    placeholder="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                     className="border p-2"
                 />
                 <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="option"
+                    value={option}
+                    onChange={(e) => setOption(e.target.value)}
+                    className="border p-2 ml-2"
+                />{" "}
+                <input
+                    type="text"
+                    placeholder="answer"
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
                     className="border p-2 ml-2"
                 />
                 <button
-                    onClick={addUser}
+                    onClick={addQuestion}
                     className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
                 >
-                    Thêm Người Dùng
+                    Thêm Question
                 </button>
             </div>
 
             {/* Danh sách người dùng */}
             <div className="container">
                 <DBTable
-                    data={users}
+                    data={questions}
                     columns={[
                         { key: "id", label: "ID" },
-                        { key: "name", label: "Tên" },
-                        { key: "email", label: "Email" },
+                        { key: "content", label: "Content" },
+                        { key: "options", label: "Option" },
+                        { key: "answer", label: "Answer" },
+                        { key: "testId", label: "TestId" },
                     ]}
-                    onEdit={editUser}
-                    onDelete={deleteUser}
+                    onEdit={editQuestion}
+                    onDelete={deleteQuestion}
                 />
             </div>
 
@@ -180,4 +197,4 @@ function UserPage() {
     );
 }
 
-export default UserPage;
+export default QuestionPage;

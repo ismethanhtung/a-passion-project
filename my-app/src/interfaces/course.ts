@@ -5,6 +5,7 @@ interface Course {
     tag: string;
     price: number;
     teacherId: number;
+    creatorId: number;
     thumbnail: string;
     newPrice: number;
 }
