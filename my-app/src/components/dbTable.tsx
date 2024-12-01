@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 interface TableProps<T> {
-    data: T[]; // Dữ liệu cần hiển thị (mảng các đối tượng)
-    columns: { key: keyof T; label: string }[]; // Cấu hình cột (key và label)
+    data: T[];
+    columns: { key: keyof T; label: string }[];
     onEdit?: (row: T) => void;
     onDelete?: (id: number) => void;
 }

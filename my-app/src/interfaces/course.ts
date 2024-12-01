@@ -1,3 +1,5 @@
+import Lesson from "./lesson";
+import Review from "./review";
 interface Course {
     id: number;
     title: string;
@@ -8,6 +10,11 @@ interface Course {
     creatorId: number;
     thumbnail: string;
     newPrice: number;
+    objectives: string;
+    lessons: Lesson[];
+    reviews: Review[];
+    duration: string;
+    rating: number;
 }
 
 export default Course;

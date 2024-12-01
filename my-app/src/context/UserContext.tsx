@@ -26,16 +26,26 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem("user");
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        if (user) {
-            localStorage.setItem("user", JSON.stringify(user));
-        } else {
-            localStorage.removeItem("user");
+        // Kiểm tra nếu môi trường là client
+        if (typeof window !== "undefined") {
+            const savedUser = localStorage.getItem("user");
+            if (savedUser) {
+                setUser(JSON.parse(savedUser));
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        // Lưu user vào localStorage khi thay đổi
+        if (typeof window !== "undefined") {
+            if (user) {
+                localStorage.setItem("user", JSON.stringify(user));
+            } else {
+                localStorage.removeItem("user");
+            }
         }
     }, [user]);
 

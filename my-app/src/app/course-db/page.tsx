@@ -5,16 +5,18 @@ import Course from "@/interfaces/course";
 
 function CoursePage() {
     const [courses, setCourses] = useState<Course[]>([]);
-    const [jsonInput, setJsonInput] = useState(`{
-        "title": "Khóa học mẫu",
-        "description": "Mô tả khóa học mẫu",
-        "price": 1000,
-        "newPrice": 0,
-        "teacherId": 1,
-        "tag": "",
-        "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779752/evywaxrf1f6y5ynjuip8.jpg"
-    }`);
-    const [editingCourse, setEditingCourse] = useState<Course | null>(null); // Dữ liệu bài kiểm tra đang chỉnh sửa
+    const [jsonInput, setJsonInput] = useState(`  {
+  "title": "English Foundation Course: Grammar and Speaking Upgrade",
+  "description": "Become fluent by improving all your English Skills. Build a strong English foundation in grammar, speaking, and more!",
+  "objectives": "Learn in-demand skills from university and industry experts. Master a subject or tool with hands-on projects. Develop a deep understanding of key concepts. Earn a career certificate from Georgia Institute of Technology.",
+  "price": 1000,
+  "newPrice": 0,
+  "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
+  "categoryId": 1,
+  "creatorId": 30,
+  "teacherId": 23
+}`);
+    const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
     const fetchCourses = async () => {
@@ -36,14 +38,16 @@ function CoursePage() {
         if (response.ok) {
             fetchCourses();
             setJsonInput(`{
-        "title": "Khóa học mẫu",
-        "description": "Mô tả khóa học mẫu",
-        "price": 1000,
-        "newPrice": 0,
-        "teacherId": 1,
-        "tag": "",
-        "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779752/evywaxrf1f6y5ynjuip8.jpg"
-    }`);
+  "title": "English Foundation Course: Grammar and Speaking Upgrade",
+  "description": "Become fluent by improving all your English Skills. Build a strong English foundation in grammar, speaking, and more!",
+  "objectives": "Learn in-demand skills from university and industry experts. Master a subject or tool with hands-on projects. Develop a deep understanding of key concepts. Earn a career certificate from Georgia Institute of Technology.",
+  "price": 1000,
+  "newPrice": 0,
+  "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
+  "categoryId": 1,
+  "creatorId": 30,
+  "teacherId": 23
+}`);
         } else {
             alert("err");
         }
@@ -54,6 +58,7 @@ function CoursePage() {
             `http://localhost:5000/courses/${id}`,
             {
                 method: "DELETE",
+                credentials: "include",
             }
         );
         if (response.ok) fetchCourses();
@@ -65,10 +70,9 @@ function CoursePage() {
         setShowEditModal(true);
     };
 
-    // Cập nhật bài kiểm tra
     const updateCourse = async () => {
         try {
-            const parsedInput = JSON.parse(jsonInput); // Parse JSON từ textarea
+            const parsedInput = JSON.parse(jsonInput);
 
             if (editingCourse) {
                 const response = await fetch(
@@ -77,6 +81,7 @@ function CoursePage() {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(parsedInput),
+                        credentials: "include",
                     }
                 );
 
@@ -85,14 +90,16 @@ function CoursePage() {
                     setEditingCourse(null);
                     setShowEditModal(false);
                     setJsonInput(`{
-                        "title": "Khóa học mẫu",
-                        "description": "Mô tả khóa học mẫu",
-                        "price": 1000,
-                        "newPrice": 0,
-                        "teacherId": 1,
-                        "tag": "",
-                        "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779752/evywaxrf1f6y5ynjuip8.jpg"
-                    }`);
+  "title": "English Foundation Course: Grammar and Speaking Upgrade",
+  "description": "Become fluent by improving all your English Skills. Build a strong English foundation in grammar, speaking, and more!",
+  "objectives": "Learn in-demand skills from university and industry experts. Master a subject or tool with hands-on projects. Develop a deep understanding of key concepts. Earn a career certificate from Georgia Institute of Technology.",
+  "price": 1000,
+  "newPrice": 0,
+  "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
+  "categoryId": 1,
+  "creatorId": 30,
+  "teacherId": 23
+}`);
                 } else {
                     alert("Không thể cập nhật.");
                 }
@@ -102,16 +109,15 @@ function CoursePage() {
         }
     };
 
-    // Hiện thị Modal chỉnh sửa
     const renderEditModal = () => (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <div className="bg-white w-3/6 h-3/6 p-6 rounded shadow-lg">
                 <h2 className="text-xl font-bold mb-4">Chỉnh Sửa Course</h2>
                 <div className="mb-4">
                     <textarea
                         value={jsonInput}
                         onChange={(e) => setJsonInput(e.target.value)}
-                        className="border w-full p-2 h-32"
+                        className="border w-full p-2 h-64"
                     ></textarea>
                 </div>
                 <button
@@ -138,7 +144,6 @@ function CoursePage() {
         <div className="container mx-auto p-4">
             <h1 className="text-xl font-bold">Quản lý Courses</h1>
 
-            {/* Form thêm */}
             <textarea
                 value={jsonInput}
                 onChange={(e) => setJsonInput(e.target.value)}
@@ -153,7 +158,6 @@ function CoursePage() {
                 </button>
             </div>
 
-            {/* Danh sách bài kiểm tra */}
             <div className="container">
                 <DBTable
                     data={courses}

@@ -65,7 +65,6 @@ function CoursePage() {
         setShowEditModal(true);
     };
 
-    // Cập nhật bài kiểm tra
     const updateCourse = async () => {
         try {
             const parsedInput = JSON.parse(jsonInput); // Parse JSON từ textarea

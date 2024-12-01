@@ -49,7 +49,7 @@ export default function Navbar() {
     ];
 
     return (
-        <nav className="sticky top-0 h-16 bg-white border-b border-gray-150">
+        <nav className="sticky top-0 h-16 bg-white border-b border-gray-150 z-50">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div className="flex items-center space-x-8">
                     <LinkItem href="/" text="Home" />

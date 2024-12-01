@@ -4,12 +4,12 @@ import React from "react";
 import Link from "next/link";
 
 interface ButtonProps {
-    text: string; // Nội dung hiển thị trên nút
-    onClick?: () => void; // Hành động khi bấm nút
-    variant?: "primary" | "secondary" | "danger"; // Loại nút
-    size?: "small" | "medium" | "large"; // Kích thước
-    disabled?: boolean; // Trạng thái vô hiệu hóa
-    href?: string; // URL liên kết
+    text: string;
+    onClick?: () => void;
+    variant?: "primary" | "secondary" | "danger";
+    size?: "small" | "medium" | "large";
+    disabled?: boolean;
+    href?: string;
 }
 
 export default function Button({
