@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 
-// Định nghĩa kiểu dữ liệu chung cho bảng
 interface TableProps<T> {
     data: T[]; // Dữ liệu cần hiển thị (mảng các đối tượng)
     columns: { key: keyof T; label: string }[]; // Cấu hình cột (key và label)
-    onEdit?: (row: T) => void; // Hàm callback cho sửa
-    onDelete?: (id: number) => void; // Hàm callback cho xóa
+    onEdit?: (row: T) => void;
+    onDelete?: (id: number) => void;
 }
 
-// Component bảng tái sử dụng với phân trang
 function DBTable<T extends { [key: string]: any }>({
     data,
     columns,
@@ -18,47 +16,29 @@ function DBTable<T extends { [key: string]: any }>({
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 15;
 
-    // Tính toán dữ liệu của trang hiện tại
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
     const currentData = data.slice(indexOfFirstRow, indexOfLastRow);
 
-    // Tính tổng số trang
     const totalPages = Math.ceil(data.length / rowsPerPage);
 
-    // Chuyển trang
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <table className="w-full text-sm text-left text-gray-500">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                     <tr>
-                        <th scope="col" className="p-4">
-                            <div className="flex items-center">
-                                <input
-                                    id="checkbox-all"
-                                    type="checkbox"
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <label
-                                    htmlFor="checkbox-all"
-                                    className="sr-only"
-                                >
-                                    Chọn tất cả
-                                </label>
-                            </div>
-                        </th>
                         {columns.map((col) => (
-                            <th key={col.key as string} className="px-6 py-3">
+                            <th key={col.key as string} className="px-6 py-4">
                                 {col.label}
                             </th>
                         ))}
                         {(onEdit || onDelete) && (
                             <th scope="col" className="px-6 py-3">
-                                Hành Động
+                                Action
                             </th>
                         )}
                     </tr>
@@ -66,25 +46,10 @@ function DBTable<T extends { [key: string]: any }>({
                 <tbody>
                     {currentData.map((row, index) => (
                         <tr key={index} className="bg-white hover:bg-gray-50">
-                            <td className="w-4 p-4">
-                                <div className="flex items-center">
-                                    <input
-                                        id={`checkbox-${row.id}`}
-                                        type="checkbox"
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                                    />
-                                    <label
-                                        htmlFor={`checkbox-${row.id}`}
-                                        className="sr-only"
-                                    >
-                                        Chọn
-                                    </label>
-                                </div>
-                            </td>
                             {columns.map((col) => (
                                 <td
                                     key={col.key as string}
-                                    className="px-6 py-4 text-gray-700 truncate max-w-[150px] overflow-hidden"
+                                    className="px-6 py-4 text-gray-700 truncate max-w-[200px] overflow-hidden"
                                 >
                                     {row[col.key]}
                                 </td>
@@ -114,7 +79,6 @@ function DBTable<T extends { [key: string]: any }>({
                 </tbody>
             </table>
 
-            {/* Pagination */}
             <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
                 <span className="text-sm text-gray-600">
                     Trang {currentPage} / {totalPages}

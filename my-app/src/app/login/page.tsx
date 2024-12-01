@@ -2,8 +2,10 @@
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 function Login() {
+    const { user, login } = useUser();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -27,11 +29,13 @@ function Login() {
             }
 
             const data = await response.json();
-            // console.log(response);
+            console.log(response);
             console.log("Đăng nhập thành công:", data);
+            login(data.user);
+            console.log(user);
 
             alert("Đăng nhập thành công!");
-            router.push("/");
+            router.push(`/?refreshId=${new Date().getTime()}`);
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
             setError("Đã xảy ra lỗi. Vui lòng thử lại.");

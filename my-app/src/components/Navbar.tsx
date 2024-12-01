@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import LinkItem from "./LinkItem";
-import Button from "./button";
+import { useUser } from "@/context/UserContext";
 
 export default function Navbar() {
-    const [user, setUser] = useState(null);
+    const { user, logout } = useUser(); // Lấy user và hàm logout từ UserContext
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
 
     const toggleDropdown = () => {
         setIsDropdownOpen((prev) => !prev);
+    };
+    const toggleMegaMenu = () => {
+        setIsMegaMenuOpen((prev) => !prev);
     };
 
     const handleLogout = async () => {
@@ -19,7 +23,7 @@ export default function Navbar() {
                 credentials: "include",
             });
             if (response.ok) {
-                setUser(null);
+                logout(); // Gọi hàm logout từ context
             } else {
                 console.error("Đăng xuất không thành công");
             }
@@ -27,37 +31,7 @@ export default function Navbar() {
             console.error("Lỗi khi đăng xuất:", error);
         }
     };
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                console.log("Fetching user...");
-                const response = await fetch(
-                    "http://localhost:5000/auth/check",
-                    {
-                        method: "POST",
-                        credentials: "include", // Gửi cookie
-                    }
-                );
-
-                console.log("Response status:", response.status);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("Người dùng:", data.user);
-                    setUser(data.user);
-                } else {
-                    console.warn("Không đăng nhập:", response.status);
-                    setUser(null);
-                }
-            } catch (error) {
-                console.error("Không lấy được thông tin người dùng:", error);
-                setUser(null);
-            }
-        };
-
-        fetchUser();
-    }, []);
-
+    console.log(user);
     const links = [
         "Courses",
         "Learning Program",
@@ -85,59 +59,57 @@ export default function Navbar() {
                         ))}
                     </div>
                 </div>
-                {user && (
-                    <div className="flex space-x-8">
-                        {manages.map((manage) => (
-                            <LinkItem key={manage} text={manage} />
-                        ))}
-                    </div>
-                )}
-                {!user ? (
+                {user ? (
                     <div className="flex items-center space-x-8">
-                        <Button text="Login" href="/signin" />
-                        <LinkItem text="Login" href="/login" />
+                        <div className="flex space-x-8">
+                            {manages.map((manage) => (
+                                <LinkItem key={manage} text={manage} />
+                            ))}
+                        </div>
+                        <div className="relative">
+                            <button
+                                onClick={toggleDropdown}
+                                className="font-medium text-sm"
+                            >
+                                Hi, {user.name}!
+                            </button>
+
+                            {/* Dropdown menu */}
+                            {isDropdownOpen && (
+                                <div className="bg-white divide-y divide-gray-100 rounded-lg shadow w-44 absolute mt-2">
+                                    <ul className="py-2 text-sm text-gray-700">
+                                        <li>
+                                            <a
+                                                href="#"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                            >
+                                                Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a
+                                                href="#"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                            >
+                                                Settings
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a
+                                                onClick={handleLogout}
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                            >
+                                                Logout
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
-                    <div className="relative">
-                        <button
-                            onClick={toggleDropdown}
-                            className="font-medium text-sm"
-                        >
-                            Hi, {user.email}!
-                        </button>
-
-                        {/* Dropdown menu */}
-                        {isDropdownOpen && (
-                            <div className="z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 absolute mt-2">
-                                <ul className="py-2 text-sm text-gray-700">
-                                    <li>
-                                        <a
-                                            href="#"
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                        >
-                                            Dashboard
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="#"
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                        >
-                                            Settings
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="#"
-                                            onClick={handleLogout}
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                        >
-                                            Logout
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
+                    <div className="flex items-center space-x-8">
+                        <LinkItem text="Login" href="/login" />
                     </div>
                 )}
             </div>

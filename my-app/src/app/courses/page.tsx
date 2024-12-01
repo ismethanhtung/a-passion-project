@@ -19,7 +19,7 @@ const sources: React.FC = () => {
             <h1 className="text-3xl font-bold text-center mb-6">Our Courses</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {courses.map((course, index) => (
-                    <CourseCard key={index} {...course} /> // Truyền các props vào CourseCard
+                    <CourseCard key={index} {...course} />
                 ))}
             </div>
         </div>
