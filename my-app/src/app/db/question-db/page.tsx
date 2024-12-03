@@ -78,7 +78,7 @@ function QuestionPage() {
 
             if (response.ok) {
                 fetchQuestions();
-                setEditingUser(null);
+                setEditingQuestion(null);
                 setShowEditModal(false);
                 setContent("");
                 setOption("");

@@ -130,7 +130,7 @@ function LessonPage() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-xl font-bold">Quản lý Courses</h1>
+            <h1 className="text-xl font-bold">Quản lý Lessons</h1>
 
             <textarea
                 value={jsonInput}

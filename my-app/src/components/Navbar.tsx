@@ -1,20 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
 import { useUser } from "@/context/UserContext";
 
 export default function Navbar() {
-    const { user, logout } = useUser(); // Lấy user và hàm logout từ UserContext
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen((prev) => !prev);
-    };
-    const toggleMegaMenu = () => {
-        setIsMegaMenuOpen((prev) => !prev);
-    };
+    const { user, logout } = useUser();
+    const [isManageOpen, setIsManageOpen] = useState(false);
+    const [isUserOpen, setIsUserOpen] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -31,7 +24,7 @@ export default function Navbar() {
             console.error("Lỗi khi đăng xuất:", error);
         }
     };
-    console.log(user);
+
     const links = [
         "Courses",
         "Learning Program",
@@ -40,7 +33,7 @@ export default function Navbar() {
         "Blog",
     ];
     const manages = [
-        "user",
+        "user-db",
         "course-db",
         "test-db",
         "blog-db",
@@ -49,8 +42,49 @@ export default function Navbar() {
         "lesson-db",
     ];
 
+    // Đóng dropdown khi nhấn ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const manageDropdown = document.getElementById(
+                "manage-dropdown-menu"
+            );
+            const userDropdown = document.getElementById("user-dropdown-menu");
+
+            if (
+                manageDropdown &&
+                !manageDropdown.contains(event.target as Node) &&
+                !event
+                    .composedPath()
+                    .some((el) =>
+                        (el as HTMLElement).id?.includes(
+                            "manage-dropdown-button"
+                        )
+                    )
+            ) {
+                setIsManageOpen(false);
+            }
+
+            if (
+                userDropdown &&
+                !userDropdown.contains(event.target as Node) &&
+                !event
+                    .composedPath()
+                    .some((el) =>
+                        (el as HTMLElement).id?.includes("user-dropdown-button")
+                    )
+            ) {
+                setIsUserOpen(false);
+            }
+        };
+
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, []);
+
     return (
-        <nav className="sticky top-0 h-16 bg-white border-b border-gray-150 z-50">
+        <nav className="sticky top-0 h-16 bg-white z-50 shadow-md">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div className="flex items-center space-x-8">
                     <LinkItem href="/" text="Home" />
@@ -60,24 +94,51 @@ export default function Navbar() {
                         ))}
                     </div>
                 </div>
+
                 {user ? (
                     <div className="flex items-center space-x-8">
-                        <div className="flex space-x-8">
-                            {manages.map((manage) => (
-                                <LinkItem key={manage} text={manage} />
-                            ))}
-                        </div>
+                        {/* Manage DB Dropdown */}
                         <div className="relative">
                             <button
-                                onClick={toggleDropdown}
+                                id="manage-dropdown-button"
+                                onClick={() => setIsManageOpen(!isManageOpen)}
+                                className="font-medium text-sm"
+                            >
+                                Manage DB
+                            </button>
+                            {isManageOpen && (
+                                <div
+                                    id="manage-dropdown-menu"
+                                    className="absolute mt-2 w-44 bg-white divide-y divide-gray-100 rounded-lg shadow"
+                                >
+                                    <ul className="py-2 px-4 text-sm text-gray-700">
+                                        {manages.map((manage) => (
+                                            <li key={manage}>
+                                                <LinkItem
+                                                    href={`/db/${manage}`}
+                                                    text={manage}
+                                                />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* User Dropdown */}
+                        <div className="relative">
+                            <button
+                                id="user-dropdown-button"
+                                onClick={() => setIsUserOpen(!isUserOpen)}
                                 className="font-medium text-sm"
                             >
                                 Hi, {user.name}!
                             </button>
-
-                            {/* Dropdown menu */}
-                            {isDropdownOpen && (
-                                <div className="bg-white divide-y divide-gray-100 rounded-lg shadow w-44 absolute mt-2">
+                            {isUserOpen && (
+                                <div
+                                    id="user-dropdown-menu"
+                                    className="absolute mt-2 w-44 bg-white divide-y divide-gray-100 rounded-lg shadow"
+                                >
                                     <ul className="py-2 text-sm text-gray-700">
                                         <li>
                                             <a

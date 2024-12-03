@@ -9,8 +9,9 @@ const CourseDetail: React.FC = () => {
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
     const [isPurchased, setIsPurchased] = useState(false);
+    const [visibleVideo, setVisibleVideo] = useState<string | null>(null);
 
-    const fetchCourseDetail = async () => {
+    const fetchCourseDetails = async () => {
         const response = await fetch(`http://localhost:5000/courses/${id}`);
         const data = await response.json();
         setCourse(data);
@@ -21,13 +22,15 @@ const CourseDetail: React.FC = () => {
             `http://localhost:5000/courses/${id}/purchase`,
             { method: "POST" }
         );
-        if (response.ok) {
-            setIsPurchased(true);
-        }
+        if (response.ok) setIsPurchased(true);
+    };
+
+    const toggleVideoVisibility = (lessonId: string) => {
+        setVisibleVideo((prev) => (prev === lessonId ? null : lessonId));
     };
 
     useEffect(() => {
-        fetchCourseDetail();
+        fetchCourseDetails();
     }, [id]);
 
     if (!course) {
@@ -40,26 +43,26 @@ const CourseDetail: React.FC = () => {
 
     return (
         <div className="container mx-auto p-8 space-y-8">
-            <div className="bg-gray-100 text-black p-6 rounded-lg shadow-lg">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+            {/* Khung thông tin khóa học */}
+            <div className="bg-gray-100 p-6 rounded-lg shadow-lg">
+                <div className="flex flex-col lg:flex-row gap-4">
                     <img
                         src={course.thumbnail}
                         alt={course.title}
                         className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg"
                     />
-                    <div className="flex-1">
-                        <h1 className="text-3xl lg:text-4xl font-bold text-black">
+                    <div>
+                        <h1 className="text-3xl lg:text-4xl font-bold">
                             {course.title}
                         </h1>
-                        <p className="text-black mt-2">{course.description}</p>
-                        <div className="flex items-center gap-4 text-gray-300 mt-4">
+                        <p className="mt-2">{course.description}</p>
+                        <div className="flex gap-4 text-gray-500 mt-4">
                             <span>⏱ {course.duration}</span>
                             <span>
-                                📚 {course.lessons?.length || 16} Lessons
+                                📚 {course.lessons?.length || 0} Lessons
                             </span>
                             <span>
-                                ⭐ {course.rating} (
-                                {course.reviews && course.reviews.length}{" "}
+                                ⭐ {course.rating} ({course.reviews?.length}{" "}
                                 Reviews)
                             </span>
                         </div>
@@ -67,10 +70,9 @@ const CourseDetail: React.FC = () => {
                 </div>
             </div>
 
+            {/* Danh sách bài học & mục tiêu */}
             <div className="grid lg:grid-cols-3 gap-8">
-                {/* Left Content */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Objectives */}
                     <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-semibold mb-4">
                             Mục tiêu khóa học
@@ -83,47 +85,43 @@ const CourseDetail: React.FC = () => {
                                 ))}
                         </ul>
                     </div>
-
                     <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-semibold mb-4">
                             Danh sách bài học
                         </h2>
-                        {course.lessons &&
-                            course.lessons.map((module, moduleIndex) => (
-                                <div key={moduleIndex} className="mb-4">
-                                    <h3 className="font-semibold text-lg bg-gray-200 p-3 rounded-t-md">
-                                        {module.title}
-                                    </h3>
-                                    <ul className="divide-y divide-gray-200">
-                                        {course.lessons.map((lesson) => (
-                                            <li
-                                                key={lesson.id}
-                                                className={`p-4 hover:bg-gray-100 cursor-pointer ${
-                                                    lesson.isLocked
-                                                        ? "text-gray-400 cursor-not-allowed"
-                                                        : "text-gray-700"
-                                                }`}
-                                            >
-                                                {lesson.title}{" "}
-                                                <span className="text-sm">
-                                                    ({lesson.duration})
-                                                </span>
-                                                <video
-                                                    src={lesson.videoUrl}
-                                                ></video>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                    </div>
+                        {course.lessons?.map((lesson) => (
+                            <div key={lesson.id} className="">
+                                <h3
+                                    onClick={() =>
+                                        toggleVideoVisibility(lesson.id)
+                                    }
+                                    className="py-3 font-semibold text-lg bg-gray-200 cursor-pointer text-blue-600"
+                                >
+                                    {lesson.title}
+                                </h3>
 
-                    {/* Reviews */}
+                                <div
+                                    className={` ${
+                                        lesson.isLocked
+                                            ? "text-gray-400 cursor-not-allowed"
+                                            : "text-gray-700"
+                                    }`}
+                                >
+                                    {visibleVideo === lesson.id && (
+                                        <Video
+                                            videoUrl={lesson.videoUrl}
+                                            isLocked={lesson.isLocked}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                     <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-semibold mb-4">
                             Đánh giá từ người học
                         </h2>
-                        {course.reviews && course.reviews.length > 0 ? (
+                        {course.reviews?.length > 0 ? (
                             course.reviews.map((review) => (
                                 <div
                                     key={review.id}
@@ -147,9 +145,7 @@ const CourseDetail: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Sidebar */}
                 <div className="space-y-6">
-                    {/* Pricing Section */}
                     <div className="bg-gray-100 p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-semibold mb-4">
                             Giá khóa học
