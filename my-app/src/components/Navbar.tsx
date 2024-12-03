@@ -46,6 +46,7 @@ export default function Navbar() {
         "blog-db",
         "question-db",
         "category-db",
+        "lesson-db",
     ];
 
     return (

@@ -39,7 +39,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     useEffect(() => {
-        // Lưu user vào localStorage khi thay đổi
         if (typeof window !== "undefined") {
             if (user) {
                 localStorage.setItem("user", JSON.stringify(user));
