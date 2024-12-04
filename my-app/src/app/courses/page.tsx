@@ -1,7 +1,7 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import CourseCard from "@/components/CourseCard";
+import Pagination from "@/components/Pagination";
 import Course from "@/interfaces/course";
 
 const Sources: React.FC = () => {
@@ -10,13 +10,13 @@ const Sources: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState<"all" | "price" | "rating">("all");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8; // Số lượng khóa học hiển thị mỗi trang
+    const itemsPerPage = 8;
 
     const fetchCourse = async () => {
         const response = await fetch("http://localhost:5000/courses");
         const data: Course[] = await response.json();
         setCourses(data);
-        setFilteredCourses(data); // Mặc định hiển thị tất cả khóa học
+        setFilteredCourses(data);
     };
 
     useEffect(() => {
@@ -61,7 +61,7 @@ const Sources: React.FC = () => {
     };
 
     return (
-        <div className="container mx-auto p-6">
+        <div className="container p-6 mx-auto ">
             <h1 className="text-3xl font-bold text-center mb-6">Our Courses</h1>
 
             {/* Tìm kiếm và lọc */}
@@ -71,7 +71,7 @@ const Sources: React.FC = () => {
                     placeholder="Search courses..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="border border-gray-300 rounded-lg px-4 py-2 w-1/3"
+                    className="border border-gray-200 rounded-lg px-4 py-2 w-1/3"
                 />
                 <select
                     value={filter}
@@ -80,7 +80,7 @@ const Sources: React.FC = () => {
                             e.target.value as "all" | "price" | "rating"
                         )
                     }
-                    className="border border-gray-300 rounded-lg px-4 py-2"
+                    className="border border-gray-200 rounded-lg px-4 py-2"
                 >
                     <option value="all">All</option>
                     <option value="price">Sort by Price</option>
@@ -88,7 +88,7 @@ const Sources: React.FC = () => {
                 </select>
             </div>
 
-            {/* Hiển thị danh sách khóa học */}
+            {/* Hiển thị khóa học */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 {displayedCourses.map((course, index) => (
                     <CourseCard key={index} {...course} />
@@ -96,39 +96,11 @@ const Sources: React.FC = () => {
             </div>
 
             {/* Phân trang */}
-            <div className="flex justify-center items-center mt-6">
-                <button
-                    onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded disabled:opacity-50"
-                >
-                    Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                        key={i + 1}
-                        onClick={() => handlePageChange(i + 1)}
-                        className={`px-3 py-1 text-sm ${
-                            currentPage === i + 1
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-200 text-gray-600"
-                        } rounded mx-1`}
-                    >
-                        {i + 1}
-                    </button>
-                ))}
-                <button
-                    onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded disabled:opacity-50"
-                >
-                    Next
-                </button>
-            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };

@@ -25,7 +25,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return (
         <Link
             href={`/courses/${id}`}
-            className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105 max-w-xs"
+            className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden transform max-w-xs"
         >
             <div className="relative">
                 <img
@@ -40,25 +40,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <p className="text-sm text-gray-600 mt-2">{description}</p>
                 <div className="flex items-center justify-between mt-4">
                     <div>
-                        {/* <p className="text-sm text-gray-500">From</p> */}
-                        <p className=" absolute bottom-4 text-lg font-bold text-indigo-600">
+                        <p className="absolute bottom-4 text-lg font-bold text-indigo-600">
                             {price}đ
                         </p>
                     </div>
                     <div className="flex items-center">
-                        <p className=" text-sm font-bold text-gray-800 mr-1">
-                            {rating}
-                        </p>
                         <div className="flex">
                             {Array.from({ length: 5 }).map((_, index) => (
-                                <span
-                                    key={index}
-                                    className={`text-yellow-400 ${
-                                        index < rating
-                                            ? "text-yellow-400"
-                                            : "text-gray-300"
-                                    }`}
-                                >
+                                <span key={index} className={`text-yellow-400`}>
                                     ★
                                 </span>
                             ))}

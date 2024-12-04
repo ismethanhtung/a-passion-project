@@ -3,13 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Course from "@/interfaces/course";
-import { Video } from "@/components/video";
+import { Video } from "@/components/ui/video";
+import ReviewList from "@/components/ReviewList";
+import ReviewForm from "@/components/ReviewForm";
+import { Review } from "@/interfaces/review";
 
 const CourseDetail: React.FC = () => {
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
     const [isPurchased, setIsPurchased] = useState(false);
-    const [visibleVideo, setVisibleVideo] = useState<string | null>(null);
+    const [visibleVideo, setVisibleVideo] = useState<number | null>(null);
+    const [reviews, setReviews] = useState<Review[]>([]);
 
     const fetchCourseDetails = async () => {
         const response = await fetch(`http://localhost:5000/courses/${id}`);
@@ -24,13 +28,19 @@ const CourseDetail: React.FC = () => {
         );
         if (response.ok) setIsPurchased(true);
     };
+    const fetchReviews = async () => {
+        const response = await fetch(`http://localhost:5000/reviews/${id}`);
+        const data = await response.json();
+        setReviews(data);
+    };
 
-    const toggleVideoVisibility = (lessonId: string) => {
+    const toggleVideoVisibility = (lessonId: number) => {
         setVisibleVideo((prev) => (prev === lessonId ? null : lessonId));
     };
 
     useEffect(() => {
         fetchCourseDetails();
+        fetchReviews();
     }, [id]);
 
     if (!course) {
@@ -44,7 +54,7 @@ const CourseDetail: React.FC = () => {
     return (
         <div className="container mx-auto p-8 space-y-8">
             {/* Khung thông tin khóa học */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg">
+            <div className="border-2 border-gray-200 p-6 rounded-lg">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <img
                         src={course.thumbnail}
@@ -73,7 +83,7 @@ const CourseDetail: React.FC = () => {
             {/* Danh sách bài học & mục tiêu */}
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+                    <div className="border-2 border-gray-200 p-6 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Mục tiêu khóa học
                         </h2>
@@ -85,7 +95,7 @@ const CourseDetail: React.FC = () => {
                                 ))}
                         </ul>
                     </div>
-                    <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+                    <div className="border-2 border-gray-200 p-6 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Danh sách bài học
                         </h2>
@@ -117,26 +127,21 @@ const CourseDetail: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+
+                    <div className="border-2 border-gray-200 p-6 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Đánh giá từ người học
                         </h2>
-                        {course.reviews?.length > 0 ? (
-                            course.reviews.map((review) => (
-                                <div
-                                    key={review.id}
-                                    className="p-4 bg-gray-100 rounded-lg mb-4"
-                                >
-                                    <p className="font-bold">{review.userId}</p>
-                                    <p className="text-gray-600">
-                                        {review.comment}
-                                    </p>
-                                    <div className="text-yellow-500">
-                                        {"★".repeat(review.rating)}{" "}
-                                        {"☆".repeat(5 - review.rating)}
-                                    </div>
-                                </div>
-                            ))
+                        <div className="container mx-auto p-8">
+                            <ReviewForm
+                                courseId={Number(id)}
+                                onReviewAdded={fetchReviews}
+                            />
+                        </div>
+                        {reviews?.length > 0 ? (
+                            <div className="container mx-auto p-8">
+                                <ReviewList reviews={reviews} />
+                            </div>
                         ) : (
                             <p className="text-gray-500">
                                 Chưa có đánh giá nào
@@ -146,7 +151,7 @@ const CourseDetail: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+                    <div className="border-2 border-gray-200 p-6 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Giá khóa học
                         </h2>

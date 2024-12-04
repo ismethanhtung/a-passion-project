@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
 import { useUser } from "@/context/UserContext";
+import Button from "./ui/button";
 
 export default function Navbar() {
     const { user, logout } = useUser();
@@ -84,8 +85,8 @@ export default function Navbar() {
     }, []);
 
     return (
-        <nav className="sticky top-0 h-16 bg-white z-50 shadow-md">
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <nav className="sticky top-0 h-16 bg-white z-50 shadow">
+            <div className="container mx-auto px-4 py-4 flex justify-between items-center h-full">
                 <div className="flex items-center space-x-8">
                     <LinkItem href="/" text="Home" />
                     <div className="flex space-x-8">
@@ -127,13 +128,26 @@ export default function Navbar() {
 
                         {/* User Dropdown */}
                         <div className="relative">
-                            <button
-                                id="user-dropdown-button"
-                                onClick={() => setIsUserOpen(!isUserOpen)}
-                                className="font-medium text-sm"
-                            >
-                                Hi, {user.name}!
-                            </button>
+                            <div>
+                                <button
+                                    type="button"
+                                    className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                                    aria-expanded="false"
+                                    aria-haspopup="true"
+                                    onClick={() => setIsUserOpen(!isUserOpen)}
+                                    id="user-dropdown-button"
+                                >
+                                    <span className="absolute -inset-1.5"></span>
+                                    <span className="sr-only">
+                                        Open user menu
+                                    </span>
+                                    <img
+                                        className="size-8 rounded-full"
+                                        src="/images/200.jpg"
+                                        alt=""
+                                    />
+                                </button>
+                            </div>
                             {isUserOpen && (
                                 <div
                                     id="user-dropdown-menu"
