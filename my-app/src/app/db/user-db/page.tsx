@@ -48,6 +48,7 @@ function UserPage() {
     const deleteUser = async (id: number) => {
         const response = await fetch(`http://localhost:5000/users/${id}`, {
             method: "DELETE",
+            credentials: "include",
         });
 
         if (response.ok) {

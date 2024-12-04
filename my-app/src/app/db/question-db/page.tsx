@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Question from "@/interfaces/question";
 
-// Định nghĩa interface cho người dùng
-
 function QuestionPage() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [content, setContent] = useState("");
@@ -12,17 +10,15 @@ function QuestionPage() {
     const [answer, setAnswer] = useState("");
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(
         null
-    ); // Dữ liệu user đang chỉnh sửa
+    );
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // Lấy danh sách người dùng từ backend
     const fetchQuestions = async () => {
         const response = await fetch("http://localhost:5000/questions");
         const data: Question[] = await response.json();
         setQuestions(data);
     };
 
-    // Thêm người dùng mới
     const addQuestion = async () => {
         const response = await fetch("http://localhost:5000/questions", {
             method: "POST",
@@ -45,13 +41,11 @@ function QuestionPage() {
     const deleteQuestion = async (id: number) => {
         const response = await fetch(`http://localhost:5000/questions/${id}`, {
             method: "DELETE",
+            credentials: "include",
         });
 
-        if (response.ok) {
-            fetchQuestions();
-        } else {
-            alert("Không thể xóa.");
-        }
+        if (response.ok) fetchQuestions();
+        else alert("Không thể xóa.");
     };
 
     // Bắt đầu chỉnh sửa
