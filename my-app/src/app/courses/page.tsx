@@ -61,8 +61,30 @@ const Sources: React.FC = () => {
     };
 
     return (
-        <div className="container p-6 mx-auto ">
-            <h1 className="text-3xl font-bold text-center mb-6">Our Courses</h1>
+        <div className="container mx-auto ">
+            <div className="flex my-16">
+                <div className="w-4/6 pt-12 px-10">
+                    <h1 className="font-bold text-6xl">
+                        Unlock Your Potential with <br />
+                        <p className="text-red-400">Our English Courses</p>
+                    </h1>
+                    <p className="text-lg text-gray-600 py-12">
+                        Explore expertly designed courses tailored to improve
+                        your English skills in Listening, Reading, Speaking, and
+                        Writing. Whether you're a beginner or an advanced
+                        learner, our programs help you grow at your own pace.
+                    </p>
+                    <p className="text-red-300 font-bold text-xl">
+                        Start your journey today and achieve your language goals
+                        with ease!
+                    </p>
+                </div>
+                <img
+                    className="object-cover block w-5/12 pr-24 rounded-lg mb-6 "
+                    src="/images/course.png"
+                    alt=""
+                />
+            </div>
 
             {/* Tìm kiếm và lọc */}
             <div className="flex justify-between items-center mb-6">

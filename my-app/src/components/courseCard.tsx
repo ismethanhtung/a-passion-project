@@ -25,33 +25,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return (
         <Link
             href={`/courses/${id}`}
-            className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden transform max-w-xs"
+            className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden transform flex flex-col"
         >
             <div className="relative">
                 <img
                     src={thumbnail}
                     alt={title}
-                    className="w-full h-36 object-cover"
+                    className="w-full h-40 object-cover"
                 />
             </div>
-            <div className="p-4">
+            <div className="p-4 flex-grow flex flex-col">
                 <span className="text-xs text-gray-500 uppercase">{tag}</span>
                 <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
-                <p className="text-sm text-gray-600 mt-2">{description}</p>
-                <div className="flex items-center justify-between mt-4">
-                    <div>
-                        <p className="absolute bottom-4 text-lg font-bold text-indigo-600">
-                            {price}đ
+                <p className="text-sm text-gray-600 py-2">{description}</p>
+                <div className="flex items-end justify-between mt-auto">
+                    <p className=" text-lg font-bold text-indigo-600">
+                        {price}đ
+                    </p>
+                    <div className="flex bg-red-50 rounded-lg p-1">
+                        <span className="text-yellow-500 text-xs">★</span>
+                        <p className="text-xs pl-1 font-bold text-gray-500">
+                            {rating || 5}
                         </p>
-                    </div>
-                    <div className="flex items-center">
-                        <div className="flex">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                                <span key={index} className={`text-yellow-400`}>
-                                    ★
-                                </span>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </div>

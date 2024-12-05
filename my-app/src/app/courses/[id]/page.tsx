@@ -129,7 +129,7 @@ const CourseDetail: React.FC = () => {
                     </div>
 
                     <div className="border-2 border-gray-200 p-6 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">
+                        <h2 className="text-xl font-semibold p-8">
                             Đánh giá từ người học
                         </h2>
                         <div className="container mx-auto p-8">

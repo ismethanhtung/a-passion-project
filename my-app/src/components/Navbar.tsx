@@ -31,7 +31,7 @@ export default function Navbar() {
         "Learning Program",
         "Online Tests",
         "Flashcards",
-        "Blog",
+        "Blogs",
     ];
     const manages = [
         "user-db",
@@ -85,7 +85,7 @@ export default function Navbar() {
     }, []);
 
     return (
-        <nav className="sticky top-0 h-16 bg-white z-50 shadow">
+        <nav className="sticky top-0 h-16 z-50 bg-red-50 opacity-95">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center h-full">
                 <div className="flex items-center space-x-8">
                     <LinkItem href="/" text="Home" />
@@ -142,8 +142,8 @@ export default function Navbar() {
                                         Open user menu
                                     </span>
                                     <img
-                                        className="size-8 rounded-full"
-                                        src="/images/200.jpg"
+                                        className="size-9 rounded-full border border-gray-200"
+                                        src="/images/avatar/avatar3.png"
                                         alt=""
                                     />
                                 </button>
@@ -154,30 +154,22 @@ export default function Navbar() {
                                     className="absolute mt-2 w-44 bg-white divide-y divide-gray-100 rounded-lg shadow"
                                 >
                                     <ul className="py-2 text-sm text-gray-700">
-                                        <li>
-                                            <a
-                                                href="#"
-                                                className="block px-4 py-2 hover:bg-gray-100"
-                                            >
-                                                Dashboard
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                href="#"
-                                                className="block px-4 py-2 hover:bg-gray-100"
-                                            >
-                                                Settings
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                onClick={handleLogout}
-                                                className="block px-4 py-2 hover:bg-gray-100"
-                                            >
-                                                Logout
-                                            </a>
-                                        </li>
+                                        <LinkItem
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                            text="Dashboard"
+                                            href="/dashboard"
+                                        />{" "}
+                                        <LinkItem
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                            text="Settings"
+                                            href="/settings"
+                                        />
+                                        <a
+                                            onClick={handleLogout}
+                                            className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            Logout
+                                        </a>
                                     </ul>
                                 </div>
                             )}
