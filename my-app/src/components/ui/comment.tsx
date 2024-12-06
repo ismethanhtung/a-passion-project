@@ -73,9 +73,7 @@ function Comment({
 
             <div className="flex items-center space-x-1 mb-2">
                 {Array.from({ length: 5 }).map((_, index) => (
-                    <span key={index} className="text-xs text-yellow-500">
-                        ★
-                    </span>
+                    <img key={index} src="/icons/star.png" className="size-3" />
                 ))}
             </div>
 

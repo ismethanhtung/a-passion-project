@@ -1,5 +1,5 @@
 import React from "react";
-import { Review } from "@/interfaces/review";
+import Review from "@/interfaces/review";
 
 interface ReviewListProps {
     reviews: Review[];
@@ -18,14 +18,14 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                         <div className="flex items-center space-x-4">
                             <img
                                 className="w-10 h-10 rounded-full border-2 border-gray-200"
-                                src="/images/200.jpg"
+                                src="/images/avatar/avatar3.png"
                                 alt="User Avatar"
                             />
                             <div>
-                                <p className="text-lg font-semibold text-gray-800">
+                                <p className="font-semibold text-gray-800">
                                     {review.user.name}
                                 </p>
-                                <small className="text-sm text-gray-500">
+                                <small className="text-xs text-gray-500">
                                     {new Date(
                                         review.createdAt
                                     ).toLocaleDateString()}
@@ -34,14 +34,15 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                         </div>
                         {/* Xếp hạng sao */}
                         <div className="flex items-center space-x-1">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                                <span
-                                    key={index}
-                                    className={`text-lg text-yellow-500`}
-                                >
-                                    ★
-                                </span>
-                            ))}
+                            {Array.from({ length: review.rating }).map(
+                                (_, index) => (
+                                    <img
+                                        key={index}
+                                        src="/icons/star.png"
+                                        className="size-3"
+                                    />
+                                )
+                            )}
                         </div>
                         {/* Nội dung đánh giá */}
                         <p className="text-gray-700">{review.comment}</p>

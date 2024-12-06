@@ -6,7 +6,7 @@ import Course from "@/interfaces/course";
 import { Video } from "@/components/ui/video";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
-import { Review } from "@/interfaces/review";
+import Review from "@/interfaces/review";
 
 const CourseDetail: React.FC = () => {
     const { id } = useParams();
@@ -67,12 +67,20 @@ const CourseDetail: React.FC = () => {
                         </h1>
                         <p className="mt-2">{course.description}</p>
                         <div className="flex gap-4 text-gray-500 mt-4">
-                            <span>⏱ {course.duration}</span>
-                            <span>
-                                📚 {course.lessons?.length || 0} Lessons
+                            <span className="flex">
+                                <img
+                                    src="/icons/clock.png"
+                                    className="size-4 mt-1"
+                                />{" "}
+                                {course.duration}
                             </span>
-                            <span>
-                                ⭐ {course.rating} ({course.reviews?.length}{" "}
+                            <span>{course.lessons?.length || 0} Lessons</span>
+                            <span className="flex">
+                                <img
+                                    src="/icons/star.png"
+                                    className="size-4 mt-1"
+                                />
+                                {course.rating} ({course.reviews?.length}{" "}
                                 Reviews)
                             </span>
                         </div>
@@ -80,12 +88,11 @@ const CourseDetail: React.FC = () => {
                 </div>
             </div>
 
-            {/* Danh sách bài học & mục tiêu */}
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="border-2 border-gray-200 p-6 rounded-lg">
+                    <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
-                            Mục tiêu khóa học
+                            Course Objectives
                         </h2>
                         <ul className="list-disc ml-6 space-y-2 text-gray-700">
                             {course.objectives
@@ -95,7 +102,7 @@ const CourseDetail: React.FC = () => {
                                 ))}
                         </ul>
                     </div>
-                    <div className="border-2 border-gray-200 p-6 rounded-lg">
+                    <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Danh sách bài học
                         </h2>
@@ -128,18 +135,18 @@ const CourseDetail: React.FC = () => {
                         ))}
                     </div>
 
-                    <div className="border-2 border-gray-200 p-6 rounded-lg">
-                        <h2 className="text-xl font-semibold p-8">
+                    <div className="border-2 border-gray-200 p-10 rounded-lg">
+                        <h2 className="text-xl font-semibold">
                             Đánh giá từ người học
                         </h2>
-                        <div className="container mx-auto p-8">
+                        <div className="container mx-auto py-8">
                             <ReviewForm
                                 courseId={Number(id)}
                                 onReviewAdded={fetchReviews}
                             />
                         </div>
                         {reviews?.length > 0 ? (
-                            <div className="container mx-auto p-8">
+                            <div className="container mx-auto py-8">
                                 <ReviewList reviews={reviews} />
                             </div>
                         ) : (
@@ -151,7 +158,20 @@ const CourseDetail: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="border-2 border-gray-200 p-6 rounded-lg">
+                    <div>
+                        <div className=" border-2 border-gray-200 rounded-lg p-10">
+                            <h3 className="text-lg font-semibold mb-4">
+                                Course Review
+                            </h3>
+                            <Video
+                                videoUrl={
+                                    "https://www.youtube.com/watch?v=YmykOwljr0k&list=RDMMYmykOwljr0k&start_radio=1"
+                                }
+                                isLocked={false}
+                            />
+                        </div>
+                    </div>
+                    <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
                             Giá khóa học
                         </h2>
@@ -165,17 +185,27 @@ const CourseDetail: React.FC = () => {
                                 </span>
                             )}
                         </div>
-                        <button
-                            className={`w-full mt-6 py-3 rounded-lg font-semibold ${
-                                isPurchased
-                                    ? "bg-green-500 text-white cursor-not-allowed"
-                                    : "bg-blue-500 text-white"
-                            }`}
-                            onClick={handlePurchase}
-                            disabled={isPurchased}
-                        >
-                            {isPurchased ? "Đã Mua" : "Mua ngay"}
-                        </button>
+                        <div className="mt-6 space-y-4">
+                            <button
+                                className={`w-full py-3 rounded-lg font-semibold ${
+                                    isPurchased
+                                        ? "bg-green-300 text-white cursor-not-allowed"
+                                        : "bg-blue-400 text-white"
+                                }`}
+                                onClick={handlePurchase}
+                                disabled={isPurchased}
+                            >
+                                {isPurchased ? "Sold" : "Buy Now"}
+                            </button>
+                            <button
+                                className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-white"
+                                onClick={() =>
+                                    alert("Khóa học đã được thêm vào giỏ hàng!")
+                                }
+                            >
+                                Add to cart
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

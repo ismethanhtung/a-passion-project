@@ -4,7 +4,7 @@ import React from "react";
 
 export default function Contact() {
     return (
-        <div className="">
+        <div className="text-sm">
             {/* Address */}
             <div className="mb-6">
                 <div className="flex items-center mb-2">

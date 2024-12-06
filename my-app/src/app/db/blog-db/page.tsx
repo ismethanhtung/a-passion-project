@@ -19,7 +19,6 @@ function UserPage() {
     const [editingBlog, setEditingBlog] = useState<Blog | null>(null); // Dữ liệu user đang chỉnh sửa
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // Lấy danh sách người dùng từ backend
     const fetchBlogs = async () => {
         const response = await fetch("http://localhost:5000/blogs");
         const data: Blog[] = await response.json();
@@ -57,7 +56,6 @@ function UserPage() {
         }
     };
 
-    // Bắt đầu chỉnh sửa
     const editBlog = (blog: Blog) => {
         setEditingBlog(blog);
         setTitle(blog.title);
@@ -65,7 +63,6 @@ function UserPage() {
         setShowEditModal(true);
     };
 
-    // Cập nhật người dùng
     const updateBlog = async () => {
         if (editingBlog) {
             const response = await fetch(
@@ -91,7 +88,6 @@ function UserPage() {
         }
     };
 
-    // Hiện thị Modal
     const renderEditModal = () => (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div className="bg-white p-6 rounded shadow-lg">
@@ -130,7 +126,6 @@ function UserPage() {
         </div>
     );
 
-    // Gọi hàm khi trang được load
     useEffect(() => {
         fetchBlogs();
     }, []);
@@ -139,7 +134,6 @@ function UserPage() {
         <div className="container mx-auto p-4">
             <h1 className="text-xl font-bold">Quản lý Blog</h1>
 
-            {/* Form thêm người dùng */}
             <div className="my-4">
                 <input
                     type="text"
@@ -170,7 +164,6 @@ function UserPage() {
                 </button>
             </div>
 
-            {/* Danh sách người dùng */}
             <div className="container">
                 <DBTable
                     data={blogs}

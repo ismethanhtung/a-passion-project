@@ -8,6 +8,7 @@ interface Course {
     price: number;
     teacherId: number;
     creatorId: number;
+    categoryId: number;
     thumbnail: string;
     newPrice: number;
     objectives: string;

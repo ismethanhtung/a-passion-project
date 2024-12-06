@@ -41,6 +41,7 @@ export default function Navbar() {
         "question-db",
         "category-db",
         "lesson-db",
+        "review-db",
     ];
 
     // Đóng dropdown khi nhấn ra ngoài

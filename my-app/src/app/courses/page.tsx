@@ -86,6 +86,10 @@ const Sources: React.FC = () => {
                 />
             </div>
 
+            <div className="flex justify-center text-6xl font-bold text-red-300 pb-24">
+                Get Started!
+            </div>
+
             {/* Tìm kiếm và lọc */}
             <div className="flex justify-between items-center mb-6">
                 <input
@@ -93,7 +97,7 @@ const Sources: React.FC = () => {
                     placeholder="Search courses..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="border border-gray-200 rounded-lg px-4 py-2 w-1/3"
+                    className="border-2 border-gray-200 rounded-lg px-4 py-2 w-1/3"
                 />
                 <select
                     value={filter}
@@ -102,7 +106,7 @@ const Sources: React.FC = () => {
                             e.target.value as "all" | "price" | "rating"
                         )
                     }
-                    className="border border-gray-200 rounded-lg px-4 py-2"
+                    className="border-2 border-gray-200 rounded-lg px-4 py-2"
                 >
                     <option value="all">All</option>
                     <option value="price">Sort by Price</option>

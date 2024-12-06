@@ -8,7 +8,7 @@ interface User {
     name: string;
     email: string;
     password: string;
-    role: string;
+    roleId: number;
 }
 
 function UserPage() {
@@ -18,30 +18,10 @@ function UserPage() {
     const [editingUser, setEditingUser] = useState<User | null>(null); // Dữ liệu user đang chỉnh sửa
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // Lấy danh sách người dùng từ backend
     const fetchUsers = async () => {
         const response = await fetch("http://localhost:5000/users");
         const data: User[] = await response.json();
         setUsers(data);
-    };
-
-    // Thêm người dùng mới
-    const addUser = async () => {
-        const response = await fetch("http://localhost:5000/users", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name, email }),
-        });
-
-        if (response.ok) {
-            fetchUsers();
-            setName("");
-            setEmail("");
-        } else {
-            alert("Không thể thêm người dùng.");
-        }
     };
 
     // Xóa người dùng
@@ -92,7 +72,6 @@ function UserPage() {
         }
     };
 
-    // Hiện thị Modal
     const renderEditModal = () => (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div className="bg-white p-6 rounded shadow-lg">
@@ -138,31 +117,7 @@ function UserPage() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-xl font-bold">Quản lý Người Dùng</h1>
-
-            {/* Form thêm người dùng */}
-            <div className="my-4">
-                <input
-                    type="text"
-                    placeholder="Tên"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="border p-2"
-                />
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="border p-2 ml-2"
-                />
-                <button
-                    onClick={addUser}
-                    className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
-                >
-                    Thêm Người Dùng
-                </button>
-            </div>
+            <h1 className="text-xl font-bold">User management</h1>
 
             {/* Danh sách người dùng */}
             <div className="container">
@@ -173,7 +128,7 @@ function UserPage() {
                         { key: "name", label: "Tên" },
                         { key: "email", label: "Email" },
                         { key: "password", label: "Password" },
-                        { key: "role", label: "Role" },
+                        { key: "roleId", label: "RoleId" },
                     ]}
                     onEdit={editUser}
                     onDelete={deleteUser}

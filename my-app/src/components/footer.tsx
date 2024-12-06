@@ -21,8 +21,8 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="w-full bg-red-50 py-10 mt-20 text-gray-700">
-            <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 mx-32 my-16">
+        <footer className="w-full bg-red-50 pl-40 py-20 mt-20 text-gray-700">
+            <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Contact Section */}
                 <div>
                     <Contact />

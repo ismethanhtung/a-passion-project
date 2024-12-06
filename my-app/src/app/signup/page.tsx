@@ -4,7 +4,6 @@ import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
 
 function SignUp() {
-    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -14,7 +13,8 @@ function SignUp() {
     const router = useRouter();
 
     const handleSignUp = async () => {
-        setError(""); // Reset lỗi trước khi bắt đầu
+        setError("");
+        const name = `${firstName} ${lastName}`;
         try {
             const response = await fetch("http://localhost:5000/users", {
                 method: "POST",
@@ -57,7 +57,7 @@ function SignUp() {
                     </div>
                     {/* Error Message */}
                     {error && (
-                        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
@@ -66,17 +66,16 @@ function SignUp() {
                         <input
                             type="text"
                             value={firstName}
-                            onChange={(e) => setName(e.target.value) + lastName}
+                            onChange={(e) => setFirstName(e.target.value)}
                             className="border text-sm rounded-lg block w-1/2 p-2.5"
                             placeholder="first name"
                             required
-                        />{" "}
+                        />
                         <input
+                            id="lastname"
                             type="text"
                             value={lastName}
-                            onChange={(e) =>
-                                setName(firstName + e.target.value)
-                            }
+                            onChange={(e) => setLastName(e.target.value)}
                             className="border text-sm rounded-lg block w-1/2 ml-2 p-2.5"
                             placeholder="last name"
                             required

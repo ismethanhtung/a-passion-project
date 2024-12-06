@@ -2,14 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Pagination from "@/components/Pagination";
-
-interface Blog {
-    title: string;
-    description: string;
-    url: string;
-    publishedAt: string;
-    urlToImage: string;
-}
+import Blog from "@/interfaces/blog";
+import fetchBlogs from "@/utils/blogs";
 
 const Blogs: React.FC = () => {
     const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -18,30 +12,21 @@ const Blogs: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
-    let newDate = new Date();
-    let date = newDate.getDate() - 1;
-    let month = newDate.getMonth() + 1;
-    let year = newDate.getFullYear();
-    let date1 = date > 9 ? date : `0${date}`;
-
-    const fetchBlogs = async () => {
-        try {
-            const response = await fetch(
-                `https://newsapi.org/v2/everything?q=technology&from=${year}-${month}-${date1}&sortBy=publishedAt&apiKey=ac4bd79fc7c547ec9964d7e43f0f823b`
-            );
-            const data = await response.json();
-            setBlogs(data.articles);
-            setFilteredBlogs(data.articles);
-        } catch (error) {
-            console.error("Error fetching blogs:", error);
-        }
-    };
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
     useEffect(() => {
-        fetchBlogs();
+        const getBlogs = async () => {
+            try {
+                const data = await fetchBlogs();
+                setBlogs(data);
+                setFilteredBlogs(data);
+            } catch (error) {
+                console.error("Error fetching blogs:", error);
+            }
+        };
+        getBlogs();
     }, []);
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,16 +5,16 @@ import Course from "@/interfaces/course";
 
 function CoursePage() {
     const [courses, setCourses] = useState<Course[]>([]);
-    const [jsonInput, setJsonInput] = useState(`  {
+    const [jsonInput, setJsonInput] = useState(`{
   "title": "English Foundation Course: Grammar and Speaking Upgrade",
   "description": "Become fluent by improving all your English Skills. Build a strong English foundation in grammar, speaking, and more!",
   "objectives": "Learn in-demand skills from university and industry experts. Master a subject or tool with hands-on projects. Develop a deep understanding of key concepts. Earn a career certificate from Georgia Institute of Technology.",
   "price": 1000,
   "newPrice": 0,
   "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
-  "categoryId": 1,
-  "creatorId": 30,
-  "teacherId": 23
+  "categoryId": 2,
+  "creatorId": 1,
+  "teacherId": 1
 }`);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -44,9 +44,9 @@ function CoursePage() {
   "price": 1000,
   "newPrice": 0,
   "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
-  "categoryId": 1,
-  "creatorId": 30,
-  "teacherId": 23
+  "categoryId": 2,
+  "creatorId": 1,
+  "teacherId": 1
 }`);
         } else {
             alert("err");
@@ -67,6 +67,7 @@ function CoursePage() {
 
     const editCourse = (course: Course) => {
         setEditingCourse(course);
+        setJsonInput(JSON.stringify(course, null, 2));
         setShowEditModal(true);
     };
 
@@ -96,9 +97,9 @@ function CoursePage() {
   "price": 1000,
   "newPrice": 0,
   "thumbnail": "https://res.cloudinary.com/dzbifaqwo/image/upload/v1732779661/samples/dessert-on-a-plate.jpg",
-  "categoryId": 1,
-  "creatorId": 30,
-  "teacherId": 23
+  "categoryId": 2,
+  "creatorId": 1,
+  "teacherId": 1
 }`);
                 } else {
                     alert("Không thể cập nhật.");
@@ -124,13 +125,13 @@ function CoursePage() {
                     onClick={updateCourse}
                     className="bg-blue-500 text-white px-4 py-1 rounded"
                 >
-                    Cập nhật
+                    Update
                 </button>
                 <button
                     onClick={() => setShowEditModal(false)}
                     className="ml-2 bg-red-500 text-white px-4 py-1 rounded"
                 >
-                    Đóng
+                    Esc
                 </button>
             </div>
         </div>
@@ -142,7 +143,7 @@ function CoursePage() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-xl font-bold">Quản lý Courses</h1>
+            <h1 className="text-xl font-bold py-8">Courses management</h1>
 
             <textarea
                 value={jsonInput}
@@ -163,11 +164,13 @@ function CoursePage() {
                     data={courses}
                     columns={[
                         { key: "id", label: "ID" },
-                        { key: "title", label: "Tiêu đề" },
-                        { key: "description", label: "Mô tả" },
+                        { key: "title", label: "Title" },
+                        { key: "description", label: "Description" },
                         { key: "price", label: "Price" },
+                        { key: "newPrice", label: "New Price" },
                         { key: "teacherId", label: "TeacherId" },
                         { key: "creatorId", label: "CreatorId" },
+                        { key: "categoryId", label: "CategoryId" },
                     ]}
                     onEdit={editCourse}
                     onDelete={deleteCourse}

@@ -38,7 +38,7 @@ function Login() {
             router.push(`/?refreshId=${new Date().getTime()}`);
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
-            setError("Đã xảy ra lỗi. Vui lòng thử lại.");
+            setError("Lỗi khi đăng nhập.");
         }
     };
 
@@ -58,7 +58,7 @@ function Login() {
                     </div>
                     {/* Error Message */}
                     {error && (
-                        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
                             {error}
                         </div>
                     )}

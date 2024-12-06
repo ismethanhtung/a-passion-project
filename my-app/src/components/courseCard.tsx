@@ -31,19 +31,27 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <img
                     src={thumbnail}
                     alt={title}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-40 object-cover border-b-2 border-gray-200"
                 />
             </div>
             <div className="p-4 flex-grow flex flex-col">
                 <span className="text-xs text-gray-500 uppercase">{tag}</span>
                 <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
-                <p className="text-sm text-gray-600 py-2">{description}</p>
+                <p className="text-sm text-gray-600 py-2 mb-4">{description}</p>
                 <div className="flex items-end justify-between mt-auto">
-                    <p className=" text-lg font-bold text-indigo-600">
-                        {price}đ
-                    </p>
+                    <div>
+                        {" "}
+                        <p className=" text-lg font-bold text-indigo-600">
+                            {newPrice}đ
+                        </p>
+                        {newPrice && (
+                            <span className="text line-through text-yellow-400">
+                                {price}đ
+                            </span>
+                        )}
+                    </div>
                     <div className="flex bg-red-50 rounded-lg p-1">
-                        <span className="text-yellow-500 text-xs">★</span>
+                        <img src="/icons/star.png" className="size-3" />
                         <p className="text-xs pl-1 font-bold text-gray-500">
                             {rating || 5}
                         </p>
