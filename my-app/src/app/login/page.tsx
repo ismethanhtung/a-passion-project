@@ -9,6 +9,7 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+
     const router = useRouter();
 
     const handleLogin = async () => {
@@ -34,7 +35,6 @@ function Login() {
             login(data.user);
             console.log(user);
 
-            alert("Đăng nhập thành công!");
             router.push(`/?refreshId=${new Date().getTime()}`);
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
@@ -43,23 +43,19 @@ function Login() {
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-                <div className="md:w-1/2 text-center md:text-left flex flex-col justify-center">
-                    <h1 className="my-5 text-4xl font-extrabold tracking-tight">
-                        Welcome back! <br />
-                        <span className="text-blue-500">
-                            Login to your account
-                        </span>
-                    </h1>
-                    <p className="px-3 text-gray-600">
-                        Login to access your business account and manage your
-                        profile.
-                    </p>
-                </div>
-            </div>
-            <div className="max-w-sm  p-4">
-                <div className="my-5 bg-white p-6 rounded-lg shadow-lg">
+        <div className="container mx-auto">
+            <div className="mx-auto content-center w-4/12">
+                <div className="my-28 mx-8 p-8 bg-white p-6 rounded-3xl shadow-lg border-gray-100 border">
+                    <div className="flex flex-col md:flex-row items-center">
+                        <div className="text-center flex flex-col justify-center w-full mb-10">
+                            <h1 className="my-6 text-2xl font-extrabold tracking-tight">
+                                Welcome back! <br />
+                                <span className="text-red-300">
+                                    Login to your account
+                                </span>
+                            </h1>
+                        </div>
+                    </div>
                     {/* Error Message */}
                     {error && (
                         <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
@@ -87,59 +83,78 @@ function Login() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            placeholder="password"
                             className="border text-sm rounded-lg block w-full p-2.5 "
                         />
                     </div>
 
-                    {/* Remember me checkbox */}
-                    <div className="flex items-start mb-5">
-                        <div className="flex items-center h-5">
-                            <input
-                                id="remember"
-                                type="checkbox"
-                                value=""
-                                className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 "
-                            />
+                    <div className="flex justify-between w-full mb-5">
+                        <div className="flex">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="remember"
+                                    type="checkbox"
+                                    value=""
+                                    className="w-4 h-4 border border-gray-300 rounded"
+                                />
+                            </div>
+                            <label
+                                htmlFor="remember"
+                                className="ms-2 text-sm font-medium text-gray-900 "
+                            >
+                                Remember me
+                            </label>
                         </div>
-                        <label
-                            htmlFor="remember"
-                            className="ms-2 text-sm font-medium text-gray-900 "
-                        >
-                            Remember me
-                        </label>
+                        <LinkItem
+                            text="Forgot password?"
+                            href="/forgot-password"
+                            className="hover:underline"
+                        />
                     </div>
 
-                    {/* Submit button */}
                     <button
                         onClick={handleLogin}
-                        className="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm  sm:w-auto px-5 py-2.5 text-center"
+                        className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full"
                     >
-                        Submit
+                        Sign in
                     </button>
 
                     {/* Social login options */}
-                    <div className="text-center mt-4">
-                        <p className="text-gray-600">or log in with:</p>
-                        <div className="flex justify-center space-x-4 mt-3">
-                            <button className="bg-blue-600 text-white p-3 rounded-full">
-                                <i className="fab fa-facebook-f"></i>
+                    <div className="text-center">
+                        <p className="text-gray-600 py-8">or log in with:</p>
+                        <div className="flex justify-between space-x-4">
+                            <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
+                                <img
+                                    src="/logos/facebook.png"
+                                    className="size-5"
+                                    alt=""
+                                />
                             </button>
-                            <button className="bg-blue-400 text-white p-3 rounded-full">
-                                <i className="fab fa-twitter"></i>
-                            </button>
-                            <button className="bg-red-500 text-white p-3 rounded-full">
-                                <i className="fab fa-google"></i>
-                            </button>
-                            <button className="bg-gray-800 text-white p-3 rounded-full">
-                                <i className="fab fa-github"></i>
+                            <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
+                                <img
+                                    src="/logos/google.png"
+                                    className="size-5"
+                                    alt=""
+                                />
+                            </button>{" "}
+                            <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
+                                <img
+                                    src="/logos/apple.png"
+                                    className="size-5"
+                                    alt=""
+                                />
                             </button>
                         </div>
-                        <div className="mt-4">
-                            <p className="text-gray-600 flex">
-                                Don't have an account?{" "}
-                                <LinkItem text="signup" />
-                            </p>
-                        </div>
+                    </div>
+                    <div className="mt-4 flex content-center justify-center">
+                        <p className="text-gray-600 flex text-sm mr-2">
+                            Don't have an account?
+                        </p>
+                        <LinkItem
+                            text="Sign Up"
+                            href="/signup"
+                            className="hover:underline"
+                        />
                     </div>
                 </div>
             </div>

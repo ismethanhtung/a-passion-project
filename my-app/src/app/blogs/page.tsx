@@ -18,10 +18,16 @@ const Blogs: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
+    let newDate = new Date();
+    let date = newDate.getDate() - 1;
+    let month = newDate.getMonth() + 1;
+    let year = newDate.getFullYear();
+    let date1 = date > 9 ? date : `0${date}`;
+
     const fetchBlogs = async () => {
         try {
             const response = await fetch(
-                "https://newsapi.org/v2/everything?q=technology&from=2024-11-05&sortBy=publishedAt&apiKey=ac4bd79fc7c547ec9964d7e43f0f823b"
+                `https://newsapi.org/v2/everything?q=technology&from=${year}-${month}-${date1}&sortBy=publishedAt&apiKey=ac4bd79fc7c547ec9964d7e43f0f823b`
             );
             const data = await response.json();
             setBlogs(data.articles);

@@ -87,9 +87,9 @@ export default function Navbar() {
     return (
         <nav className="sticky top-0 h-16 z-50 bg-red-50 opacity-95">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center h-full">
-                <div className="flex items-center space-x-8">
+                <div className="flex items-center space-x-8 font-semibold">
                     <LinkItem href="/" text="Home" />
-                    <div className="flex space-x-8">
+                    <div className="flex space-x-8 font-semibold">
                         {links.map((link) => (
                             <LinkItem key={link} text={link} />
                         ))}
@@ -98,7 +98,6 @@ export default function Navbar() {
 
                 {user ? (
                     <div className="flex items-center space-x-8">
-                        {/* Manage DB Dropdown */}
                         <div className="relative">
                             <button
                                 id="manage-dropdown-button"
@@ -176,7 +175,7 @@ export default function Navbar() {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex items-center space-x-8">
+                    <div className="flex items-center space-x-8 font-semibold">
                         <LinkItem text="Login" href="/login" />
                     </div>
                 )}
