@@ -1,8 +1,8 @@
 interface User {
     name: string;
     email: string;
-    role: string;
-    userId: number;
+    roleId: number;
+    id: number;
 }
 
 export default User;

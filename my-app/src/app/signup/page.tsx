@@ -55,13 +55,13 @@ function SignUp() {
                             </h1>
                         </div>
                     </div>
-                    {/* Error Message */}
+
                     {error && (
                         <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
-                    {/* Name input */}
+
                     <div className="flex justify-between mb-5">
                         <input
                             type="text"
@@ -92,7 +92,7 @@ function SignUp() {
                             required
                         />
                     </div>
-                    {/* Password input */}
+
                     <div className="mb-5">
                         <input
                             id="password"
@@ -108,9 +108,9 @@ function SignUp() {
                         onClick={handleSignUp}
                         className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full"
                     >
-                        Sign in
+                        Sign up
                     </button>
-                    {/* Social login options */}
+
                     <div className="text-center">
                         <p className="text-gray-600 py-8">or continue with:</p>
                         <div className="flex justify-between space-x-4">

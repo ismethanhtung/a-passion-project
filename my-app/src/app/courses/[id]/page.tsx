@@ -54,12 +54,12 @@ const CourseDetail: React.FC = () => {
     return (
         <div className="container mx-auto p-8 space-y-8">
             {/* Khung thông tin khóa học */}
-            <div className="border-2 border-gray-200 p-6 rounded-lg">
+            <div className="border-2 border-gray-200 p-10 rounded-lg">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <img
                         src={course.thumbnail}
                         alt={course.title}
-                        className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg"
+                        className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg mr-8"
                     />
                     <div>
                         <h1 className="text-3xl lg:text-4xl font-bold">
@@ -71,7 +71,7 @@ const CourseDetail: React.FC = () => {
                                 <img
                                     src="/icons/clock.png"
                                     className="size-4 mt-1"
-                                />{" "}
+                                />
                                 {course.duration}
                             </span>
                             <span>{course.lessons?.length || 0} Lessons</span>
@@ -104,7 +104,7 @@ const CourseDetail: React.FC = () => {
                     </div>
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
-                            Danh sách bài học
+                            Course content
                         </h2>
                         {course.lessons?.map((lesson) => (
                             <div key={lesson.id} className="">
@@ -112,7 +112,7 @@ const CourseDetail: React.FC = () => {
                                     onClick={() =>
                                         toggleVideoVisibility(lesson.id)
                                     }
-                                    className="py-3 font-semibold text-lg bg-gray-200 cursor-pointer text-blue-600"
+                                    className="py-1 text-sm  cursor-pointer text-blue-600"
                                 >
                                     {lesson.title}
                                 </h3>
@@ -136,9 +136,7 @@ const CourseDetail: React.FC = () => {
                     </div>
 
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold">
-                            Đánh giá từ người học
-                        </h2>
+                        <h2 className="text-xl font-semibold">Course rating</h2>
                         <div className="container mx-auto py-8">
                             <ReviewForm
                                 courseId={Number(id)}
@@ -165,7 +163,7 @@ const CourseDetail: React.FC = () => {
                             </h3>
                             <Video
                                 videoUrl={
-                                    "https://www.youtube.com/watch?v=YmykOwljr0k&list=RDMMYmykOwljr0k&start_radio=1"
+                                    "https://www.youtube.com/embed/ZjAqacIC_3c?si=_v5fmzErzpGgH-nV"
                                 }
                                 isLocked={false}
                             />
@@ -173,7 +171,7 @@ const CourseDetail: React.FC = () => {
                     </div>
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">
-                            Giá khóa học
+                            Course price
                         </h2>
                         <div className="flex items-center gap-4">
                             <span className="text-2xl font-bold text-green-600">

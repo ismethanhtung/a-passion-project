@@ -14,7 +14,6 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                         key={review.id}
                         className="p-4 bg-white rounded-lg border-2 border-gray-200 flex flex-col space-y-2"
                     >
-                        {/* Thông tin người dùng */}
                         <div className="flex items-center space-x-4">
                             <img
                                 className="w-10 h-10 rounded-full border-2 border-gray-200"
@@ -32,7 +31,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                                 </small>
                             </div>
                         </div>
-                        {/* Xếp hạng sao */}
+
                         <div className="flex items-center space-x-1">
                             {Array.from({ length: review.rating }).map(
                                 (_, index) => (
@@ -44,7 +43,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                                 )
                             )}
                         </div>
-                        {/* Nội dung đánh giá */}
+
                         <p className="text-gray-700">{review.comment}</p>
                     </div>
                 ))

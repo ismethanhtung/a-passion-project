@@ -2,16 +2,21 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Question from "@/interfaces/question";
+import renderEditModal from "@/components/editModal";
+import { json } from "stream/consumers";
 
 function QuestionPage() {
+    const template = `{
+        "content": "Helo",
+        "option": "["a", "b", "c", "d"]",
+        "answer": "a",
+    }`;
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [content, setContent] = useState("");
-    const [option, setOption] = useState("");
-    const [answer, setAnswer] = useState("");
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(
         null
     );
     const [showEditModal, setShowEditModal] = useState(false);
+    const [jsonInput, setJsonInput] = useState(template);
 
     const fetchQuestions = async () => {
         const response = await fetch("http://localhost:5000/questions");
@@ -25,14 +30,12 @@ function QuestionPage() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ content, option, answer }),
+            body: JSON.stringify(template),
         });
 
         if (response.ok) {
             fetchQuestions();
-            setContent("");
-            setOption("");
-            setAnswer("");
+            setJsonInput(template);
         } else {
             alert("Không thể thêm q.");
         }
@@ -48,12 +51,9 @@ function QuestionPage() {
         else alert("Không thể xóa.");
     };
 
-    // Bắt đầu chỉnh sửa
     const editQuestion = (question: Question) => {
         setEditingQuestion(question);
-        setContent(question.content);
-        setOption(question.options);
-        setAnswer(question.answer);
+        setJsonInput(JSON.stringify(question, null, 2));
         setShowEditModal(true);
     };
 
@@ -66,7 +66,7 @@ function QuestionPage() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ content, option, answer }),
+                    body: JSON.stringify(template),
                 }
             );
 
@@ -74,64 +74,13 @@ function QuestionPage() {
                 fetchQuestions();
                 setEditingQuestion(null);
                 setShowEditModal(false);
-                setContent("");
-                setOption("");
-                setAnswer("");
+                setJsonInput(template);
             } else {
                 alert("Không thể cập nhật.");
             }
         }
     };
 
-    // Hiện thị Modal
-    const renderEditModal = () => (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg">
-                <h2 className="text-xl font-bold mb-4">Chỉnh Sửa Người Dùng</h2>
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="content"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="border p-2 w-full"
-                    />
-                </div>
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="option"
-                        value={option}
-                        onChange={(e) => setOption(e.target.value)}
-                        className="border p-2 w-full"
-                    />
-                </div>{" "}
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="answer"
-                        value={answer}
-                        onChange={(e) => setAnswer(e.target.value)}
-                        className="border p-2 w-full"
-                    />
-                </div>
-                <button
-                    onClick={updateQuestion}
-                    className="bg-blue-500 text-white px-4 py-1 rounded"
-                >
-                    Cập nhật
-                </button>
-                <button
-                    onClick={() => setShowEditModal(false)}
-                    className="ml-2 bg-red-500 text-white px-4 py-1 rounded"
-                >
-                    Đóng
-                </button>
-            </div>
-        </div>
-    );
-
-    // Gọi hàm khi trang được load
     useEffect(() => {
         fetchQuestions();
     }, []);
@@ -139,29 +88,12 @@ function QuestionPage() {
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-xl font-bold">Quản lý Questions</h1>
-
+            <textarea
+                value={jsonInput}
+                onChange={(e) => setJsonInput(e.target.value)}
+                className="border w-full p-2 h-32"
+            ></textarea>
             <div className="my-4">
-                <input
-                    type="text"
-                    placeholder="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="border p-2"
-                />
-                <input
-                    type="text"
-                    placeholder="option"
-                    value={option}
-                    onChange={(e) => setOption(e.target.value)}
-                    className="border p-2 ml-2"
-                />{" "}
-                <input
-                    type="text"
-                    placeholder="answer"
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    className="border p-2 ml-2"
-                />
                 <button
                     onClick={addQuestion}
                     className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
@@ -169,8 +101,6 @@ function QuestionPage() {
                     Thêm Question
                 </button>
             </div>
-
-            {/* Danh sách người dùng */}
             <div className="container">
                 <DBTable
                     data={questions}
@@ -186,7 +116,13 @@ function QuestionPage() {
                 />
             </div>
 
-            {showEditModal && renderEditModal()}
+            {showEditModal &&
+                renderEditModal(
+                    jsonInput,
+                    setJsonInput,
+                    updateQuestion,
+                    setShowEditModal
+                )}
         </div>
     );
 }

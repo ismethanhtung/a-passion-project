@@ -44,7 +44,6 @@ export default function Navbar() {
         "review-db",
     ];
 
-    // Đóng dropdown khi nhấn ra ngoài
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const manageDropdown = document.getElementById(
@@ -126,7 +125,6 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        {/* User Dropdown */}
                         <div className="relative">
                             <div>
                                 <button

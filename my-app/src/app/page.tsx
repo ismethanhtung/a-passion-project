@@ -58,9 +58,8 @@ export default function Home() {
                         </h1>
                     </div>
                 </div>
-                {/* Content Cards Section */}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-36 border-b-2 border-gray-300">
-                    {/* Card 1 */}
                     <div className="bg-cyan-50 p-8 py-12 rounded-3xl shadow-lg flex flex-col ">
                         <h2 className="text-2xl text-gray-700 font-bold mb-8">
                             Learn at your own pace with hands-on creative
@@ -74,7 +73,6 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Card 2 */}
                     <div className="bg-red-50 p-8 py-12 rounded-3xl shadow-lg flex flex-col justify-between text-justify">
                         <h2 className="text-2xl text-gray-700 font-bold mb-8">
                             LinguaX teachers are everyday creatives and
@@ -89,7 +87,6 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Card 3 */}
                     <div className="bg-yellow-100 p-8 py-12 rounded-3xl shadow-lg flex flex-col justify-between text-justify">
                         <h2 className="text-2xl text-gray-700 font-bold mb-8">
                             Discover the joy of learning

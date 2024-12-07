@@ -35,7 +35,7 @@ function Login() {
             login(data.user);
             console.log(user);
 
-            router.push(`/?refreshId=${new Date().getTime()}`);
+            router.push(`/`);
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
             setError("Lỗi khi đăng nhập.");
@@ -56,14 +56,12 @@ function Login() {
                             </h1>
                         </div>
                     </div>
-                    {/* Error Message */}
                     {error && (
                         <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
 
-                    {/* Email input */}
                     <div className="mb-5">
                         <input
                             id="email"
@@ -76,7 +74,6 @@ function Login() {
                         />
                     </div>
 
-                    {/* Password input */}
                     <div className="mb-5">
                         <input
                             id="password"
@@ -119,7 +116,6 @@ function Login() {
                         Sign in
                     </button>
 
-                    {/* Social login options */}
                     <div className="text-center">
                         <p className="text-gray-600 py-8">or log in with:</p>
                         <div className="flex justify-between space-x-4">

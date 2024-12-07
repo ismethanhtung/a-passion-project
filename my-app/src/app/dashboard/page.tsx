@@ -12,7 +12,7 @@ interface UserSettings {
         sms: boolean;
         app: boolean;
     };
-    learningGoals: number; // minutes per day
+    learningGoals: number;
     theme: string;
 }
 
@@ -64,7 +64,6 @@ const Settings: React.FC = () => {
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold mb-4">Cài đặt</h1>
 
-            {/* Thông tin cá nhân */}
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
                 <h2 className="text-xl font-semibold mb-3">
                     Thông tin cá nhân
@@ -116,7 +115,6 @@ const Settings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Cài đặt học tập */}
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
                 <h2 className="text-xl font-semibold mb-3">Cài đặt học tập</h2>
                 <div className="space-y-4">

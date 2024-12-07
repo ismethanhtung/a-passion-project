@@ -5,7 +5,6 @@ import React from "react";
 export default function Contact() {
     return (
         <div className="text-sm">
-            {/* Address */}
             <div className="mb-6">
                 <div className="flex items-center mb-2">
                     <img
@@ -23,7 +22,6 @@ export default function Contact() {
                 </p>
             </div>
 
-            {/* Email */}
             <div className="mb-6">
                 <div className="flex items-center mb-2">
                     <img
@@ -36,7 +34,6 @@ export default function Contact() {
                 <p className="text-gray-500 pl-7">ismethanhtung@gmail.com</p>
             </div>
 
-            {/* Phone */}
             <div>
                 <div className="flex items-center mb-2">
                     <img

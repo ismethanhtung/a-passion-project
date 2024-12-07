@@ -21,7 +21,7 @@ export default function Button({
     href,
 }: ButtonProps) {
     const baseStyles =
-        "py-2.5 px-5 me-2 mb-2 text-sm font-medium text-red-900 focus:outline-none bg-white rounded-lg border-2 border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 ";
+        "py-2.5 px-5 me-2 mb-2 text-sm font-medium text-red-600 bg-white rounded-lg border-2 border-gray-200 hover:bg-gray-100 hover:text-red-900 focus:z-10 ";
 
     const sizeStyles = {
         small: "px-3 py-1 text-sm",

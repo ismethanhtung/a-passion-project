@@ -81,7 +81,7 @@ function DBTable<T extends { [key: string]: any }>({
 
             <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
                 <span className="text-sm text-gray-600">
-                    Trang {currentPage} / {totalPages}
+                    Page {currentPage} / {totalPages}
                 </span>
                 <div className="flex space-x-2">
                     <button
@@ -89,7 +89,7 @@ function DBTable<T extends { [key: string]: any }>({
                         disabled={currentPage === 1}
                         className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded disabled:opacity-50"
                     >
-                        Trước
+                        Previous
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => (
                         <button
@@ -109,7 +109,7 @@ function DBTable<T extends { [key: string]: any }>({
                         disabled={currentPage === totalPages}
                         className="px-3 py-1 text-sm text-gray-500 bg-gray-200 rounded disabled:opacity-50"
                     >
-                        Sau
+                        Next
                     </button>
                 </div>
             </div>

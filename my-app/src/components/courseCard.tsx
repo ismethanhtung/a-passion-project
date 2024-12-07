@@ -40,7 +40,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <p className="text-sm text-gray-600 py-2 mb-4">{description}</p>
                 <div className="flex items-end justify-between mt-auto">
                     <div>
-                        {" "}
                         <p className=" text-lg font-bold text-indigo-600">
                             {newPrice}đ
                         </p>
@@ -53,7 +52,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     <div className="flex bg-red-50 rounded-lg p-1">
                         <img src="/icons/star.png" className="size-3" />
                         <p className="text-xs pl-1 font-bold text-gray-500">
-                            {rating || 5}
+                            {rating || 4.6}
                         </p>
                     </div>
                 </div>

@@ -35,7 +35,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <label htmlFor="rating" className="block font-medium">
-                    Đánh giá (1-5):
+                    Rating (1-5):
                 </label>
                 <input
                     type="number"
@@ -49,7 +49,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
             </div>
             <div>
                 <label htmlFor="comment" className="block font-medium">
-                    Bình luận:
+                    Comment:
                 </label>
                 <textarea
                     id="comment"

@@ -8,7 +8,7 @@ import Footer from "@/components/footer";
 import { Poppins } from "next/font/google";
 const pop = Poppins({
     subsets: ["latin"],
-    weight: ["400", "700"], // Thêm các trọng số cần dùng
+    weight: ["400", "700"],
 });
 export const metadata: Metadata = {
     title: "FE Next",
@@ -22,10 +22,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body
-                // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-                className={pop.className}
-            >
+            <body className={pop.className}>
                 <UserProvider>
                     <Navbar />
                     {children}

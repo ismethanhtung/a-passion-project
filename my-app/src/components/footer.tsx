@@ -23,12 +23,10 @@ export default function Footer() {
     return (
         <footer className="w-full bg-red-50 pl-40 py-20 mt-20 text-gray-700">
             <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Contact Section */}
                 <div>
                     <Contact />
                 </div>
 
-                {/* Learning Programs */}
                 <div>
                     <h2 className="font-bold text-lg mb-4">
                         Learning Programs
@@ -45,7 +43,6 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                {/* About Us */}
                 <div>
                     <h2 className="font-bold text-lg mb-4">About Us</h2>
                     <ul>
@@ -57,7 +54,6 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                {/* Features */}
                 <div>
                     <h2 className="font-bold text-lg mb-4">Features</h2>
                     <ul>

@@ -6,28 +6,25 @@ interface Test {
     id: number;
     title: string;
     description: string;
-    creatorId: number; // ID người tạo bài kiểm tra
-    createdAt: string; // ISO format ngày tạo
-    updatedAt: string; // ISO format ngày cập nhật
+    creatorId: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 function TestPage() {
     const [tests, setTests] = useState<Test[]>([]);
     const [title, setTitle] = useState("");
     const [creatorId, setCreatorId] = useState("");
-
     const [description, setDescription] = useState("");
     const [editingTest, setEditingTest] = useState<Test | null>(null); // Dữ liệu bài kiểm tra đang chỉnh sửa
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // Lấy danh sách bài kiểm tra từ backend
     const fetchTests = async () => {
         const response = await fetch("http://localhost:5000/tests");
         const data: Test[] = await response.json();
         setTests(data);
     };
 
-    // Thêm bài kiểm tra mới
     const addTest = async () => {
         const response = await fetch("http://localhost:5000/tests", {
             method: "POST",
@@ -46,7 +43,6 @@ function TestPage() {
         }
     };
 
-    // Xóa bài kiểm tra
     const deleteTest = async (id: number) => {
         const response = await fetch(`http://localhost:5000/tests/${id}`, {
             method: "DELETE",
@@ -59,7 +55,6 @@ function TestPage() {
         }
     };
 
-    // Bắt đầu chỉnh sửa
     const editTest = (test: Test) => {
         setEditingTest(test);
         setTitle(test.title);
@@ -67,7 +62,6 @@ function TestPage() {
         setShowEditModal(true);
     };
 
-    // Cập nhật bài kiểm tra
     const updateTest = async () => {
         if (editingTest) {
             const response = await fetch(
@@ -93,7 +87,6 @@ function TestPage() {
         }
     };
 
-    // Hiện thị Modal chỉnh sửa
     const renderEditModal = () => (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div className="bg-white p-6 rounded shadow-lg">
@@ -133,7 +126,6 @@ function TestPage() {
         </div>
     );
 
-    // Gọi hàm khi trang được load
     useEffect(() => {
         fetchTests();
     }, []);
@@ -142,7 +134,6 @@ function TestPage() {
         <div className="container mx-auto p-4">
             <h1 className="text-xl font-bold">Quản lý Bài Kiểm Tra</h1>
 
-            {/* Form thêm bài kiểm tra */}
             <div className="my-4">
                 <input
                     type="text"
@@ -173,7 +164,6 @@ function TestPage() {
                 </button>
             </div>
 
-            {/* Danh sách bài kiểm tra */}
             <div className="container">
                 <DBTable
                     data={tests}
