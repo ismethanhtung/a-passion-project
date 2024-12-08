@@ -4,13 +4,16 @@ interface VideoProps {
     videoUrl: string;
     isLocked?: boolean;
 }
+
 export const Video: React.FC<VideoProps> = ({ videoUrl, isLocked = false }) => {
     const embedUrl = videoUrl.includes("youtube")
         ? videoUrl
               .replace("watch?v=", "embed/")
               .replace("/watch/", "/embed/")
               .replace("youtu.be/", "youtube.com/embed/")
-        : videoUrl;
+        : videoUrl.includes("vimeo")
+        ? videoUrl.replace("vimeo.com/", "player.vimeo.com/video/")
+        : null;
 
     const handleVideoError = () => {
         alert("Không thể phát video này. Vui lòng thử lại sau.");
@@ -24,10 +27,13 @@ export const Video: React.FC<VideoProps> = ({ videoUrl, isLocked = false }) => {
                 </div>
             ) : embedUrl ? (
                 <iframe
-                    src={`https://www.youtube.com/embed/ZjAqacIC_3c?si=_v5fmzErzpGgH-nV&loop=1&controls=0&modestbranding=0&rel=0&playsinline=0&enablejsapi=1`}
+                    src={`${embedUrl}?title=0&byline=0&portrait=0&badge=0&autopause=0`}
                     className="w-full rounded-lg aspect-video"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+                    title="Embedded Video"
                     onError={handleVideoError}
-                />
+                ></iframe>
             ) : (
                 <div className="text-red-500 text-center">
                     URL video không hợp lệ.

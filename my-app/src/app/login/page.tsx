@@ -4,7 +4,7 @@ import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 
-function Login() {
+function ResetPassword() {
     const { user, login } = useUser();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -103,8 +103,8 @@ function Login() {
                             </label>
                         </div>
                         <LinkItem
-                            text="Forgot password?"
                             href="/forgot-password"
+                            text="Forgot password?"
                             className="hover:underline"
                         />
                     </div>
@@ -158,4 +158,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default ResetPassword;
