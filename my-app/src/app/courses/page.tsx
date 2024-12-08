@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import CourseCard from "@/components/CourseCard";
 import Pagination from "@/components/Pagination";
 import Course from "@/interfaces/course";
+import { fetchCourses } from "@/utils/courses";
 
 const Sources: React.FC = () => {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -12,15 +13,18 @@ const Sources: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const fetchCourse = async () => {
-        const response = await fetch("http://localhost:5000/courses");
-        const data: Course[] = await response.json();
-        setCourses(data);
-        setFilteredCourses(data);
+    const getCourses = async () => {
+        try {
+            const response = await fetchCourses();
+            setCourses(response);
+            setFilteredCourses(response);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {
-        fetchCourse();
+        getCourses();
     }, []);
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +94,6 @@ const Sources: React.FC = () => {
                 Get Started!
             </div>
 
-            {/* Tìm kiếm và lọc */}
             <div className="flex justify-between items-center mb-6">
                 <input
                     type="text"
@@ -114,14 +117,12 @@ const Sources: React.FC = () => {
                 </select>
             </div>
 
-            {/* Hiển thị khóa học */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 {displayedCourses.map((course, index) => (
                     <CourseCard key={index} {...course} />
                 ))}
             </div>
 
-            {/* Phân trang */}
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

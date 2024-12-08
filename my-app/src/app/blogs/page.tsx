@@ -81,7 +81,6 @@ const Blogs: React.FC = () => {
                         </h2>
                         <p className="text-gray-600 mb-4">{blog.description}</p>
                         <div className="flex justify-between mt-auto">
-                            {" "}
                             <a
                                 href={blog.url}
                                 target="_blank"

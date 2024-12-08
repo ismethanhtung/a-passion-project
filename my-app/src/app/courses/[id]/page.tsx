@@ -7,6 +7,8 @@ import { Video } from "@/components/ui/video";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
 import Review from "@/interfaces/review";
+import { fetchCourseById, purchaseCourse } from "@/utils/courses";
+import { fetchReviewsById } from "@/utils/review";
 
 const CourseDetail: React.FC = () => {
     const { id } = useParams();
@@ -16,22 +18,30 @@ const CourseDetail: React.FC = () => {
     const [reviews, setReviews] = useState<Review[]>([]);
 
     const fetchCourseDetails = async () => {
-        const response = await fetch(`http://localhost:5000/courses/${id}`);
-        const data = await response.json();
-        setCourse(data);
+        try {
+            const response = await fetchCourseById(id);
+            setCourse(response);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const handlePurchase = async () => {
-        const response = await fetch(
-            `http://localhost:5000/courses/${id}/purchase`,
-            { method: "POST" }
-        );
-        if (response.ok) setIsPurchased(true);
+        try {
+            const response = await purchaseCourse(id);
+            setIsPurchased(true);
+        } catch (error) {
+            console.log(error);
+        }
     };
+
     const fetchReviews = async () => {
-        const response = await fetch(`http://localhost:5000/reviews/${id}`);
-        const data = await response.json();
-        setReviews(data);
+        try {
+            const response = await fetchReviewsById(id);
+            setReviews(response);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const toggleVideoVisibility = (lessonId: number) => {

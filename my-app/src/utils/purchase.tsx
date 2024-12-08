@@ -1,11 +1,11 @@
-const API_URL = "http://localhost:5000";
+const API_BASE_URL = "http://localhost:5000";
 
 export async function createPurchase(
     userId: number,
     courseId: number,
     amount: number
 ) {
-    const response = await fetch(`${API_URL}/purchase`, {
+    const response = await fetch(`${API_BASE_URL}/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, courseId, amount }),
@@ -14,6 +14,6 @@ export async function createPurchase(
 }
 
 export async function getPurchases(userId: number) {
-    const response = await fetch(`${API_URL}/purchases/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/purchases/${userId}`);
     return response.json();
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import renderEditModal from "@/components/editModal";
 import User from "@/interfaces/user";
+import { fetchUsers, deleteUser, updateUser } from "@/utils/user";
 
 function UserPage() {
     const template = `{
@@ -15,22 +16,17 @@ function UserPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [jsonInput, setJsonInput] = useState(template);
 
-    const fetchUsers = async () => {
-        const response = await fetch("http://localhost:5000/users");
-        const data: User[] = await response.json();
+    const loadUsers = async () => {
+        const data = await fetchUsers();
         setUsers(data);
     };
 
-    const deleteUser = async (id: number) => {
-        const response = await fetch(`http://localhost:5000/users/${id}`, {
-            method: "DELETE",
-            credentials: "include",
-        });
-
-        if (response.ok) {
-            fetchUsers();
-        } else {
-            alert("Không thể xóa người dùng.");
+    const handleDeleteUser = async (id: number) => {
+        try {
+            await deleteUser(id);
+            loadUsers();
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -40,35 +36,24 @@ function UserPage() {
         setShowEditModal(true);
     };
 
-    const updateUser = async () => {
-        if (editingUser) {
-            const parsedInput = JSON.parse(jsonInput);
-
-            const response = await fetch(
-                `http://localhost:5000/users/${editingUser.id}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(parsedInput),
-                    credentials: "include",
-                }
-            );
-
-            if (response.ok) {
-                fetchUsers();
+    const handleUpdateUser = async () => {
+        try {
+            if (editingUser) {
+                const parsedInput = JSON.parse(jsonInput);
+                await updateUser(editingUser.id, parsedInput);
+                loadUsers();
                 setEditingUser(null);
                 setShowEditModal(false);
                 setJsonInput(template);
-            } else {
-                alert("Không thể cập nhật người dùng.");
             }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật người dùng:", error);
+            alert(error || "Không thể cập nhật người dùng.");
         }
     };
 
     useEffect(() => {
-        fetchUsers();
+        loadUsers();
     }, []);
 
     return (
@@ -77,16 +62,19 @@ function UserPage() {
 
             <div className="container">
                 <DBTable
-                    data={users}
+                    data={users.map((user) => ({
+                        ...user,
+                        roleName: user.role ? user.role.name : "",
+                    }))}
                     columns={[
                         { key: "id", label: "ID" },
                         { key: "name", label: "Tên" },
                         { key: "email", label: "Email" },
                         // { key: "password", label: "Password" },
-                        { key: "roleId", label: "RoleId" },
+                        { key: "roleName", label: "Role" },
                     ]}
                     onEdit={editUser}
-                    onDelete={deleteUser}
+                    onDelete={handleDeleteUser}
                 />
             </div>
 
@@ -94,7 +82,7 @@ function UserPage() {
                 renderEditModal(
                     jsonInput,
                     setJsonInput,
-                    updateUser,
+                    handleUpdateUser,
                     setShowEditModal
                 )}
         </div>

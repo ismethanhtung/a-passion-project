@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
 import { useUser } from "@/context/UserContext";
-import Button from "./ui/button";
+import { handleLogoutApi } from "@/utils/auth/logout";
 
 export default function Navbar() {
     const { user, logout } = useUser();
@@ -12,12 +12,9 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         try {
-            const response = await fetch("http://localhost:5000/auth/logout", {
-                method: "POST",
-                credentials: "include",
-            });
+            const response = await handleLogoutApi();
             if (response.ok) {
-                logout(); // Gọi hàm logout từ context
+                logout();
             } else {
                 console.error("Đăng xuất không thành công");
             }
@@ -175,7 +172,7 @@ export default function Navbar() {
                     </div>
                 ) : (
                     <div className="flex items-center space-x-8 font-semibold">
-                        <LinkItem text="Login" href="/login" />
+                        <LinkItem text="Login" href="/auth/login" />
                     </div>
                 )}
             </div>

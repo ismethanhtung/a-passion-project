@@ -3,6 +3,12 @@ import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Lesson from "@/interfaces/lesson";
 import renderEditModal from "@/components/editModal";
+import {
+    fetchLessons,
+    addLesson,
+    deleteLesson,
+    updateLesson,
+} from "@/utils/lesson";
 
 function LessonPage() {
     const template = `{
@@ -16,40 +22,34 @@ function LessonPage() {
     const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
-    const fetchLessons = async () => {
-        const response = await fetch("http://localhost:5000/lessons");
-        const data: Lesson[] = await response.json();
-        setLessons(data);
-    };
-
-    const addLesson = async () => {
-        const parsedInput = JSON.parse(jsonInput);
-        const response = await fetch("http://localhost:5000/lessons", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(parsedInput),
-        });
-
-        if (response.ok) {
-            fetchLessons();
-            setJsonInput(template);
-        } else {
-            alert("err");
+    const getLessons = async () => {
+        try {
+            const response = await fetchLessons();
+            setLessons(response);
+        } catch (error) {
+            console.log(error);
         }
     };
 
-    const deleteLesson = async (id: number) => {
-        const response = await await fetch(
-            `http://localhost:5000/lessons/${id}`,
-            {
-                method: "DELETE",
-                credentials: "include",
-            }
-        );
-        if (response.ok) fetchLessons();
-        else alert("err");
+    const handleAddLesson = async () => {
+        try {
+            const parsedInput = JSON.parse(jsonInput);
+            await addLesson(parsedInput);
+
+            getLessons();
+            setJsonInput(template);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleDeleteLesson = async (id: number) => {
+        try {
+            await deleteLesson(id);
+            fetchLessons();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const editLesson = (lesson: Lesson) => {
@@ -57,29 +57,20 @@ function LessonPage() {
         setShowEditModal(true);
     };
 
-    const updateLesson = async () => {
+    const handleUpdateLesson = async () => {
         try {
             const parsedInput = JSON.parse(jsonInput);
 
             if (editingLesson) {
-                const response = await fetch(
-                    `http://localhost:5000/lessons/${editingLesson.id}`,
-                    {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(parsedInput),
-                        credentials: "include",
-                    }
+                const response = await updateLesson(
+                    parsedInput,
+                    editingLesson.id
                 );
 
-                if (response.ok) {
-                    fetchLessons();
-                    setEditingLesson(null);
-                    setShowEditModal(false);
-                    setJsonInput(template);
-                } else {
-                    alert("Không thể cập nhật.");
-                }
+                getLessons();
+                setEditingLesson(null);
+                setShowEditModal(false);
+                setJsonInput(template);
             }
         } catch (error) {
             alert("Dữ liệu JSON không hợp lệ.");
@@ -87,7 +78,7 @@ function LessonPage() {
     };
 
     useEffect(() => {
-        fetchLessons();
+        getLessons();
     }, []);
 
     return (
@@ -101,7 +92,7 @@ function LessonPage() {
             ></textarea>
             <div className="my-4">
                 <button
-                    onClick={addLesson}
+                    onClick={handleAddLesson}
                     className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
                 >
                     Thêm Course
@@ -119,7 +110,7 @@ function LessonPage() {
                         { key: "courseId", label: "CourseId" },
                     ]}
                     onEdit={editLesson}
-                    onDelete={deleteLesson}
+                    onDelete={handleDeleteLesson}
                 />
             </div>
 
@@ -127,7 +118,7 @@ function LessonPage() {
                 renderEditModal(
                     jsonInput,
                     setJsonInput,
-                    updateLesson,
+                    handleUpdateLesson,
                     setShowEditModal
                 )}
         </div>

@@ -3,6 +3,12 @@ import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Course from "@/interfaces/course";
 import renderEditModal from "@/components/editModal";
+import {
+    fetchCourses,
+    addCourse,
+    deleteCourse,
+    updateCourse,
+} from "@/utils/courses";
 
 function CoursePage() {
     const template = `{
@@ -21,40 +27,34 @@ function CoursePage() {
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
-    const fetchCourses = async () => {
-        const response = await fetch("http://localhost:5000/courses");
-        const data: Course[] = await response.json();
-        setCourses(data);
-    };
-
-    const addCourse = async () => {
-        const parsedInput = JSON.parse(jsonInput);
-        const response = await fetch("http://localhost:5000/courses", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(parsedInput),
-        });
-
-        if (response.ok) {
-            fetchCourses();
-            setJsonInput(template);
-        } else {
-            alert("err");
+    const getCourses = async () => {
+        try {
+            const response = await fetchCourses();
+            setCourses(response);
+        } catch (error) {
+            console.log(error);
         }
     };
 
-    const deleteCourse = async (id: number) => {
-        const response = await await fetch(
-            `http://localhost:5000/courses/${id}`,
-            {
-                method: "DELETE",
-                credentials: "include",
-            }
-        );
-        if (response.ok) fetchCourses();
-        else alert("err");
+    const handleAddCourse = async () => {
+        try {
+            const parsedInput = JSON.parse(jsonInput);
+            await addCourse(parsedInput);
+
+            fetchCourses();
+            setJsonInput(template);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleDeleteCourse = async (id: number) => {
+        try {
+            await deleteCourse(id);
+            getCourses();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const editCourse = (course: Course) => {
@@ -63,37 +63,28 @@ function CoursePage() {
         setShowEditModal(true);
     };
 
-    const updateCourse = async () => {
+    const handleUpdateCourse = async () => {
         try {
             const parsedInput = JSON.parse(jsonInput);
 
             if (editingCourse) {
-                const response = await fetch(
-                    `http://localhost:5000/courses/${editingCourse.id}`,
-                    {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(parsedInput),
-                        credentials: "include",
-                    }
+                const response = await updateCourse(
+                    parsedInput,
+                    editingCourse.id
                 );
 
-                if (response.ok) {
-                    fetchCourses();
-                    setEditingCourse(null);
-                    setShowEditModal(false);
-                    setJsonInput(template);
-                } else {
-                    alert("Không thể cập nhật.");
-                }
+                getCourses();
+                setEditingCourse(null);
+                setShowEditModal(false);
+                setJsonInput(template);
             }
         } catch (error) {
-            alert("Dữ liệu JSON không hợp lệ.");
+            console.log(error);
         }
     };
 
     useEffect(() => {
-        fetchCourses();
+        getCourses();
     }, []);
 
     return (
@@ -107,7 +98,7 @@ function CoursePage() {
             ></textarea>
             <div className="my-4">
                 <button
-                    onClick={addCourse}
+                    onClick={handleAddCourse}
                     className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
                 >
                     Thêm Course
@@ -128,7 +119,7 @@ function CoursePage() {
                         { key: "categoryId", label: "CategoryId" },
                     ]}
                     onEdit={editCourse}
-                    onDelete={deleteCourse}
+                    onDelete={handleDeleteCourse}
                 />
             </div>
 
@@ -136,7 +127,7 @@ function CoursePage() {
                 renderEditModal(
                     jsonInput,
                     setJsonInput,
-                    updateCourse,
+                    handleUpdateCourse,
                     setShowEditModal
                 )}
         </div>

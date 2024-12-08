@@ -2,29 +2,31 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Review from "@/interfaces/review";
+import { fetchReviews, deleteReview } from "@/utils/review";
 
 function ReviewPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
 
-    const fetchReviews = async () => {
-        const response = await fetch("http://localhost:5000/reviews");
-        const data: Review[] = await response.json();
-        setReviews(data);
+    const getReviews = async () => {
+        try {
+            const response = await fetchReviews();
+            setReviews(response);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
-    const deleteReview = async (id: number) => {
-        const response = await await fetch(
-            `http://localhost:5000/reviews/${id}`,
-            {
-                method: "DELETE",
-            }
-        );
-        if (response.ok) fetchReviews();
-        else alert("err");
+    const handleDeleteReview = async (id: number) => {
+        try {
+            const response = await deleteReview(id);
+            fetchReviews();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {
-        fetchReviews();
+        getReviews();
     }, []);
 
     return (
@@ -41,7 +43,7 @@ function ReviewPage() {
                         { key: "rating", label: "Rating" },
                         { key: "comment", label: "Comment" },
                     ]}
-                    onDelete={deleteReview}
+                    onDelete={handleDeleteReview}
                 />
             </div>
         </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useUser } from "@/context/UserContext";
+import { addReview } from "@/utils/review";
 
 interface ReviewFormProps {
     courseId: number;
@@ -20,12 +21,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                 alert("Please add comment");
                 return;
             }
-            const response = await fetch("http://localhost:5000/reviews", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ courseId, rating, comment }),
-                credentials: "include",
-            });
+            const response = await addReview(courseId, rating, comment);
             if (response.ok) {
                 setRating(5);
                 setComment("");

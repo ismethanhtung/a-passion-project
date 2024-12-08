@@ -2,47 +2,38 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Category from "@/interfaces/category";
+import { fetchCategories, addCategory, deleteCategory } from "@/utils/category";
 
 function CategoryPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [name, setName] = useState<string>("");
 
-    const fetchCategories = async () => {
-        const response = await fetch("http://localhost:5000/categories");
-        const data: Category[] = await response.json();
-        setCategories(data);
+    const getCategories = async () => {
+        const response = await fetchCategories();
+        setCategories(response);
     };
 
-    const addCategory = async () => {
-        const response = await fetch("http://localhost:5000/categories", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name }),
-        });
-
-        if (response.ok) {
-            fetchCategories();
-        } else {
-            alert("err");
+    const handleAddCategory = async () => {
+        try {
+            await addCategory(name);
+            getCategories();
+            setName("");
+        } catch (error) {
+            console.log(error);
         }
     };
 
-    const deleteCategory = async (id: number) => {
-        const response = await await fetch(
-            `http://localhost:5000/categories/${id}`,
-            {
-                method: "DELETE",
-                credentials: "include",
-            }
-        );
-        if (response.ok) fetchCategories();
-        else alert("err");
+    const handleDeleteCategory = async (id: number) => {
+        try {
+            await deleteCategory(id);
+            getCategories();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {
-        fetchCategories();
+        getCategories();
     }, []);
 
     return (
@@ -57,7 +48,7 @@ function CategoryPage() {
                     className="border p-2"
                 />
                 <button
-                    onClick={addCategory}
+                    onClick={handleAddCategory}
                     className="bg-blue-500 text-white px-4 py-2 ml-2 rounded"
                 >
                     Thêm Category
@@ -71,7 +62,7 @@ function CategoryPage() {
                         { key: "name", label: "Name" },
                         { key: "parentId", label: "ParentId" },
                     ]}
-                    onDelete={deleteCategory}
+                    onDelete={handleDeleteCategory}
                 />
             </div>
         </div>

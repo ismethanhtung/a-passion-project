@@ -104,9 +104,9 @@ export default function Home() {
                         Popular Courses
                     </h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {courses.map((course, index) => (
+                        {/* {courses.map((course, index) => (
                             <CourseCard key={index} {...course} />
-                        ))}
+                        ))} */}
                     </div>
                     <div className="flex justify-center items-center mt-16 h-full">
                         <Button text="All Courses" href="courses"></Button>

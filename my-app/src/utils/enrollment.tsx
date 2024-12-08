@@ -1,7 +1,7 @@
-const API_URL = "http://localhost:5000";
+const API_BASE_URL = "http://localhost:5000";
 
 export async function createEnrollment(userId: number, courseId: number) {
-    const response = await fetch(`${API_URL}/enrollment`, {
+    const response = await fetch(`${API_BASE_URL}/enrollment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, courseId }),
@@ -10,6 +10,6 @@ export async function createEnrollment(userId: number, courseId: number) {
 }
 
 export async function getEnrollments(userId: number) {
-    const response = await fetch(`${API_URL}/enrollments/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/enrollments/${userId}`);
     return response.json();
 }
