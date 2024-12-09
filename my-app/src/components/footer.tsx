@@ -21,7 +21,7 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="w-full bg-red-50 pl-40 py-20 mt-20 text-gray-700">
+        <footer className="w-full bg-red-50 pl-40 py-20 mt-20 text-gray-700 flex mt-48">
             <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                     <Contact />

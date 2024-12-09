@@ -13,14 +13,14 @@ export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);
 
     // const fetchCourses = async () => {
-    //     const response = await fetch("http://localhost:5000/courses");
+    //     const response = await fetch("http://localhost:5000/courses?_limit=1");
     //     const data: Course[] = await response.json();
-    //     setCourses(data.slice(0, 4));
+    //     setCourses(data);
     // };
 
     // useEffect(() => {
     //     fetchCourses();
-    // });
+    // }, []);
 
     return (
         <div>
@@ -104,9 +104,9 @@ export default function Home() {
                         Popular Courses
                     </h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {/* {courses.map((course, index) => (
+                        {courses.map((course, index) => (
                             <CourseCard key={index} {...course} />
-                        ))} */}
+                        ))}
                     </div>
                     <div className="flex justify-center items-center mt-16 h-full">
                         <Button text="All Courses" href="courses"></Button>
