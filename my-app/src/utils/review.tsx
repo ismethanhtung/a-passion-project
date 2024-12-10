@@ -21,7 +21,7 @@ export const fetchReviewsById = async (id: any) => {
 };
 
 export const deleteReview = async (id: number) => {
-    const response = await await fetch(`${API_BASE_URL}/${id}`, {
+    const response = await await fetch(`${API_BASE_URL}/review/${id}`, {
         method: "DELETE",
         credentials: "include",
     });
@@ -46,4 +46,18 @@ export const addReview = async (
         throw new Error("Cant add review.");
     }
     return response;
+};
+
+export const updateReview = async (id: number, data: object) => {
+    const response = await fetch(`${API_BASE_URL}/review/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        throw new Error("Cant update review.");
+    }
+    return response.json();
 };

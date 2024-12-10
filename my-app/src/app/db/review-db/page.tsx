@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Review from "@/interfaces/review";
-import { fetchReviews, deleteReview } from "@/utils/review";
+import { fetchReviews, deleteReview, updateReview } from "@/utils/review";
 
 function ReviewPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -19,7 +19,16 @@ function ReviewPage() {
     const handleDeleteReview = async (id: number) => {
         try {
             const response = await deleteReview(id);
-            fetchReviews();
+            getReviews();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleUpdateReview = async (updatedReview: Review) => {
+        try {
+            await updateReview(updatedReview.id, updatedReview);
+            getReviews();
         } catch (error) {
             console.log(error);
         }
@@ -44,6 +53,7 @@ function ReviewPage() {
                         { key: "comment", label: "Comment" },
                     ]}
                     onDelete={handleDeleteReview}
+                    onUpdate={handleUpdateReview}
                 />
             </div>
         </div>

@@ -36,7 +36,7 @@ export const deleteLesson = async (id: number) => {
     return response.json();
 };
 
-export const updateLesson = async (parsedInput: object, id: number) => {
+export const updateLesson = async (id: number, parsedInput: object) => {
     const response = await fetch(`${API_BASE_URL}/lesson/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

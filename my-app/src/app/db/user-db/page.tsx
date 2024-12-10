@@ -1,24 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
-import renderEditModal from "@/components/editModal";
 import User from "@/interfaces/user";
 import { fetchUsers, deleteUser, updateUser } from "@/utils/user";
 
 function UserPage() {
-    const template = `{
-        "name": "",
-        "email": "",
-        "role": ""
-    }`;
     const [users, setUsers] = useState<User[]>([]);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [jsonInput, setJsonInput] = useState(template);
 
     const loadUsers = async () => {
-        const data = await fetchUsers();
-        setUsers(data);
+        try {
+            const data = await fetchUsers();
+            setUsers(data);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const handleDeleteUser = async (id: number) => {
@@ -30,25 +25,12 @@ function UserPage() {
         }
     };
 
-    const editUser = (user: User) => {
-        setEditingUser(user);
-        setJsonInput(JSON.stringify(user, null, 2));
-        setShowEditModal(true);
-    };
-
-    const handleUpdateUser = async () => {
+    const handleUpdateUser = async (updatedUser: User) => {
         try {
-            if (editingUser) {
-                const parsedInput = JSON.parse(jsonInput);
-                await updateUser(editingUser.id, parsedInput);
-                loadUsers();
-                setEditingUser(null);
-                setShowEditModal(false);
-                setJsonInput(template);
-            }
+            await updateUser(updatedUser.id, updatedUser);
+            loadUsers();
         } catch (error) {
             console.error("Lỗi khi cập nhật người dùng:", error);
-            alert(error || "Không thể cập nhật người dùng.");
         }
     };
 
@@ -64,27 +46,18 @@ function UserPage() {
                 <DBTable
                     data={users.map((user) => ({
                         ...user,
-                        roleName: user.role ? user.role.name : "",
+                        roleName: JSON.stringify(user.role),
                     }))}
                     columns={[
                         { key: "id", label: "ID" },
                         { key: "name", label: "Tên" },
                         { key: "email", label: "Email" },
-                        // { key: "password", label: "Password" },
                         { key: "roleName", label: "Role" },
                     ]}
-                    onEdit={editUser}
+                    onUpdate={handleUpdateUser}
                     onDelete={handleDeleteUser}
                 />
             </div>
-
-            {showEditModal &&
-                renderEditModal(
-                    jsonInput,
-                    setJsonInput,
-                    handleUpdateUser,
-                    setShowEditModal
-                )}
         </div>
     );
 }

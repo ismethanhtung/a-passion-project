@@ -10,13 +10,13 @@ export const fetchCategories = async () => {
     return response.json();
 };
 
-export const addCategory = async (name: string) => {
+export const addCategory = async (data: object) => {
     const response = await fetch(`${API_BASE_URL}/category`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(data),
         credentials: "include",
     });
     if (!response.ok) {
@@ -31,7 +31,21 @@ export const deleteCategory = async (id: number) => {
         credentials: "include",
     });
     if (!response.ok) {
-        throw new Error("Cant del categories.");
+        throw new Error("Cant del category.");
+    }
+    return response.json();
+};
+
+export const updateCategory = async (id: number, data: object) => {
+    const response = await fetch(`${API_BASE_URL}/category/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        throw new Error("Cant update category.");
     }
     return response.json();
 };
