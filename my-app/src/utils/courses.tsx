@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const fetchCourses = async () => {
-    const response = await fetch(`${API_BASE_URL}/courses`, {
+    const response = await fetch(`${API_BASE_URL}/course`, {
         credentials: "include",
     });
     if (!response.ok) {
@@ -11,7 +11,7 @@ export const fetchCourses = async () => {
 };
 
 export const fetchCourseById = async (id: any) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/course/${id}`, {
         credentials: "include",
     });
     if (!response.ok) {
@@ -21,7 +21,7 @@ export const fetchCourseById = async (id: any) => {
 };
 
 export const addCourse = async (parsedInput: object) => {
-    const response = await fetch(`${API_BASE_URL}/courses`, {
+    const response = await fetch(`${API_BASE_URL}/course`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -37,7 +37,7 @@ export const addCourse = async (parsedInput: object) => {
 };
 
 export const deleteCourse = async (id: number) => {
-    const response = await await fetch(`${API_BASE_URL}/courses/${id}`, {
+    const response = await await fetch(`${API_BASE_URL}/course/${id}`, {
         method: "DELETE",
         credentials: "include",
     });
@@ -48,7 +48,7 @@ export const deleteCourse = async (id: number) => {
 };
 
 export const updateCourse = async (parsedInput: object, id: number) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/course/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedInput),

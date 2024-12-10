@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const fetchUsers = async () => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/user`, {
         credentials: "include",
     });
 
@@ -12,16 +12,17 @@ export const fetchUsers = async () => {
 };
 
 export const deleteUser = async (id: number) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/user/${id}`, {
         method: "DELETE",
         credentials: "include",
     });
+    console.log(response);
 
     return response.json();
 };
 
 export const updateUser = async (id: number, userData: object) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/user/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

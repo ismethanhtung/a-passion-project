@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const fetchReviews = async () => {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
+    const response = await fetch(`${API_BASE_URL}/review`, {
         credentials: "include",
     });
     if (!response.ok) {
@@ -11,7 +11,7 @@ export const fetchReviews = async () => {
 };
 
 export const fetchReviewsById = async (id: any) => {
-    const response = await fetch(`${API_BASE_URL}/reviews/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/review/${id}`, {
         credentials: "include",
     });
     if (!response.ok) {
@@ -36,7 +36,7 @@ export const addReview = async (
     rating: number,
     comment: string
 ) => {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
+    const response = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId, rating, comment }),
