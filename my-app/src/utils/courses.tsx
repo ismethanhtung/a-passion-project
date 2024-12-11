@@ -10,6 +10,16 @@ export const fetchCourses = async () => {
     return response.json();
 };
 
+export const fetchLimitCourses = async () => {
+    const response = await fetch(`${API_BASE_URL}/course/limit`, {
+        credentials: "include",
+    });
+    if (!response.ok) {
+        throw new Error("Cant get courses.");
+    }
+    return response.json();
+};
+
 export const fetchCourseById = async (id: any) => {
     const response = await fetch(`${API_BASE_URL}/course/${id}`, {
         credentials: "include",
