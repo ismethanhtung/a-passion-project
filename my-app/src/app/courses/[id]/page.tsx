@@ -172,9 +172,7 @@ const CourseDetail: React.FC = () => {
                                 Course Review
                             </h3>
                             <Video
-                                videoUrl={
-                                    "https://www.youtube.com/embed/ZjAqacIC_3c?si=_v5fmzErzpGgH-nV"
-                                }
+                                videoUrl={"https://vimeo.com/1037130772"}
                                 isLocked={false}
                             />
                         </div>

@@ -6,12 +6,7 @@ interface VideoProps {
 }
 
 export const Video: React.FC<VideoProps> = ({ videoUrl, isLocked = false }) => {
-    const embedUrl = videoUrl.includes("youtube")
-        ? videoUrl
-              .replace("watch?v=", "embed/")
-              .replace("/watch/", "/embed/")
-              .replace("youtu.be/", "youtube.com/embed/")
-        : videoUrl.includes("vimeo")
+    const embedUrl = videoUrl.includes("vimeo")
         ? videoUrl.replace("vimeo.com/", "player.vimeo.com/video/")
         : null;
 
