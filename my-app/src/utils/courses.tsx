@@ -70,14 +70,3 @@ export const updateCourse = async (id: number, data: object) => {
     }
     return response.json();
 };
-
-export const purchaseCourse = async (id: any) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${id}/purchase`, {
-        method: "POST",
-        credentials: "include",
-    });
-    if (!response.ok) {
-        throw new Error("Cant purchaseCourse.");
-    }
-    return response.json();
-};
