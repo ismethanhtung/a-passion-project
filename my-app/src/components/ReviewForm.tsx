@@ -10,7 +10,7 @@ interface ReviewFormProps {
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
-    const [rating, setRating] = useState(5);
+    const [rating, setRating] = useState<number | null>(null);
     const [comment, setComment] = useState("");
     const { user } = useUser();
 
@@ -18,17 +18,18 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
         e.preventDefault();
         try {
             if (comment.trim() === "") {
-                alert("Please add comment");
+                alert("Please add a comment.");
                 return;
             }
-            const response = await addReview(courseId, rating, comment);
+            const rate = rating === null ? 0 : rating;
+            const response = await addReview(courseId, rate, comment);
             if (response.ok) {
-                setRating(5);
+                setRating(null);
                 setComment("");
                 onReviewAdded();
             }
         } catch (error) {
-            console.error("Lỗi khi thêm đánh giá:", error);
+            console.error("Error adding review:", error);
         }
     };
 
@@ -39,11 +40,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                 <span
                     key={starValue}
                     onClick={() => setRating(starValue)}
-                    onMouseOver={() => setRating(starValue)}
                     className={`cursor-pointer ${
-                        starValue <= rating
-                            ? "text-yellow-500"
-                            : "text-gray-400"
+                        rating !== null && starValue <= rating ? "text-yellow-500" : "text-gray-400"
                     }`}
                 >
                     ★
@@ -56,6 +54,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <div className="flex space-x-1">{renderStars()}</div>
+                <p className="text-sm text-gray-500">
+                    {rating === null ? "No rating selected." : `Rating: ${rating}/5`}
+                </p>
             </div>
             <div>
                 <textarea
@@ -66,10 +67,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                     className="w-full border p-2 rounded"
                 />
             </div>
-            <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
+            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
                 Submit
             </button>
         </form>

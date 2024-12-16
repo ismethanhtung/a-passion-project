@@ -31,11 +31,7 @@ export const deleteReview = async (id: number) => {
     return response.json();
 };
 
-export const addReview = async (
-    courseId: number,
-    rating: number,
-    comment: string
-) => {
+export const addReview = async (courseId: number, rating: number, comment: string) => {
     const response = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

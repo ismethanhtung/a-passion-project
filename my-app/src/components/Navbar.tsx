@@ -58,13 +58,14 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {user === null && !loading ? (
+                {user === null ? (
                     <div className="flex items-center space-x-8 font-semibold">
                         <LinkItem text="Login" href="/auth/login" />
+                        <LinkItem text="Sign Up" href="/auth/signup" />
                     </div>
                 ) : (
                     <div className="flex items-center space-x-8">
-                        {user?.role.name === "admin" && loading && (
+                        {user.role.name === "admin" && (
                             <div className="relative dropdown">
                                 <button
                                     onClick={() => toggleDropdown("manage")}
