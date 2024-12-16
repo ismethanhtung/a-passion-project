@@ -3,7 +3,7 @@ interface Lesson {
     title: string;
     content: string;
     videoUrl: string;
-    duration: string;
+    videoTime: string;
     isLocked: boolean;
     courseId: number;
 }

@@ -4,9 +4,10 @@ interface Purchase {
     id: number;
     userId: number;
     courseId: number;
-    amount: number;
     user: User;
     course: Course;
+    amount: number;
+    purchasedAt: string;
 }
 
 export default Purchase;

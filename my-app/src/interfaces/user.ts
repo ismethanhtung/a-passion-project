@@ -5,6 +5,7 @@ interface User {
     roleId: number;
     id: number;
     role: Role;
+    isDeleted: Boolean;
 }
 
 export default User;

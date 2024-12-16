@@ -1,10 +1,15 @@
 import User from "./user";
-export default interface Blog {
+import ForumPost from "./forumPost";
+
+interface ForumThread {
     id: number;
     title: string;
     content: string;
     authorId: number;
-    published: boolean;
     createdAt: string;
+    updatedAt?: string;
     author: User;
+    forumPosts: ForumPost[];
 }
+
+export default ForumThread;

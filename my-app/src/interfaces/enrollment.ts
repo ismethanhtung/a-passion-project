@@ -4,6 +4,7 @@ interface Enrollment {
     id: number;
     userId: number;
     courseId: number;
+    enrolledAt: string;
     user: User;
     course: Course;
 }
