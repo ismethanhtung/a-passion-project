@@ -3,7 +3,7 @@ import Pagination from "./Pagination";
 
 interface TableProps<T> {
     data: T[];
-    columns: { key: keyof T; label: string }[];
+    columns: { key: keyof T }[];
     rowsPerPage?: number;
     onUpdate?: (updatedRow: T) => void;
     onDelete?: (id: number) => void;
@@ -82,11 +82,8 @@ function DBTable<T extends { [key: string]: any }>({
                     <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                         <tr>
                             {columns.map((col) => (
-                                <th
-                                    key={col.key as string}
-                                    className="px-6 py-4"
-                                >
-                                    {col.label}
+                                <th key={col.key as string} className="px-6 py-4">
+                                    {String(col.key)}
                                 </th>
                             ))}
                             <th scope="col" className="px-6 py-3">
@@ -97,18 +94,12 @@ function DBTable<T extends { [key: string]: any }>({
                     <tbody>
                         <tr>
                             {columns.map((col) => (
-                                <td
-                                    key={col.key as string}
-                                    className="px-6 py-2"
-                                >
+                                <td key={col.key as string} className="px-6 py-2">
                                     <input
                                         className="border w-full py-1 text-gray-700"
                                         value={newRow[col.key] || ""}
                                         onChange={(e) =>
-                                            handleInputChangeNewRow(
-                                                col.key,
-                                                e.target.value
-                                            )
+                                            handleInputChangeNewRow(col.key, e.target.value)
                                         }
                                     />
                                 </td>
@@ -123,25 +114,15 @@ function DBTable<T extends { [key: string]: any }>({
                             </td>
                         </tr>
                         {paginatedData.map((row, index) => (
-                            <tr
-                                key={index}
-                                className="bg-white hover:bg-gray-50"
-                            >
+                            <tr key={index} className="bg-white hover:bg-gray-50">
                                 {columns.map((col) => (
-                                    <td
-                                        key={col.key as string}
-                                        className="px-6 py-4 text-gray-700"
-                                    >
-                                        {editingRow &&
-                                        editingRow.id === row.id ? (
+                                    <td key={col.key as string} className="px-6 py-4 text-gray-700">
+                                        {editingRow && editingRow.id === row.id ? (
                                             <input
                                                 className="border w-full py-1 text-gray-700"
                                                 value={editingRow[col.key]}
                                                 onChange={(e) =>
-                                                    handleInputChange(
-                                                        col.key,
-                                                        e.target.value
-                                                    )
+                                                    handleInputChange(col.key, e.target.value)
                                                 }
                                             />
                                         ) : (

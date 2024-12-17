@@ -37,19 +37,14 @@ const Sources: React.FC = () => {
         filterCourses(searchTerm, newFilter);
     };
 
-    const filterCourses = (
-        search: string,
-        filter: "all" | "price" | "rating"
-    ) => {
+    const filterCourses = (search: string, filter: "all" | "price" | "rating") => {
         let filtered = courses.filter((course) =>
             course.title.toLowerCase().includes(search.toLowerCase())
         );
         if (filter === "price") {
-            filtered = filtered.sort(
-                (a, b) => (a.newPrice || a.price) - (b.newPrice || b.price)
-            );
+            filtered = filtered.sort((a, b) => (a.newPrice || a.price) - (b.newPrice || b.price));
         } else if (filter === "rating") {
-            filtered = filtered.sort((a, b) => b.rating - a.rating);
+            // filtered = filtered.sort((a, b) => b.rating - a.rating);
         }
         setFilteredCourses(filtered);
     };
@@ -73,14 +68,12 @@ const Sources: React.FC = () => {
                         <p className="text-red-400">Our English Courses</p>
                     </h1>
                     <p className="text-lg text-gray-600 py-12">
-                        Explore expertly designed courses tailored to improve
-                        your English skills in Listening, Reading, Speaking, and
-                        Writing. Whether you're a beginner or an advanced
-                        learner, our programs help you grow at your own pace.
+                        Explore expertly designed courses tailored to improve your English skills in
+                        Listening, Reading, Speaking, and Writing. Whether you're a beginner or an
+                        advanced learner, our programs help you grow at your own pace.
                     </p>
                     <p className="text-red-300 font-bold text-xl">
-                        Start your journey today and achieve your language goals
-                        with ease!
+                        Start your journey today and achieve your language goals with ease!
                     </p>
                 </div>
                 <img
@@ -105,9 +98,7 @@ const Sources: React.FC = () => {
                 <select
                     value={filter}
                     onChange={(e) =>
-                        handleFilterChange(
-                            e.target.value as "all" | "price" | "rating"
-                        )
+                        handleFilterChange(e.target.value as "all" | "price" | "rating")
                     }
                     className="border-2 border-gray-200 rounded-lg px-4 py-2"
                 >

@@ -46,11 +46,11 @@ function ReviewPage() {
                 <DBTable
                     data={reviews}
                     columns={[
-                        { key: "id", label: "ID" },
-                        { key: "userId", label: "UserId" },
-                        { key: "courseId", label: "CourseId" },
-                        { key: "rating", label: "Rating" },
-                        { key: "comment", label: "Comment" },
+                        { key: "id" },
+                        { key: "userId" },
+                        { key: "courseId" },
+                        { key: "rating" },
+                        { key: "comment" },
                     ]}
                     onDelete={handleDeleteReview}
                     onUpdate={handleUpdateReview}

@@ -49,10 +49,11 @@ function UserPage() {
                         roleName: JSON.stringify(user.role),
                     }))}
                     columns={[
-                        { key: "id", label: "ID" },
-                        { key: "name", label: "Tên" },
-                        { key: "email", label: "Email" },
-                        { key: "roleName", label: "Role" },
+                        { key: "id" },
+                        { key: "name" },
+                        { key: "email" },
+                        { key: "roleName" },
+                        { key: "isDeleted" },
                     ]}
                     onUpdate={handleUpdateUser}
                     onDelete={handleDeleteUser}

@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import Pagination from "@/components/Pagination";
-import Blog from "@/interfaces/blog";
+// import Blog from "@/interfaces/blog";
 import fetchBlogs from "@/utils/blogs";
 
 const Blogs: React.FC = () => {
-    const [blogs, setBlogs] = useState<Blog[]>([]);
-    const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([]);
+    const [blogs, setBlogs] = useState<any[]>([]);
+    const [filteredBlogs, setFilteredBlogs] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -50,9 +50,7 @@ const Blogs: React.FC = () => {
 
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-6xl font-bold text-center my-12 text-red-300">
-                Latest Blogs
-            </h1>
+            <h1 className="text-6xl font-bold text-center my-12 text-red-300">Latest Blogs</h1>
 
             <div className="flex justify-center mb-12">
                 <input
@@ -76,9 +74,7 @@ const Blogs: React.FC = () => {
                                 className="w-full h-48 object-cover rounded-lg"
                             />
                         </h2>
-                        <h2 className="text-xl font-semibold mb-2">
-                            {blog.title}
-                        </h2>
+                        <h2 className="text-xl font-semibold mb-2">{blog.title}</h2>
                         <p className="text-gray-600 mb-4">{blog.description}</p>
                         <div className="flex justify-between mt-auto">
                             <a
@@ -90,10 +86,7 @@ const Blogs: React.FC = () => {
                                 Read More
                             </a>
                             <p className="text-gray-400 text-sm">
-                                Published on:{" "}
-                                {new Date(
-                                    blog.publishedAt
-                                ).toLocaleDateString()}
+                                Published on: {new Date(blog.publishedAt).toLocaleDateString()}
                             </p>
                         </div>
                     </div>

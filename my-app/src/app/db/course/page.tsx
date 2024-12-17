@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Course from "@/interfaces/course";
-import {
-    fetchCourses,
-    addCourse,
-    deleteCourse,
-    updateCourse,
-} from "@/utils/courses";
+import { fetchCourses, addCourse, deleteCourse, updateCourse } from "@/utils/courses";
 
 function CoursePage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -61,14 +56,14 @@ function CoursePage() {
                 <DBTable
                     data={courses}
                     columns={[
-                        { key: "id", label: "ID" },
-                        { key: "title", label: "Title" },
-                        { key: "description", label: "Description" },
-                        { key: "price", label: "Price" },
-                        { key: "newPrice", label: "New Price" },
-                        { key: "teacherId", label: "TeacherId" },
-                        { key: "creatorId", label: "CreatorId" },
-                        { key: "categoryId", label: "CategoryId" },
+                        { key: "id" },
+                        { key: "title" },
+                        { key: "description" },
+                        { key: "price" },
+                        { key: "newPrice" },
+                        { key: "teacherId" },
+                        { key: "creatorId" },
+                        { key: "categoryId" },
                     ]}
                     onCreate={handleAddCourse}
                     onUpdate={handleUpdateCourse}

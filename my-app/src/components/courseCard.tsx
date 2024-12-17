@@ -4,23 +4,23 @@ import Link from "next/link";
 interface CourseCardProps {
     id: number;
     thumbnail: string;
-    tag: string;
+    // tag: string;
     title: string;
     description: string;
     price: number;
     newPrice: number;
-    rating: number;
+    // rating: number;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
     id,
     thumbnail,
-    tag,
+    // tag,
     title,
     description,
     price,
     newPrice,
-    rating,
+    // rating,
 }) => {
     return (
         <Link
@@ -35,25 +35,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 />
             </div>
             <div className="p-4 flex-grow flex flex-col">
-                <span className="text-xs text-gray-500 uppercase">{tag}</span>
+                {/* <span className="text-xs text-gray-500 uppercase">{tag}</span> */}
                 <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
                 <p className="text-sm text-gray-600 py-2 mb-4">{description}</p>
                 <div className="flex items-end justify-between mt-auto">
                     <div>
-                        <p className=" text-lg font-bold text-indigo-600">
-                            {newPrice}đ
-                        </p>
+                        <p className=" text-lg font-bold text-indigo-600">{newPrice}đ</p>
                         {newPrice && (
-                            <span className="text line-through text-yellow-400">
-                                {price}đ
-                            </span>
+                            <span className="text line-through text-yellow-400">{price}đ</span>
                         )}
                     </div>
                     <div className="flex bg-red-50 rounded-lg p-1">
                         <img src="/icons/star.png" className="size-3" />
-                        <p className="text-xs pl-1 font-bold text-gray-500">
-                            {rating || 4.6}
-                        </p>
+                        <p className="text-xs pl-1 font-bold text-gray-500">{4.6}</p>
                     </div>
                 </div>
             </div>

@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Category from "@/interfaces/category";
-import {
-    fetchCategories,
-    addCategory,
-    deleteCategory,
-    updateCategory,
-} from "@/utils/category";
+import { fetchCategories, addCategory, deleteCategory, updateCategory } from "@/utils/category";
 
 function CategoryPage() {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -55,11 +50,7 @@ function CategoryPage() {
             <div className="container">
                 <DBTable
                     data={categories}
-                    columns={[
-                        { key: "id", label: "ID" },
-                        { key: "name", label: "Name" },
-                        { key: "parentId", label: "ParentId" },
-                    ]}
+                    columns={[{ key: "id" }, { key: "name" }, { key: "parentId" }]}
                     onCreate={handleAddCategory}
                     onUpdate={handleUpdateCategory}
                     onDelete={handleDeleteCategory}

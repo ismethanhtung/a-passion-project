@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Lesson from "@/interfaces/lesson";
-import {
-    fetchLessons,
-    addLesson,
-    deleteLesson,
-    updateLesson,
-} from "@/utils/lesson";
+import { fetchLessons, addLesson, deleteLesson, updateLesson } from "@/utils/lesson";
 
 function LessonPage() {
     const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -60,11 +55,11 @@ function LessonPage() {
                 <DBTable
                     data={lessons}
                     columns={[
-                        { key: "id", label: "ID" },
-                        { key: "title", label: "Tiêu đề" },
-                        { key: "content", label: "Content" },
-                        { key: "videoUrl", label: "video" },
-                        { key: "courseId", label: "CourseId" },
+                        { key: "id" },
+                        { key: "title" },
+                        { key: "content" },
+                        { key: "videoUrl" },
+                        { key: "courseId" },
                     ]}
                     onCreate={handleCreateLesson}
                     onUpdate={handleUpdateLesson}

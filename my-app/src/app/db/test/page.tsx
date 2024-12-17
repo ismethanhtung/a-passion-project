@@ -62,9 +62,10 @@ function TestPage() {
                 <DBTable
                     data={tests}
                     columns={[
-                        { key: "id", label: "ID" },
-                        { key: "title", label: "Tiêu đề" },
-                        { key: "description", label: "Mô tả" },
+                        { key: "id" },
+                        { key: "title" },
+                        { key: "description" },
+                        { key: "creatorId" },
                     ]}
                     onDelete={deleteTest}
                 />
