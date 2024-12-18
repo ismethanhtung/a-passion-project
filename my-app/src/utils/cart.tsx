@@ -26,22 +26,6 @@ export const addCart = async (parsedInput: object) => {
     return response.json();
 };
 
-export const addToCart = async (parsedInput: object) => {
-    const response = await fetch(`${API_BASE_URL}/cart`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(parsedInput),
-        credentials: "include",
-    });
-
-    if (!response.ok) {
-        throw new Error("Cant add cart.");
-    }
-    return response.json();
-};
-
 export const deleteCart = async (id: number) => {
     const response = await await fetch(`${API_BASE_URL}/cart/${id}`, {
         method: "DELETE",

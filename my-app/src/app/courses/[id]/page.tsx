@@ -9,13 +9,17 @@ import ReviewForm from "@/components/ReviewForm";
 import Review from "@/interfaces/review";
 import { fetchCourseById } from "@/utils/courses";
 import { fetchReviewsById } from "@/utils/review";
+import { addCart } from "@/utils/cart";
+import { useUser } from "@/context/UserContext";
 
 const CourseDetail: React.FC = () => {
+    const { user } = useUser();
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
     const [isPurchased, setIsPurchased] = useState(false);
     const [visibleVideo, setVisibleVideo] = useState<number | null>(null);
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [isInCart, setIsInCart] = useState(false);
 
     const fetchCourseDetails = async () => {
         try {
@@ -34,6 +38,25 @@ const CourseDetail: React.FC = () => {
     //         console.log(error);
     //     }
     // };
+
+    const handleAddCart = async () => {
+        try {
+            if (!user) throw new Error("Bạn cần đăng nhập để thêm vào giỏ hàng.");
+            if (!course) throw new Error("Không thể thêm khóa học không tồn tại.");
+
+            const response = await addCart({
+                userId: user.id,
+                courseId: course.id,
+                quantity: 1,
+            });
+
+            setIsInCart(true);
+            console.log("Cart updated:", response);
+            alert("Khóa học đã được thêm vào giỏ hàng!");
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const fetchReviews = async () => {
         try {
@@ -175,10 +198,15 @@ const CourseDetail: React.FC = () => {
                                 {isPurchased ? "Sold" : "Buy Now"}
                             </button>
                             <button
-                                className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-white"
-                                onClick={() => alert("Khóa học đã được thêm vào giỏ hàng!")}
+                                className={`w-full py-3 rounded-lg font-semibold ${
+                                    isInCart
+                                        ? "bg-green-300 text-white cursor-not-allowed"
+                                        : "bg-yellow-400 text-white"
+                                }`}
+                                onClick={isInCart ? undefined : handleAddCart}
+                                disabled={isInCart}
                             >
-                                Add to cart
+                                {isInCart ? "Added to Cart" : "Add to Cart"}
                             </button>
                         </div>
                     </div>
