@@ -1,23 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { fetchCartById, deleteCart, updateCart } from "@/utils/cart";
-import { useUser } from "@/context/UserContext";
 
 const CartPage: React.FC = () => {
-    const { user, loading: userLoading } = useUser();
     const [cartItems, setCartItems] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    const user = useSelector((state: RootState) => state.user.user);
 
     useEffect(() => {
-        if (user && !userLoading) {
-            setLoading(true);
-            fetchCartById(user.id)
-                .then(setCartItems)
-                .catch(console.error)
-                .finally(() => setLoading(false));
+        if (user) {
+            fetchCartById(user.id).then(setCartItems).catch(console.error);
         }
-    }, [user, userLoading]);
+    }, [user]);
 
     const handleUpdateQuantity = async (id: number, quantity: number) => {
         if (quantity < 1) return;
@@ -35,8 +32,7 @@ const CartPage: React.FC = () => {
         0
     );
 
-    if (userLoading || loading) return <div>Loading...</div>;
-    if (!user) return <div>You need login</div>;
+    if (!user) return <div>You need to login</div>;
     if (!cartItems.length) return <div>Your cart is empty</div>;
 
     return (

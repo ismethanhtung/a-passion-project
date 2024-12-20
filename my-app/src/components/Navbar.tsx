@@ -2,19 +2,28 @@
 
 import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
-import { useUser } from "@/context/UserContext";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
 import { handleLogoutApi } from "@/utils/auth/logout";
+import { logout } from "@/store/userSlice";
+import Cookie from "js-cookie";
+import { setUser, setTokens } from "@/store/userSlice";
 
 export default function Navbar() {
-    const { user, logout, loading } = useUser();
+    const dispatch = useDispatch<AppDispatch>();
+    const user = useSelector((state: RootState) => state.user.user);
     const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification" | null>(
         null
     );
+
     const handleLogout = async () => {
         try {
             const response = await handleLogoutApi();
-            if (response.ok) logout();
-            else console.error("Đăng xuất không thành công");
+            if (response.ok) {
+                dispatch(logout());
+            } else {
+                console.error("Đăng xuất không thành công");
+            }
         } catch (error) {
             console.error("Lỗi khi đăng xuất:", error);
         }
@@ -55,6 +64,16 @@ export default function Navbar() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+    useEffect(() => {
+        const user = Cookie.get("user");
+        const accessToken = Cookie.get("accessToken");
+        const refreshToken = Cookie.get("refreshToken");
+
+        if (user && accessToken && refreshToken) {
+            dispatch(setUser({ user: JSON.parse(user) }));
+            dispatch(setTokens({ accessToken, refreshToken }));
+        }
+    }, [dispatch]);
 
     return (
         <nav className="sticky top-0 h-16 z-50 bg-gray-100">

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useUser } from "@/context/UserContext";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
 import { addReview } from "@/utils/review";
 
 interface ReviewFormProps {
@@ -12,7 +13,7 @@ interface ReviewFormProps {
 const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
     const [rating, setRating] = useState<number | null>(null);
     const [comment, setComment] = useState("");
-    const { user } = useUser();
+    const user = useSelector((state: RootState) => state.user.user);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

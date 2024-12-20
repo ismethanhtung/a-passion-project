@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import CourseCard from "@/components/CourseCard";
+import CourseCard from "@/components/courseCard";
 import Pagination from "@/components/Pagination";
 import Course from "@/interfaces/course";
 import { fetchCourses } from "@/utils/courses";

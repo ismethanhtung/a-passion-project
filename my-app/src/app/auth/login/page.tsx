@@ -1,15 +1,20 @@
 "use client";
+
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 import { handleLoginApi } from "@/utils/auth/login";
+import { login } from "@/store/userSlice";
+import { useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
+import { signIn } from "next-auth/react";
 
 function ResetPassword() {
-    const { user, login } = useUser();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+
+    const dispatch = useDispatch<AppDispatch>();
 
     const router = useRouter();
 
@@ -26,7 +31,14 @@ function ResetPassword() {
             const data = await response.json();
             console.log(response);
             console.log("Đăng nhập thành công:", data);
-            login(data.user);
+
+            dispatch(
+                login({
+                    user: data.user,
+                    accessToken: data.accessToken,
+                    refreshToken: data.refreshToken,
+                })
+            );
             router.push(`/`);
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
@@ -42,16 +54,13 @@ function ResetPassword() {
                         <div className="text-center flex flex-col justify-center w-full mb-10">
                             <h1 className="my-6 text-2xl font-extrabold tracking-tight">
                                 Welcome back! <br />
-                                <span className="text-red-300">
-                                    Login to your account
-                                </span>
+                                <span className="text-red-300">Login to your account</span>
                             </h1>
                         </div>
                     </div>
+
                     {error && (
-                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
-                            {error}
-                        </div>
+                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">{error}</div>
                     )}
 
                     <div className="mb-5">
@@ -111,38 +120,23 @@ function ResetPassword() {
                     <div className="text-center">
                         <p className="text-gray-600 py-8">or log in with:</p>
                         <div className="flex justify-between space-x-4">
-                            <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
-                                <img
-                                    src="/logos/facebook.png"
-                                    className="size-5"
-                                    alt=""
-                                />
+                            <button
+                                onClick={() => signIn("google")}
+                                className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg"
+                            >
+                                <img src="/logos/facebook.png" className="size-5" alt="" />
                             </button>
                             <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
-                                <img
-                                    src="/logos/google.png"
-                                    className="size-5"
-                                    alt=""
-                                />
+                                <img src="/logos/google.png" className="size-5" alt="" />
                             </button>
                             <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
-                                <img
-                                    src="/logos/apple.png"
-                                    className="size-5"
-                                    alt=""
-                                />
+                                <img src="/logos/apple.png" className="size-5" alt="" />
                             </button>
                         </div>
                     </div>
                     <div className="mt-4 flex content-center justify-center">
-                        <p className="text-gray-600 flex text-sm mr-2">
-                            Don't have an account?
-                        </p>
-                        <LinkItem
-                            text="Sign Up"
-                            href="/auth/signup"
-                            className="hover:underline"
-                        />
+                        <p className="text-gray-600 flex text-sm mr-2">Don't have an account?</p>
+                        <LinkItem text="Sign Up" href="/auth/signup" className="hover:underline" />
                     </div>
                 </div>
             </div>

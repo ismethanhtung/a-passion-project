@@ -1,10 +1,9 @@
 "use client";
 import Button from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
-import LinkItem from "@/components/LinkItem";
 import Course from "@/interfaces/course";
 import { useState, useEffect } from "react";
-import CourseCard from "@/components/CourseCard";
+import CourseCard from "@/components/courseCard";
 import CommentList from "@/components/ui/comment";
 import { fetchLimitCourses } from "@/utils/courses";
 
@@ -108,7 +107,7 @@ export default function Home() {
 
                     <div className="w-1/2 h-auto mt-24">
                         <h1 className="text-5xl text-red-300 font-bold">
-                            Why Choose CourseCo for Your Learning Journey
+                            Why Choose LinguaX for Your Learning Journey
                         </h1>
                         <p className="text-gray-500 mt-8 text-xl text-justify">
                             Unlock your potential and achieve your goals with our dynamic,

@@ -10,10 +10,11 @@ import Review from "@/interfaces/review";
 import { fetchCourseById } from "@/utils/courses";
 import { fetchReviewsById } from "@/utils/review";
 import { addCart } from "@/utils/cart";
-import { useUser } from "@/context/UserContext";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const CourseDetail: React.FC = () => {
-    const { user } = useUser();
+    const user = useSelector((state: RootState) => state.user.user);
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
     const [isPurchased, setIsPurchased] = useState(false);

@@ -2,10 +2,8 @@
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 
 function Login() {
-    const { user, login } = useUser();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -27,9 +25,7 @@ function Login() {
                         </div>
                     </div>
                     {error && (
-                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
-                            {error}
-                        </div>
+                        <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">{error}</div>
                     )}
 
                     <div className="mb-5">
