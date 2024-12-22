@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import ForumPost from "@/interfaces/forum/forumPost";
-import { fetchForumPosts, addForumPost, deleteForumPost, updateForumPost } from "@/utils/forumPost";
+import { fetchForumPosts, addForumPost, deleteForumPost, updateForumPost } from "@/api/forumPost";
 
 function ForumPostPage() {
     const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);

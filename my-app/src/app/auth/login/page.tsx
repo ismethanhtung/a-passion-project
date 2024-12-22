@@ -1,26 +1,29 @@
 "use client";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
-import { handleLoginApi } from "@/utils/auth/login";
 import { login } from "@/store/userSlice";
 import { useDispatch } from "react-redux";
-import { RootState, AppDispatch } from "@/store/store";
+import { AppDispatch } from "@/store/store";
 import { signIn } from "next-auth/react";
 
-function ResetPassword() {
+function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
     const dispatch = useDispatch<AppDispatch>();
-
     const router = useRouter();
 
     const handleLogin = async () => {
         try {
-            const response = await handleLoginApi(email, password);
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+                headers: { "Content-Type": "application/json" },
+            });
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -29,7 +32,6 @@ function ResetPassword() {
             }
 
             const data = await response.json();
-            console.log(response);
             console.log("Đăng nhập thành công:", data);
 
             dispatch(
@@ -39,11 +41,29 @@ function ResetPassword() {
                     refreshToken: data.refreshToken,
                 })
             );
-            router.push(`/`);
+
+            router.push("/");
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
             setError("Lỗi khi đăng nhập.");
         }
+    };
+
+    const handleGoogleLogin = async () => {
+        // const result = await signIn("google", { redirect: false });
+        // alert(result);
+        // if (result?.error) {
+        //     alert("Đăng nhập với Google thất bại.");
+        // } else {
+        //     dispatch(
+        //         login({
+        //             user: result.user,
+        //             accessToken: result?.accessToken,
+        //             refreshToken: result?.refreshToken,
+        //         })
+        //     );
+        //     router.push("/");
+        // }
     };
 
     return (
@@ -121,12 +141,15 @@ function ResetPassword() {
                         <p className="text-gray-600 py-8">or log in with:</p>
                         <div className="flex justify-between space-x-4">
                             <button
-                                onClick={() => signIn("google")}
+                                onClick={() => signIn("facebook", { callbackUrl: "/" })}
                                 className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg"
                             >
                                 <img src="/logos/facebook.png" className="size-5" alt="" />
                             </button>
-                            <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
+                            <button
+                                onClick={handleGoogleLogin}
+                                className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg"
+                            >
                                 <img src="/logos/google.png" className="size-5" alt="" />
                             </button>
                             <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
@@ -134,6 +157,7 @@ function ResetPassword() {
                             </button>
                         </div>
                     </div>
+
                     <div className="mt-4 flex content-center justify-center">
                         <p className="text-gray-600 flex text-sm mr-2">Don't have an account?</p>
                         <LinkItem text="Sign Up" href="/auth/signup" className="hover:underline" />
@@ -144,4 +168,4 @@ function ResetPassword() {
     );
 }
 
-export default ResetPassword;
+export default Login;

@@ -2,7 +2,7 @@
 // import React, { useState, useEffect } from "react";
 // import DBTable from "@/components/dbTable";
 // import Purchase from "@/interfaces/purchase";
-// import { fetchPurchases, addPurchase, deletePurchase, updatePurchase } from "@/utils/purchase";
+// import { fetchPurchases, addPurchase, deletePurchase, updatePurchase } from "@/api/purchase";
 
 // function PurchasePage() {
 //     const [purchases, setPurchases] = useState<Purchase[]>([]);

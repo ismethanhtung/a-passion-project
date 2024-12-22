@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Review from "@/interfaces/review";
-import { fetchReviews, deleteReview, updateReview } from "@/utils/review";
+import { fetchReviews, deleteReview, updateReview } from "@/api/review";
 
 function ReviewPage() {
     const [reviews, setReviews] = useState<Review[]>([]);

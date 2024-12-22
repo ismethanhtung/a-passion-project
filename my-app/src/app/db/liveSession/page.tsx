@@ -7,7 +7,7 @@ import {
     addLiveSession,
     deleteLiveSession,
     updateLiveSession,
-} from "@/utils/liveSession";
+} from "@/api/liveSession";
 
 function LiveSessionPage() {
     const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);

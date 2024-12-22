@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
-import { handleLogoutApi } from "@/utils/auth/logout";
+import { handleLogoutApi } from "@/api/auth/logout";
 import { logout } from "@/store/userSlice";
 import Cookie from "js-cookie";
 import { setUser, setTokens } from "@/store/userSlice";

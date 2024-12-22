@@ -7,7 +7,7 @@ import {
     addForumThread,
     deleteForumThread,
     updateForumThread,
-} from "@/utils/forumThread";
+} from "@/api/forumThread";
 
 function ForumThreadPage() {
     const [forumThreads, setForumThreads] = useState<ForumThread[]>([]);

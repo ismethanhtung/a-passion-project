@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Payment from "@/interfaces/payment";
-import { fetchPayments, addPayment, deletePayment, updatePayment } from "@/utils/payment";
+import { fetchPayments, addPayment, deletePayment, updatePayment } from "@/api/payment";
 
 function PaymentPage() {
     const [payments, setPayments] = useState<Payment[]>([]);

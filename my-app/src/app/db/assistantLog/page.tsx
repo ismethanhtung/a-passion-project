@@ -7,7 +7,7 @@ import {
     addAssistantLog,
     deleteAssistantLog,
     updateAssistantLog,
-} from "@/utils/assistantLog";
+} from "@/api/assistantLog";
 
 function AssistantLogPage() {
     const [assistantLogs, setAssistantLogs] = useState<AssistantLog[]>([]);

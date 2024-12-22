@@ -7,7 +7,7 @@ import {
     addLiveCourse,
     deleteLiveCourse,
     updateLiveCourse,
-} from "@/utils/liveCourse";
+} from "@/api/liveCourse";
 
 function LiveCoursePage() {
     const [liveLiveCourses, setLiveCourses] = useState<LiveCourse[]>([]);

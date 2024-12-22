@@ -2,7 +2,7 @@
 // import React, { useState, useEffect } from "react";
 // import DBTable from "@/components/dbTable";
 // import Blog from "@/interfaces/blog";
-// import { fetchCategories, addBlog, deleteBlog, updateBlog } from "@/utils/blogs";
+// import { fetchCategories, addBlog, deleteBlog, updateBlog } from "@/api/blogs";
 
 // function BlogPage() {
 //     const [categories, setCategories] = useState<Blog[]>([]);

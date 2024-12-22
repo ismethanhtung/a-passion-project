@@ -5,7 +5,7 @@ import Course from "@/interfaces/course";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/courseCard";
 import CommentList from "@/components/ui/comment";
-import { fetchLimitCourses } from "@/utils/courses";
+import { fetchLimitCourses } from "@/api/courses";
 
 export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);

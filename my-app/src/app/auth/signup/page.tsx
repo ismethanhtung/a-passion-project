@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
-import { handleSignUpApi } from "@/utils/auth/signup";
+import { handleSignUpApi } from "@/api/auth/signup";
 
 function SignUp() {
     const [email, setEmail] = useState("");

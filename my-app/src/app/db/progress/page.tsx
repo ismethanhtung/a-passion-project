@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Progress from "@/interfaces/progress";
-import { fetchProgress, addProgress, deleteProgress, updateProgress } from "@/utils/progress";
+import { fetchProgress, addProgress, deleteProgress, updateProgress } from "@/api/progress";
 
 function ProgressPage() {
     const [progresss, setProgresss] = useState<Progress[]>([]);

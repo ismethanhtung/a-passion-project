@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Category from "@/interfaces/category";
-import { fetchCategories, addCategory, deleteCategory, updateCategory } from "@/utils/category";
+import { fetchCategories, addCategory, deleteCategory, updateCategory } from "@/api/category";
 
 function CategoryPage() {
     const [categories, setCategories] = useState<Category[]>([]);

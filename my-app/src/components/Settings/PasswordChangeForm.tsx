@@ -1,6 +1,6 @@
 import React from "react";
 import FormWrapper from "../FormWrapper";
-import { handleChangePassword } from "@/utils/auth/changePassword";
+import { handleChangePassword } from "@/api/auth/changePassword";
 
 const PasswordChangeForm = () => {
     const handleSubmit = async (formData: Record<string, string>) => {

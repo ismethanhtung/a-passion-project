@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import User from "@/interfaces/user";
-import { fetchUsers, deleteUser, updateUser } from "@/utils/user";
+import { fetchUsers, deleteUser, updateUser } from "@/api/user";
 
 function UserPage() {
     const [users, setUsers] = useState<User[]>([]);

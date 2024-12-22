@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 import Course from "@/interfaces/course";
-import { fetchCourses, addCourse, deleteCourse, updateCourse } from "@/utils/courses";
+import { fetchCourses, addCourse, deleteCourse, updateCourse } from "@/api/courses";
 
 function CoursePage() {
     const [courses, setCourses] = useState<Course[]>([]);

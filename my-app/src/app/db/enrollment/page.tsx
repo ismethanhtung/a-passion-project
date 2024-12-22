@@ -7,7 +7,7 @@ import {
     addEnrollment,
     deleteEnrollment,
     updateEnrollment,
-} from "@/utils/enrollment";
+} from "@/api/enrollment";
 
 function EnrollmentPage() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);

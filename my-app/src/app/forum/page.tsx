@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "@/components/Pagination";
 import ForumCard from "@/components/forum/ForumCard";
-import { fetchForumThreads } from "@/utils/forumThread";
+import { fetchForumThreads } from "@/api/forumThread";
 import ForumThread from "@/interfaces/forum/forumThread";
 
 const ForumPage: React.FC = () => {

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import CourseCard from "@/components/courseCard";
 import Pagination from "@/components/Pagination";
 import Course from "@/interfaces/course";
-import { fetchCourses } from "@/utils/courses";
+import { fetchCourses } from "@/api/courses";
 
 const Sources: React.FC = () => {
     const [courses, setCourses] = useState<Course[]>([]);

@@ -7,9 +7,9 @@ import { Video } from "@/components/ui/video";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
 import Review from "@/interfaces/review";
-import { fetchCourseById } from "@/utils/courses";
-import { fetchReviewsById } from "@/utils/review";
-import { addCart } from "@/utils/cart";
+import { fetchCourseById } from "@/api/courses";
+import { fetchReviewsById } from "@/api/review";
+import { addCart } from "@/api/cart";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 

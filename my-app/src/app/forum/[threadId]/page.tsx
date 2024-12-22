@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { fetchForumPosts, addForumPost, fetchForumPostById } from "@/utils/forumPost";
+import { fetchForumPosts, addForumPost, fetchForumPostById } from "@/api/forumPost";
 import { useParams } from "next/navigation";
 import PostCard from "@/components/forum/PostCard";
 import ForumPost from "@/interfaces/forum/forumPost";
-import { fetchForumThreadById } from "@/utils/forumThread";
+import { fetchForumThreadById } from "@/api/forumThread";
 
 const ThreadDetail: React.FC<{ params: { threadId: number } }> = ({ params }) => {
     const [posts, setPosts] = useState<ForumPost[]>([]);

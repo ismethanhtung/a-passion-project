@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
-import { addReview } from "@/utils/review";
+import { addReview } from "@/api/review";
 
 interface ReviewFormProps {
     courseId: number;

@@ -7,7 +7,7 @@ import {
     addNotification,
     deleteNotification,
     updateNotification,
-} from "@/utils/notification";
+} from "@/api/notification";
 
 function NotificationPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);

@@ -2,7 +2,7 @@
 // import React, { useState, useEffect } from "react";
 // import DBTable from "@/components/dbTable";
 // import StudyTime from "@/interfaces/studyTime";
-// import { fetchStudyTimes, addStudyTime, deleteStudyTime, updateStudyTime } from "@/utils/studyTime";
+// import { fetchStudyTimes, addStudyTime, deleteStudyTime, updateStudyTime } from "@/api/studyTime";
 
 // function StudyTimePage() {
 //     const [studyTimes, setStudyTimes] = useState<StudyTime[]>([]);
