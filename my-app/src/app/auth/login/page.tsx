@@ -50,7 +50,7 @@ function Login() {
     };
 
     const handleGoogleLogin = async () => {
-        // const result = await signIn("google", { redirect: false });
+        const result = await signIn("google");
         // alert(result);
         // if (result?.error) {
         //     alert("Đăng nhập với Google thất bại.");

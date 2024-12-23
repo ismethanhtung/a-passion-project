@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
 import { handleSignUpApi } from "@/api/auth/signup";
@@ -13,9 +13,10 @@ function SignUp() {
 
     const router = useRouter();
 
-    const handleSignUp = async () => {
-        setError(""); // Reset lỗi mỗi lần người dùng đăng ký
-        const name = `${firstName} ${lastName}`;
+    const handleSignUp = async (e: any) => {
+        e.preventDefault();
+        setError("");
+        const name = `${firstName} ${lastName}`.trim();
 
         if (!firstName || !lastName || !email || !password) {
             setError("Tất cả các trường là bắt buộc.");
@@ -37,12 +38,10 @@ function SignUp() {
             if (!response.ok) {
                 const errorData = await response.json();
                 setError(errorData.message || "Sign up thất bại.");
-                return; // Dừng lại nếu đăng ký thất bại
+                return;
             }
 
-            const data = await response.json();
-            console.log("Đăng ký thành công:", data);
-            alert("Đăng ký thành công!");
+            alert("Đăng ký thành công! Vui lòng xác nhận Email");
             router.push("/auth/login");
         } catch (err) {
             console.error("Lỗi khi đăng ký:", err);
@@ -51,7 +50,7 @@ function SignUp() {
     };
 
     return (
-        <form className="container mx-auto">
+        <form className="container mx-auto" onSubmit={handleSignUp}>
             <div className="mx-auto content-center w-4/12">
                 <div className="my-28 mx-8 p-8 bg-white p-6 rounded-3xl shadow-lg border-gray-100 border">
                     <div className="flex flex-col md:flex-row items-center">
@@ -73,22 +72,20 @@ function SignUp() {
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             className="border text-sm rounded-lg block w-1/2 p-2.5"
-                            placeholder="first name"
+                            placeholder="First name"
                             required
                         />
                         <input
-                            id="lastname"
                             type="text"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             className="border text-sm rounded-lg block w-1/2 ml-2 p-2.5"
-                            placeholder="last name"
+                            placeholder="Last name"
                             required
                         />
                     </div>
                     <div className="mb-5">
                         <input
-                            id="email"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -100,17 +97,17 @@ function SignUp() {
 
                     <div className="mb-5">
                         <input
-                            id="password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="password"
-                            className="border text-sm rounded-lg block w-full p-2.5 "
+                            placeholder="Password"
+                            className="border text-sm rounded-lg block w-full p-2.5"
+                            required
                         />
                     </div>
 
                     <button
-                        onClick={handleSignUp}
+                        type="submit"
                         className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full"
                     >
                         Sign up
@@ -124,7 +121,7 @@ function SignUp() {
                             </button>
                             <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
                                 <img src="/logos/google.png" className="size-5" alt="" />
-                            </button>{" "}
+                            </button>
                             <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
                                 <img src="/logos/apple.png" className="size-5" alt="" />
                             </button>
