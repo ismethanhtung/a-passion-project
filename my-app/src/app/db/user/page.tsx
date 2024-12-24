@@ -54,6 +54,7 @@ function UserPage() {
                         { key: "email" },
                         { key: "roleName" },
                         { key: "isDeleted" },
+                        { key: "active" },
                     ]}
                     onUpdate={handleUpdateUser}
                     onDelete={handleDeleteUser}

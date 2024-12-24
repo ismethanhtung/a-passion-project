@@ -10,7 +10,7 @@ export const handleLoginApi = async (email: string, password: string) => {
         credentials: "include",
     });
     if (!response.ok) {
-        throw new Error("Cant handleLogin.");
+        throw new Error("Cant Login.");
     }
     return response;
 };

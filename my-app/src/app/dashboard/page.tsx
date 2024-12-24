@@ -65,14 +65,10 @@ const Settings: React.FC = () => {
             <h1 className="text-3xl font-bold mb-4">Cài đặt</h1>
 
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
-                <h2 className="text-xl font-semibold mb-3">
-                    Thông tin cá nhân
-                </h2>
+                <h2 className="text-xl font-semibold mb-3">Thông tin cá nhân</h2>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium">
-                            Tên:
-                        </label>
+                        <label className="block text-sm font-medium">Tên:</label>
                         <input
                             type="text"
                             value={settings?.name}
@@ -86,9 +82,7 @@ const Settings: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium">
-                            Email:
-                        </label>
+                        <label className="block text-sm font-medium">Email:</label>
                         <input
                             type="email"
                             value={settings?.email}
@@ -97,9 +91,7 @@ const Settings: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium">
-                            Số điện thoại:
-                        </label>
+                        <label className="block text-sm font-medium">Số điện thoại:</label>
                         <input
                             type="text"
                             value={settings?.phone || ""}
@@ -128,17 +120,14 @@ const Settings: React.FC = () => {
                             onChange={(e) =>
                                 setSettings({
                                     ...settings!,
-                                    learningGoals:
-                                        parseInt(e.target.value) || 0,
+                                    learningGoals: parseInt(e.target.value) || 0,
                                 })
                             }
                             className="w-full p-2 border rounded"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium">
-                            Ngôn ngữ:
-                        </label>
+                        <label className="block text-sm font-medium">Ngôn ngữ:</label>
                         <select
                             value={settings?.language}
                             onChange={(e) =>
@@ -208,9 +197,7 @@ const Settings: React.FC = () => {
                     <label className="block text-sm font-medium">Chế độ:</label>
                     <select
                         value={settings?.theme}
-                        onChange={(e) =>
-                            setSettings({ ...settings!, theme: e.target.value })
-                        }
+                        onChange={(e) => setSettings({ ...settings!, theme: e.target.value })}
                         className="w-full p-2 border rounded"
                     >
                         <option value="light">Sáng</option>
@@ -219,10 +206,7 @@ const Settings: React.FC = () => {
                 </div>
             </div>
 
-            <button
-                onClick={handleSave}
-                className="w-full bg-blue-500 text-white p-3 rounded-lg"
-            >
+            <button onClick={handleSave} className="w-full bg-blue-500 text-white p-3 rounded-lg">
                 Lưu cài đặt
             </button>
         </div>

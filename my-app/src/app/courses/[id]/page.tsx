@@ -2,69 +2,39 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Course from "@/interfaces/course";
-import { Video } from "@/components/ui/video";
-import ReviewList from "@/components/ReviewList";
-import ReviewForm from "@/components/ReviewForm";
-import Review from "@/interfaces/review";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { fetchCourseById } from "@/api/courses";
 import { fetchReviewsById } from "@/api/review";
 import { addCart } from "@/api/cart";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import Course from "@/interfaces/course";
+import Review from "@/interfaces/review";
+import { Video } from "@/components/ui/video";
+import ReviewList from "@/components/ReviewList";
+import ReviewForm from "@/components/ReviewForm";
 
 const CourseDetail: React.FC = () => {
     const user = useSelector((state: RootState) => state.user.user);
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
-    const [isPurchased, setIsPurchased] = useState(false);
-    const [visibleVideo, setVisibleVideo] = useState<number | null>(null);
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [visibleVideo, setVisibleVideo] = useState<number | null>(null);
     const [isInCart, setIsInCart] = useState(false);
+    const [isPurchased, setIsPurchased] = useState(false);
 
-    const fetchCourseDetails = async () => {
-        try {
-            const response = await fetchCourseById(id);
-            setCourse(response);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    // const handlePurchase = async () => {
-    //     try {
-    //         const response = await purchaseCourse(id);
-    //         setIsPurchased(true);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
+    useEffect(() => {
+        fetchCourseById(id).then(setCourse).catch(console.error);
+        fetchReviewsById(id).then(setReviews).catch(console.error);
+    }, [id]);
 
     const handleAddCart = async () => {
+        if (!user || !course) return alert("Bạn cần đăng nhập hoặc khóa học không tồn tại.");
         try {
-            if (!user) throw new Error("Bạn cần đăng nhập để thêm vào giỏ hàng.");
-            if (!course) throw new Error("Không thể thêm khóa học không tồn tại.");
-
-            const response = await addCart({
-                userId: user.id,
-                courseId: course.id,
-                quantity: 1,
-            });
-
+            await addCart({ userId: user.id, courseId: course.id, quantity: 1 });
             setIsInCart(true);
-            console.log("Cart updated:", response);
             alert("Khóa học đã được thêm vào giỏ hàng!");
         } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const fetchReviews = async () => {
-        try {
-            const response = await fetchReviewsById(id);
-            setReviews(response);
-        } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     };
 
@@ -72,43 +42,27 @@ const CourseDetail: React.FC = () => {
         setVisibleVideo((prev) => (prev === lessonId ? null : lessonId));
     };
 
-    useEffect(() => {
-        fetchCourseDetails();
-        fetchReviews();
-    }, [id]);
-
-    if (!course) {
+    if (!course)
         return (
             <div className="text-center text-red-500 text-2xl mt-20">
                 404 - Khóa học không tồn tại
             </div>
         );
-    }
 
     return (
         <div className="container mx-auto p-8 space-y-8">
-            {/* Khung thông tin khóa học */}
-            <div className="border-2 border-gray-200 p-10 rounded-lg">
-                <div className="flex flex-col lg:flex-row gap-4">
-                    <img
-                        src={course.thumbnail}
-                        alt={course.title}
-                        className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg mr-8"
-                    />
-                    <div>
-                        <h1 className="text-3xl lg:text-4xl font-bold">{course.title}</h1>
-                        <p className="mt-2">{course.description}</p>
-                        <div className="flex gap-4 text-gray-500 mt-4">
-                            <span className="flex">
-                                <img src="/icons/clock.png" className="size-4 mt-1" />
-                                {/* {course.duration} */}
-                            </span>
-                            <span>{course.lessons?.length || 0} Lessons</span>
-                            <span className="flex">
-                                <img src="/icons/star.png" className="size-4 mt-1" />(
-                                {course.reviews?.length} Reviews)
-                            </span>
-                        </div>
+            <div className="border-2 border-gray-200 p-10 rounded-lg flex flex-col lg:flex-row gap-4">
+                <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                    className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg"
+                />
+                <div>
+                    <h1 className="text-3xl lg:text-4xl font-bold">{course.title}</h1>
+                    <p className="mt-2">{course.description}</p>
+                    <div className="flex gap-4 text-gray-500 mt-4">
+                        <span>{course.lessons?.length || 0} Lessons</span>
+                        <span>({course.reviews?.length} Reviews)</span>
                     </div>
                 </div>
             </div>
@@ -118,49 +72,37 @@ const CourseDetail: React.FC = () => {
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">Course Objectives</h2>
                         <ul className="list-disc ml-6 space-y-2 text-gray-700">
-                            {course.objectives.split(". ").map((goal, index) => (
-                                <li key={index}>{goal}</li>
+                            {course.objectives.split(". ").map((goal, i) => (
+                                <li key={i}>{goal}</li>
                             ))}
                         </ul>
                     </div>
+
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course content</h2>
+                        <h2 className="text-xl font-semibold mb-4">Course Content</h2>
                         {course.lessons?.map((lesson) => (
-                            <div key={lesson.id} className="">
+                            <div key={lesson.id}>
                                 <h3
                                     onClick={() => toggleVideoVisibility(lesson.id)}
-                                    className="py-1 text-sm  cursor-pointer text-blue-600"
+                                    className="py-1 text-sm cursor-pointer text-blue-600"
                                 >
                                     {lesson.title}
                                 </h3>
-
-                                <div
-                                    className={` ${
-                                        lesson.isLocked
-                                            ? "text-gray-400 cursor-not-allowed"
-                                            : "text-gray-700"
-                                    }`}
-                                >
-                                    {visibleVideo === lesson.id && (
-                                        <Video
-                                            videoUrl={lesson.videoUrl}
-                                            isLocked={lesson.isLocked}
-                                        />
-                                    )}
-                                </div>
+                                {visibleVideo === lesson.id && (
+                                    <Video videoUrl={lesson.videoUrl} isLocked={lesson.isLocked} />
+                                )}
                             </div>
                         ))}
                     </div>
 
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold">Course rating</h2>
-                        <div className="container mx-auto py-8">
-                            <ReviewForm courseId={Number(id)} onReviewAdded={fetchReviews} />
-                        </div>
-                        {reviews?.length > 0 ? (
-                            <div className="container mx-auto py-8">
-                                <ReviewList reviews={reviews} />
-                            </div>
+                        <h2 className="text-xl font-semibold">Course Rating</h2>
+                        <ReviewForm
+                            courseId={Number(id)}
+                            onReviewAdded={() => fetchReviewsById(id).then(setReviews)}
+                        />
+                        {reviews.length > 0 ? (
+                            <ReviewList reviews={reviews} />
                         ) : (
                             <p className="text-gray-500">Chưa có đánh giá nào</p>
                         )}
@@ -168,14 +110,13 @@ const CourseDetail: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div>
-                        <div className=" border-2 border-gray-200 rounded-lg p-10">
-                            <h3 className="text-lg font-semibold mb-4">Course Review</h3>
-                            <Video videoUrl={"https://vimeo.com/1037130772"} isLocked={false} />
-                        </div>
+                    <div className="border-2 border-gray-200 rounded-lg p-10">
+                        <h3 className="text-lg font-semibold mb-4">Course Review</h3>
+                        <Video videoUrl="https://vimeo.com/1037130772" isLocked={false} />
                     </div>
+
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course price</h2>
+                        <h2 className="text-xl font-semibold mb-4">Course Price</h2>
                         <div className="flex items-center gap-4">
                             <span className="text-2xl font-bold text-green-600">
                                 ${course.newPrice || course.price}
@@ -189,22 +130,17 @@ const CourseDetail: React.FC = () => {
                         <div className="mt-6 space-y-4">
                             <button
                                 className={`w-full py-3 rounded-lg font-semibold ${
-                                    isPurchased
-                                        ? "bg-green-300 text-white cursor-not-allowed"
-                                        : "bg-blue-400 text-white"
+                                    isPurchased ? "bg-green-300" : "bg-blue-400"
                                 }`}
-                                // onClick={handlePurchase}
                                 disabled={isPurchased}
                             >
                                 {isPurchased ? "Sold" : "Buy Now"}
                             </button>
                             <button
                                 className={`w-full py-3 rounded-lg font-semibold ${
-                                    isInCart
-                                        ? "bg-green-300 text-white cursor-not-allowed"
-                                        : "bg-yellow-400 text-white"
+                                    isInCart ? "bg-green-300" : "bg-yellow-400"
                                 }`}
-                                onClick={isInCart ? undefined : handleAddCart}
+                                onClick={!isInCart ? handleAddCart : undefined}
                                 disabled={isInCart}
                             >
                                 {isInCart ? "Added to Cart" : "Add to Cart"}

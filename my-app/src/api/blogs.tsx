@@ -11,7 +11,6 @@ const fetchBlogs = async () => {
         );
         const data = await response.json();
         return data.articles;
-        // setFilteredBlogs(data.articles);
     } catch (error) {
         console.error("Error fetching blogs:", error);
     }

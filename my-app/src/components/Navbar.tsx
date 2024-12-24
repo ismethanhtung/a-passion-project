@@ -1,26 +1,43 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import LinkItem from "./LinkItem";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
 import { handleLogoutApi } from "@/api/auth/logout";
-import { logout } from "@/store/userSlice";
+import { logout, setUser, setTokens } from "@/store/userSlice";
 import Cookie from "js-cookie";
-import { setUser, setTokens } from "@/store/userSlice";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
     const dispatch = useDispatch<AppDispatch>();
+    const router = useRouter();
+
+    const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification">(null);
     const user = useSelector((state: RootState) => state.user.user);
-    const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification" | null>(
-        null
-    );
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const user = Cookie.get("user");
+            const accessToken = Cookie.get("accessToken");
+            const refreshToken = Cookie.get("refreshToken");
+
+            if (user && accessToken && refreshToken) {
+                dispatch(setUser({ user: JSON.parse(user) }));
+                dispatch(setTokens({ accessToken, refreshToken }));
+            }
+            setLoading(false);
+        };
+
+        fetchUser();
+    }, [dispatch]);
 
     const handleLogout = async () => {
         try {
             const response = await handleLogoutApi();
             if (response.ok) {
                 dispatch(logout());
+                router.push("/");
             } else {
                 console.error("Đăng xuất không thành công");
             }
@@ -64,19 +81,15 @@ export default function Navbar() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-    useEffect(() => {
-        const user = Cookie.get("user");
-        const accessToken = Cookie.get("accessToken");
-        const refreshToken = Cookie.get("refreshToken");
 
-        if (user && accessToken && refreshToken) {
-            dispatch(setUser({ user: JSON.parse(user) }));
-            dispatch(setTokens({ accessToken, refreshToken }));
-        }
-    }, [dispatch]);
+    if (loading) {
+        return (
+            <div className="sticky top-0 h-16 z-50 bg-gray-100 flex items-center justify-center"></div>
+        );
+    }
 
     return (
-        <nav className="sticky top-0 h-16 z-50 bg-gray-100">
+        <div className="sticky top-0 h-16 z-50 bg-gray-100">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center h-full">
                 <div className="flex items-center space-x-8 font-semibold">
                     <LinkItem href="/" text="Home" />
@@ -87,7 +100,7 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {user === null ? (
+                {!user ? (
                     <div className="flex items-center space-x-8 font-semibold">
                         <LinkItem text="Login" href="/auth/login" />
                         <LinkItem text="Sign Up" href="/auth/signup" />
@@ -189,6 +202,7 @@ export default function Navbar() {
                                     </div>
                                 </div>
                             )}
+
                             {dropdown === "user" && (
                                 <div className="absolute top-14 right-0 w-64 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
                                     <div className="bg-gray-100 px-4 py-3 border-b">
@@ -197,29 +211,20 @@ export default function Navbar() {
                                         </p>
                                         <p className="text-sm text-gray-500">{user.email}</p>
                                     </div>
-
                                     <ul className="py-2">
-                                        <li>
-                                            <LinkItem
-                                                className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500 transition duration-150"
-                                                text="Dashboard"
-                                                href="/dashboard"
-                                            />
-                                        </li>
-                                        <li>
-                                            <LinkItem
-                                                className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500 transition duration-150"
-                                                text="Settings"
-                                                href="/settings"
-                                            />
-                                        </li>
-                                        <li>
-                                            <LinkItem
-                                                className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500 transition duration-150"
-                                                text="Cart"
-                                                href="/cart"
-                                            />
-                                        </li>
+                                        {[
+                                            { text: "Dashboard", href: "/dashboard" },
+                                            { text: "Settings", href: "/settings" },
+                                            { text: "Cart", href: "/cart" },
+                                        ].map(({ text, href }) => (
+                                            <li key={text}>
+                                                <LinkItem
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500 transition duration-150"
+                                                    text={text}
+                                                    href={href}
+                                                />
+                                            </li>
+                                        ))}
                                         <li>
                                             <a
                                                 onClick={handleLogout}
@@ -235,6 +240,6 @@ export default function Navbar() {
                     </div>
                 )}
             </div>
-        </nav>
+        </div>
     );
 }

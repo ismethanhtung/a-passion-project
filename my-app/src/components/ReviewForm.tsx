@@ -52,7 +52,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
             <div>
                 <div className="flex space-x-1">{renderStars()}</div>
                 <p className="text-sm text-gray-500">
@@ -68,7 +68,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                     className="w-full border p-2 rounded"
                 />
             </div>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+            <button type="submit" className="px-4 bg-blue-400 text-white rounded">
                 Submit
             </button>
         </form>
