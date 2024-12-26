@@ -7,12 +7,13 @@ import { handleLogoutApi } from "@/api/auth/logout";
 import { logout, setUser, setTokens } from "@/store/userSlice";
 import Cookie from "js-cookie";
 import { useRouter } from "next/navigation";
-
+import ChatBox from "./chatbot";
 export default function Navbar() {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
 
     const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification">(null);
+    const [showChat, setShowChat] = useState(false); // State to toggle chatbot visibility
     const user = useSelector((state: RootState) => state.user.user);
     const [loading, setLoading] = useState(true);
 
@@ -70,6 +71,10 @@ export default function Navbar() {
 
     const toggleDropdown = (type: "manage" | "user" | "notification") => {
         setDropdown((prev) => (prev === type ? null : type));
+    };
+
+    const toggleChat = () => {
+        setShowChat((prev) => !prev); // Toggle chat visibility
     };
 
     useEffect(() => {
@@ -157,6 +162,16 @@ export default function Navbar() {
                                     />
                                 </a>
                                 <button
+                                    className="relative p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400"
+                                    onClick={toggleChat}
+                                >
+                                    <img
+                                        className="w-7 h-7"
+                                        src="/icons/chatbot.png"
+                                        alt="chatbot"
+                                    />
+                                </button>
+                                <button
                                     className="relative flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-red-400"
                                     onClick={() => toggleDropdown("user")}
                                 >
@@ -219,27 +234,29 @@ export default function Navbar() {
                                         ].map(({ text, href }) => (
                                             <li key={text}>
                                                 <LinkItem
-                                                    className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500 transition duration-150"
-                                                    text={text}
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-500"
                                                     href={href}
+                                                    text={text}
                                                 />
                                             </li>
                                         ))}
-                                        <li>
-                                            <a
-                                                onClick={handleLogout}
-                                                className="block px-4 py-2 text-red-500 hover:bg-red-50 cursor-pointer transition duration-150"
-                                            >
-                                                Logout
-                                            </a>
-                                        </li>
                                     </ul>
+                                    <div className="border-t">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="block w-full px-4 py-2 text-left text-red-500 hover:bg-red-50"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
             </div>
+            {/* Chatbox dropdown */}
+            {showChat && <ChatBox />} {/* Conditionally render the ChatBox component */}
         </div>
     );
 }
