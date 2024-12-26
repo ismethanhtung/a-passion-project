@@ -7,7 +7,7 @@ import { handleLogoutApi } from "@/api/auth/logout";
 import { logout, setUser, setTokens } from "@/store/userSlice";
 import Cookie from "js-cookie";
 import { useRouter } from "next/navigation";
-import ChatBox from "./chatbot";
+
 export default function Navbar() {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
@@ -255,8 +255,6 @@ export default function Navbar() {
                     </div>
                 )}
             </div>
-            {/* Chatbox dropdown */}
-            {showChat && <ChatBox />} {/* Conditionally render the ChatBox component */}
         </div>
     );
 }
