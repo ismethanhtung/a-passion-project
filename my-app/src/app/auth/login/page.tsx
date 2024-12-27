@@ -39,14 +39,39 @@ function Login() {
 
     const handleGoogleLogin = async () => {
         try {
-            alert("resulasdfasdf");
-
             const result = await signIn("google", {
                 redirect: false,
             });
             alert(result);
+
+            if (result?.error) {
+                setError(result.error);
+                return;
+            }
+
+            // Fetch session để lấy thông tin người dùng
+            const sessionResponse = await fetch("/api/auth/session");
+            const session = await sessionResponse.json();
+
+            if (session.user) {
+                // Dispatch thông tin người dùng vào Redux store
+                dispatch(
+                    login({
+                        user: session.user,
+                        accessToken: session.account?.accessToken,
+                        refreshToken: session.account?.refreshToken,
+                    })
+                );
+                console.log("asdfasdfasdfasdfasdfas", session.user);
+
+                // Chuyển hướng người dùng
+                router.push("/");
+            } else {
+                setError("Đăng nhập Google thất bại.");
+            }
         } catch (err) {
             console.error("Lỗi khi đăng nhập Google:", err);
+            setError("Lỗi khi đăng nhập Google.");
         }
     };
 

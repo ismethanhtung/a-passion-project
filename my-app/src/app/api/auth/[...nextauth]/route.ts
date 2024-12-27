@@ -29,12 +29,31 @@ const handler = NextAuth({
 
                     const data = await response.json();
                     console.log("Đăng nhập thành công:", data);
-                    return data.response;
+
+                    // Trả về dữ liệu để sử dụng ở phía client
+                    return { ...data, user, account, profile };
                 } catch (error) {
                     console.log(error);
+                    return false;
                 }
             }
             return true;
+        },
+        async jwt({ token, user, account, profile }) {
+            // Lưu thông tin người dùng vào token
+            if (user) {
+                token.user = user;
+                token.account = account;
+                token.profile = profile;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            // Lưu thông tin người dùng vào session
+            session.user = token.user;
+            session.account = token.account;
+            session.profile = token.profile;
+            return session;
         },
     },
 });
