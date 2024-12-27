@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Pagination from "@/components/Pagination";
-// import Blog from "@/interfaces/blog";
 import fetchBlogs from "@/api/blogs";
 
 const Blogs: React.FC = () => {

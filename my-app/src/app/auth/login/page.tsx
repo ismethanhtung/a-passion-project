@@ -1,6 +1,4 @@
 "use client";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 import React, { useState } from "react";
 import LinkItem from "@/components/LinkItem";
 import { useRouter } from "next/navigation";
@@ -8,6 +6,7 @@ import { login } from "@/store/userSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import { signIn } from "next-auth/react";
+import { handleLoginApi } from "@/api/auth/login";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -19,18 +18,7 @@ function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
-                method: "POST",
-                body: JSON.stringify({ email, password }),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                setError(errorData.message || "Đăng nhập thất bại.");
-                return;
-            }
-
+            const response = await handleLoginApi(email, password);
             const data = await response.json();
             console.log("Đăng nhập thành công:", data);
 
@@ -50,20 +38,16 @@ function Login() {
     };
 
     const handleGoogleLogin = async () => {
-        const result = await signIn("google");
-        // alert(result);
-        // if (result?.error) {
-        //     alert("Đăng nhập với Google thất bại.");
-        // } else {
-        //     dispatch(
-        //         login({
-        //             user: result.user,
-        //             accessToken: result?.accessToken,
-        //             refreshToken: result?.refreshToken,
-        //         })
-        //     );
-        //     router.push("/");
-        // }
+        try {
+            alert("resulasdfasdf");
+
+            const result = await signIn("google", {
+                redirect: false,
+            });
+            alert(result);
+        } catch (err) {
+            console.error("Lỗi khi đăng nhập Google:", err);
+        }
     };
 
     return (
@@ -102,7 +86,7 @@ function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="password"
-                            className="border text-sm rounded-lg block w-full p-2.5 "
+                            className="border text-sm rounded-lg block w-full p-2.5"
                         />
                     </div>
 
@@ -118,7 +102,7 @@ function Login() {
                             </div>
                             <label
                                 htmlFor="remember"
-                                className="ms-2 text-sm font-medium text-gray-900 "
+                                className="ms-2 text-sm font-medium text-gray-900"
                             >
                                 Remember me
                             </label>

@@ -13,7 +13,6 @@ export default function Navbar() {
     const router = useRouter();
 
     const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification">(null);
-    const [showChat, setShowChat] = useState(false); // State to toggle chatbot visibility
     const user = useSelector((state: RootState) => state.user.user);
     const [loading, setLoading] = useState(true);
 
@@ -53,7 +52,7 @@ export default function Navbar() {
         "user",
         "course",
         "test",
-        "blog",
+        // "blog",
         "question",
         "category",
         "lesson",
@@ -71,10 +70,6 @@ export default function Navbar() {
 
     const toggleDropdown = (type: "manage" | "user" | "notification") => {
         setDropdown((prev) => (prev === type ? null : type));
-    };
-
-    const toggleChat = () => {
-        setShowChat((prev) => !prev); // Toggle chat visibility
     };
 
     useEffect(() => {
@@ -152,7 +147,7 @@ export default function Navbar() {
                                         src="/icons/notification.png"
                                         alt="Notifications"
                                     />
-                                    <span className="absolute top-1 right-1 inline-block w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                                    <span className="absolute top-1 right-1.5 inline-block w-2 h-2 bg-red-500 rounded-full"></span>
                                 </button>
                                 <a href="/chat">
                                     <img
@@ -161,10 +156,7 @@ export default function Navbar() {
                                         alt="Message"
                                     />
                                 </a>
-                                <button
-                                    className="relative p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400"
-                                    onClick={toggleChat}
-                                >
+                                <button className="relative p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400">
                                     <img
                                         className="w-7 h-7"
                                         src="/icons/chatbot.png"

@@ -28,7 +28,8 @@ const CourseDetail: React.FC = () => {
     }, [id]);
 
     const handleAddCart = async () => {
-        if (!user || !course) return alert("Bạn cần đăng nhập hoặc khóa học không tồn tại.");
+        if (!user) return alert("Bạn cần đăng nhập.");
+        if (!course) return alert("Khóa học không tồn tại.");
         try {
             await addCart({ userId: user.id, courseId: course.id, quantity: 1 });
             setIsInCart(true);
@@ -104,7 +105,7 @@ const CourseDetail: React.FC = () => {
                         {reviews.length > 0 ? (
                             <ReviewList reviews={reviews} />
                         ) : (
-                            <p className="text-gray-500">Chưa có đánh giá nào</p>
+                            <p className="text-gray-500">Chưa có đánh giá</p>
                         )}
                     </div>
                 </div>

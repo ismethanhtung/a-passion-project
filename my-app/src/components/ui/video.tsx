@@ -30,9 +30,7 @@ export const Video: React.FC<VideoProps> = ({ videoUrl, isLocked = false }) => {
                     onError={handleVideoError}
                 ></iframe>
             ) : (
-                <div className="text-red-500 text-center">
-                    URL video không hợp lệ.
-                </div>
+                <div className="text-red-500 text-center">URL video không hợp lệ.</div>
             )}
         </div>
     );

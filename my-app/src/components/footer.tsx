@@ -28,16 +28,11 @@ export default function Footer() {
                 </div>
 
                 <div>
-                    <h2 className="font-bold text-lg mb-4">
-                        Learning Programs
-                    </h2>
+                    <h2 className="font-bold text-lg mb-4">Learning Programs</h2>
                     <ul>
                         {learningPrograms.map((program, index) => (
                             <li key={index} className="mb-2">
-                                <LinkItem
-                                    text={program}
-                                    href={`/${program.toLowerCase()}`}
-                                />
+                                <LinkItem text={program} href={`/${program.toLowerCase()}`} />
                             </li>
                         ))}
                     </ul>

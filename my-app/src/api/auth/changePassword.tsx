@@ -10,7 +10,7 @@ export const handleChangePassword = async (currentPassword: string, newPassword:
         credentials: "include",
     });
     if (!response.ok) {
-        throw new Error("Cant Change Password.");
+        throw new Error("Can't Change Password.");
     }
     return response;
 };

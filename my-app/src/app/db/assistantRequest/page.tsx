@@ -7,7 +7,7 @@ import {
     addAssistantRequest,
     deleteAssistantRequest,
     updateAssistantRequest,
-} from "@/api/assistantRequest";
+} from "@/api/assistant/assistantRequest";
 
 function AssistantRequestPage() {
     const [assistantRequests, setAssistantRequests] = useState<AssistantRequest[]>([]);

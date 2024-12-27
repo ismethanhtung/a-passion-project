@@ -30,7 +30,6 @@ const userSlice = createSlice({
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
 
-            // Lưu thông tin vào cookie
             Cookie.set("user", JSON.stringify(action.payload.user), { expires: 7 }); // Lưu 7 ngày
             Cookie.set("accessToken", action.payload.accessToken, { expires: 7 });
             Cookie.set("refreshToken", action.payload.refreshToken, { expires: 7 });
@@ -40,7 +39,6 @@ const userSlice = createSlice({
             state.accessToken = null;
             state.refreshToken = null;
 
-            // Xóa cookie
             Cookie.remove("user");
             Cookie.remove("accessToken");
             Cookie.remove("refreshToken");
@@ -51,7 +49,6 @@ const userSlice = createSlice({
         ) => {
             state.user = action.payload.user;
 
-            // Cập nhật thông tin user vào cookie
             Cookie.set("user", JSON.stringify(action.payload.user), { expires: 7 });
         },
         setTokens: (
@@ -61,7 +58,6 @@ const userSlice = createSlice({
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
 
-            // Cập nhật token vào cookie
             Cookie.set("accessToken", action.payload.accessToken, { expires: 7 });
             Cookie.set("refreshToken", action.payload.refreshToken, { expires: 7 });
         },

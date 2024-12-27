@@ -40,7 +40,7 @@ function Login() {
                         />
                     </div>
 
-                    <button className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full">
+                    <button className="text-white bg-blue-500 hoer:bg-blue-7v00 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full">
                         Reset password
                     </button>
 
@@ -50,7 +50,7 @@ function Login() {
                         </p>
                         <LinkItem
                             text="Try another method"
-                            className="hover:underline content-center justify-center text-blue-700"
+                            className="hover:underline content-center justify-center"
                         />
                     </div>
                 </div>

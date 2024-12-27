@@ -1,6 +1,5 @@
 "use client";
 import Button from "@/components/ui/button";
-import Navbar from "@/components/Navbar";
 import Course from "@/interfaces/course";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/courseCard";
