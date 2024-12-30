@@ -6,11 +6,11 @@ import { login } from "@/store/userSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import { handleLoginApi } from "@/api/auth/login";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-const backendUrl = API_BASE_URL || "http://localhost:5000";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -41,46 +41,12 @@ function Login() {
         }
     };
 
-    const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-        try {
-            const { credential } = credentialResponse;
-            console.log(credential);
-
-            // Gửi credential (JWT) đến backend để xác thực
-            const response = await fetch(`${backendUrl}/google-login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ credential }),
-            });
-
-            const data = await response.json();
-            console.log("Đăng nhập Google thành công FEFEFEFEF:", data);
-            console.log(data.response.user);
-
-            dispatch(
-                login({
-                    user: data.response.user,
-                    accessToken: data.response.accessToken,
-                    refreshToken: data.response.refreshToken,
-                })
-            );
-
-            router.push("/");
-        } catch (err) {
-            console.error("Lỗi khi đăng nhập Google:", err);
-            setError("Lỗi khi đăng nhập Google.");
-        }
-    };
-
-    const handleGoogleLoginError = () => {
-        console.error("Đăng nhập Google thất bại");
-        setError("Đăng nhập Google thất bại.");
-    };
+    if (!GOOGLE_CLIENT_ID) {
+        throw new Error("Google Client ID is not defined in environment variables.");
+    }
 
     return (
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <div className="container mx-auto">
                 <div className="mx-auto content-center w-4/12">
                     <div className="my-28 mx-8 p-8 bg-white p-6 rounded-3xl shadow-lg border-gray-100 border">
@@ -154,20 +120,19 @@ function Login() {
                         </button>
 
                         <div className="text-center">
-                            <p className="text-gray-600 py-8">or log in with:</p>
-                            <div className="flex justify-between space-x-4">
-                                <button
-                                    // onClick={() => signIn("facebook", { callbackUrl: "/" })}
-                                    className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg"
-                                >
+                            <p className="text-gray-600 py-6">or log in with:</p>
+                            <div className="flex justify-center">
+                                <GoogleLoginButton onError={setError} />
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <div className="flex justify-between space-x-4 mt-4">
+                                <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
                                     <img src="/logos/facebook.png" className="size-5" alt="" />
                                 </button>
-                                <GoogleLogin
-                                    onSuccess={handleGoogleLoginSuccess}
-                                    onError={handleGoogleLoginError}
-                                    useOneTap
-                                />
-                                <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/3 rounded-lg">
+
+                                <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
                                     <img src="/logos/apple.png" className="size-5" alt="" />
                                 </button>
                             </div>

@@ -54,12 +54,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
     return (
         <form onSubmit={handleSubmit}>
             <div>
-                <div className="flex space-x-1">{renderStars()}</div>
+                <div className="flex space-x-1 py-3">{renderStars()}</div>
                 <p className="text-sm text-gray-500">
                     {rating === null ? "No rating selected." : `Rating: ${rating}/5`}
                 </p>
             </div>
-            <div>
+            <div className="py-3">
                 <textarea
                     id="comment"
                     placeholder="Your comment here"
@@ -68,7 +68,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                     className="w-full border p-2 rounded"
                 />
             </div>
-            <button type="submit" className="px-4 bg-blue-400 text-white rounded">
+            <button type="submit" className="px-4 py-2 mb-6 bg-blue-400 text-white rounded">
                 Submit
             </button>
         </form>

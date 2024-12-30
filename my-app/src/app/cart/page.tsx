@@ -45,8 +45,13 @@ const CartPage: React.FC = () => {
             <div className="w-2/3 bg-white p-6 rounded-lg border-2 border-gray-200">
                 <h1 className="text-3xl font-semibold my-10">Your Cart</h1>
                 {cartItems.map(({ id, course, quantity }) => (
-                    <div key={id} className="flex justify-between items-center border-b p-4">
+                    <div key={id} className="flex justify-between items-center border-t p-4">
                         <div className="flex items-center gap-4">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.has(id)}
+                                onChange={() => toggleSelect(id)}
+                            />
                             <img
                                 src={course.thumbnail}
                                 alt={course.title}
@@ -57,16 +62,11 @@ const CartPage: React.FC = () => {
                                 <p>{course.newPrice || course.price}đ</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-6">
                             <button onClick={() => updateQuantity(id, quantity - 1)}>-</button>
                             <span>{quantity}</span>
                             <button onClick={() => updateQuantity(id, quantity + 1)}>+</button>
                             <button onClick={() => deleteItem(id)}>Delete</button>
-                            <input
-                                type="checkbox"
-                                checked={selectedItems.has(id)}
-                                onChange={() => toggleSelect(id)}
-                            />
                         </div>
                     </div>
                 ))}
