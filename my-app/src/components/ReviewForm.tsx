@@ -62,10 +62,16 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
             <div className="py-3">
                 <textarea
                     id="comment"
-                    placeholder="Your comment here"
+                    placeholder="Write your comment..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="w-full border p-2 rounded"
+                    rows={1}
+                    onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height = target.scrollHeight + "px";
+                    }}
+                    className="w-full border-gray-200 border-2 border rounded-lg p-3 resize-none"
                 />
             </div>
             <button type="submit" className="px-4 py-2 mb-6 bg-blue-400 text-white rounded">

@@ -78,7 +78,6 @@ const CourseDetail: React.FC = () => {
                             ))}
                         </ul>
                     </div>
-
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold mb-4">Course Content</h2>
                         {course.lessons?.map((lesson) => (
@@ -95,7 +94,6 @@ const CourseDetail: React.FC = () => {
                             </div>
                         ))}
                     </div>
-
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold">Course Rating</h2>
                         <ReviewForm

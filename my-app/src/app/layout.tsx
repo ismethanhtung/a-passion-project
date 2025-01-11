@@ -16,8 +16,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="en">
             <body style={{ fontFamily: "Poppins, sans-serif" }}>
-                <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
-                <script src="https://files.bpcontent.cloud/2024/12/26/00/20241226003941-O4WQ8153.js"></script>
                 <ClientProvider>
                     <Navbar />
                     {children}

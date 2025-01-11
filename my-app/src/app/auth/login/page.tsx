@@ -8,9 +8,11 @@ import { AppDispatch } from "@/store/store";
 import { handleLoginApi } from "@/api/auth/login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
+import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const backendUrl = API_BASE_URL || "http://localhost:5000";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -19,6 +21,31 @@ function Login() {
 
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
+    const responseFacebook = async (response: any) => {
+        console.log(response);
+        const res = await fetch(`${backendUrl}/facebook-login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                accessToken: response,
+            }),
+        });
+
+        const data = await res.json();
+        console.log("Đăng nhập Facebook thành công:", data);
+
+        dispatch(
+            login({
+                user: data.response.user,
+                accessToken: data.response.accessToken,
+                refreshToken: data.response.refreshToken,
+            })
+        );
+
+        router.push("/");
+    };
 
     const handleLogin = async () => {
         try {
@@ -128,9 +155,23 @@ function Login() {
 
                         <div className="text-center">
                             <div className="flex justify-between space-x-4 mt-4">
-                                <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
-                                    <img src="/logos/facebook.png" className="size-5" alt="" />
-                                </button>
+                                <FacebookLogin
+                                    appId="1379549779684690"
+                                    // autoLoad
+                                    callback={responseFacebook}
+                                    render={(renderProps: any) => (
+                                        <button
+                                            onClick={renderProps.onClick}
+                                            className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg"
+                                        >
+                                            <img
+                                                src="/logos/facebook.png"
+                                                className="size-5"
+                                                alt=""
+                                            />
+                                        </button>
+                                    )}
+                                />
 
                                 <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
                                     <img src="/logos/apple.png" className="size-5" alt="" />

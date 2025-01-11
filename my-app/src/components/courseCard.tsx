@@ -25,7 +25,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return (
         <Link
             href={`/courses/${id}`}
-            className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden transform flex flex-col"
+            className="hover:bg-gray-50 bg-white rounded-2xl border-2 border-gray-200 overflow-hidden transform flex flex-col"
         >
             <div className="relative">
                 <img
