@@ -7,6 +7,7 @@ import { RootState } from "@/store/store";
 import { fetchCourseById } from "@/api/courses";
 import { fetchReviewsById } from "@/api/review";
 import { addCart } from "@/api/cart";
+
 import Course from "@/interfaces/course";
 import Review from "@/interfaces/review";
 import { Video } from "@/components/ui/video";
@@ -27,6 +28,32 @@ const CourseDetail: React.FC = () => {
         fetchCourseById(id).then(setCourse).catch(console.error);
         fetchReviewsById(id).then(setReviews).catch(console.error);
     }, [id]);
+    const checkPurchase = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/purchase/check/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+            const data = await response.json();
+
+            console.log("238471293847123412", data);
+
+            if (data != null) setIsPurchased(true);
+
+            // Giả sử API trả về { purchased: true } khi người dùng đã mua khóa học
+            return data.purchased; // Trả về giá trị true/false
+        } catch (error) {
+            console.log(error);
+            return false; // Trả về false nếu có lỗi
+        }
+    };
+
+    useEffect(() => {
+        if (user && course) {
+            checkPurchase();
+        }
+    }, [user, course]);
 
     const handleAddCart = async () => {
         if (!user) return alert("Bạn cần đăng nhập.");
@@ -52,6 +79,8 @@ const CourseDetail: React.FC = () => {
                     orderDescription: `Thanh toán cho khóa học: ${course.title}`,
                     orderType: "education",
                     language: "vn",
+                    userId: user.id,
+                    courseId: id,
                 }),
             });
             const data = await response.json();
@@ -157,24 +186,29 @@ const CourseDetail: React.FC = () => {
                             )}
                         </div>
                         <div className="mt-6 space-y-4">
-                            <button
-                                className={`w-full py-3 rounded-lg font-semibold ${
-                                    isPurchased ? "bg-green-300" : "bg-blue-400"
-                                }`}
-                                disabled={isPurchased}
-                                onClick={handleBuyNow}
-                            >
-                                {isPurchased ? "Sold" : "Buy Now"}
-                            </button>
-                            <button
-                                className={`w-full py-3 rounded-lg font-semibold ${
-                                    isInCart ? "bg-green-300" : "bg-yellow-400"
-                                }`}
-                                onClick={!isInCart ? handleAddCart : undefined}
-                                disabled={isInCart}
-                            >
-                                {isInCart ? "Added to Cart" : "Add to Cart"}
-                            </button>
+                            {isPurchased ? (
+                                <button className="w-full py-3 rounded-lg font-semibold bg-green-300">
+                                    Purchased
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        className="w-full py-3 rounded-lg font-semibold bg-blue-400"
+                                        onClick={handleBuyNow}
+                                    >
+                                        Buy Now
+                                    </button>
+                                    <button
+                                        className={`w-full py-3 rounded-lg font-semibold ${
+                                            isInCart ? "bg-green-300" : "bg-yellow-400"
+                                        }`}
+                                        onClick={!isInCart ? handleAddCart : undefined}
+                                        disabled={isInCart}
+                                    >
+                                        {isInCart ? "Added to cart" : "Add to cart"}
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
