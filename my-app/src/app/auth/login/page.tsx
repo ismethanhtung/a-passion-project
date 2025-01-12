@@ -157,7 +157,6 @@ function Login() {
                             <div className="flex justify-between space-x-4 mt-4">
                                 <FacebookLogin
                                     appId="1379549779684690"
-                                    // autoLoad
                                     callback={responseFacebook}
                                     render={(renderProps: any) => (
                                         <button

@@ -70,3 +70,23 @@ export const updatePayment = async (id: number, data: object) => {
     }
     return response.json();
 };
+
+export default async function handler(req, res) {
+    if (req.method === "POST") {
+        const { amount, bankCode, orderDescription, orderType, language } = req.body;
+
+        try {
+            const response = await fetch("http://localhost:5000/api/purchase/create_payment_url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount, bankCode, orderDescription, orderType, language }),
+            });
+            const data = await response.json();
+            res.status(200).json(data);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to create payment URL" });
+        }
+    } else {
+        res.status(405).json({ error: "Method not allowed" });
+    }
+}

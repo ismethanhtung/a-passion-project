@@ -12,6 +12,7 @@ import Review from "@/interfaces/review";
 import { Video } from "@/components/ui/video";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
+import handler from "@/api/payment";
 
 const CourseDetail: React.FC = () => {
     const user = useSelector((state: RootState) => state.user.user);
@@ -36,6 +37,35 @@ const CourseDetail: React.FC = () => {
             alert("Khóa học đã được thêm vào giỏ hàng!");
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleBuyNow = async () => {
+        if (!user) return alert("Bạn cần đăng nhập.");
+        if (!course) return alert("Khóa học không tồn tại.");
+        try {
+            const response = await fetch("http://localhost:5000/purchase/create_payment_url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: course.newPrice || course.price,
+                    orderDescription: `Thanh toán cho khóa học: ${course.title}`,
+                    orderType: "education",
+                    language: "vn",
+                }),
+            });
+            const data = await response.json();
+
+            console.log("238471293847123412", data);
+
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            } else {
+                alert("Không thể tạo URL thanh toán. Vui lòng thử lại!");
+            }
+        } catch (error) {
+            console.error("Lỗi khi tạo thanh toán:", error);
+            alert("Đã xảy ra lỗi. Vui lòng thử lại sau.");
         }
     };
 
@@ -132,6 +162,7 @@ const CourseDetail: React.FC = () => {
                                     isPurchased ? "bg-green-300" : "bg-blue-400"
                                 }`}
                                 disabled={isPurchased}
+                                onClick={handleBuyNow}
                             >
                                 {isPurchased ? "Sold" : "Buy Now"}
                             </button>
