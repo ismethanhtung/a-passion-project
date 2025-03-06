@@ -18,6 +18,12 @@ const SettingsForm = () => {
             fields={[
                 { name: "name", label: "Name", type: "text", placeholder: "Enter your name" },
                 { name: "email", label: "Email", type: "email", placeholder: "Enter your email" },
+                {
+                    name: "phone",
+                    label: "Phone",
+                    type: "text",
+                    placeholder: "Enter your phone number",
+                },
             ]}
             onSubmit={handleSubmit}
         />

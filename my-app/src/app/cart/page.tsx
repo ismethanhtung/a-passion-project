@@ -4,15 +4,64 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { fetchCartById, deleteCart, updateCart } from "@/api/cart";
+import { useRouter } from "next/navigation"; // Thêm useRouter để điều hướng
 
 const CartPage: React.FC = () => {
     const [cartItems, setCartItems] = useState<any[]>([]);
     const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
     const user = useSelector((state: RootState) => state.user.user);
+    const router = useRouter(); // Khởi tạo useRouter
 
     useEffect(() => {
         user && fetchCartById(user.id).then(setCartItems).catch(console.error);
     }, [user]);
+
+    const handleBuyNow = async () => {
+        if (!user) {
+            return alert("Bạn cần đăng nhập.");
+        }
+
+        const selectedCourses = cartItems.filter((item) => selectedItems.has(item.id));
+        if (selectedCourses.length === 0) {
+            return alert("Vui lòng chọn ít nhất một mục để thanh toán.");
+        }
+
+        const totalAmount = selectedCourses.reduce(
+            (sum, item) => sum + (item.course.newPrice || item.course.price) * item.quantity,
+            0
+        );
+
+        try {
+            const response = await fetch("http://localhost:5000/purchase/create_payment_url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: totalAmount,
+                    orderDescription: `Thanh toán cho các khóa học: ${selectedCourses
+                        .map((item) => item.course.title)
+                        .join(", ")}`,
+                    orderType: "education",
+                    language: "vn",
+                    userId: user.id,
+                    courses: selectedCourses.map((item) => ({
+                        courseId: item.course.id,
+                        quantity: item.quantity,
+                    })),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            } else {
+                alert("Không thể tạo URL thanh toán. Vui lòng thử lại!");
+            }
+        } catch (error) {
+            console.error("Lỗi khi tạo thanh toán:", error);
+            alert("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+        }
+    };
 
     const updateQuantity = (id: number, quantity: number) => {
         if (quantity < 1) return;
@@ -37,7 +86,12 @@ const CartPage: React.FC = () => {
         0
     );
 
-    if (!user) return <div className="text-center text-lg">You need to login</div>;
+    const handleCourseClick = (courseId: number) => {
+        // Điều hướng đến trang chi tiết khóa học
+        router.push(`/courses/${courseId}`);
+    };
+
+    // if (!user) return <div className="text-center text-lg">You need to login</div>;
     if (!cartItems.length) return <div className="text-center text-lg">Your cart is empty</div>;
 
     return (
@@ -58,7 +112,12 @@ const CartPage: React.FC = () => {
                                 className="w-16 h-16 object-cover rounded-lg border"
                             />
                             <div>
-                                <h2 className="text-xl font-semibold">{course.title}</h2>
+                                <h2
+                                    className="text-xl font-semibold cursor-pointer"
+                                    onClick={() => handleCourseClick(course.id)} // Khi nhấp vào tên khóa học sẽ điều hướng
+                                >
+                                    {course.title}
+                                </h2>
                                 <p>{course.newPrice || course.price}đ</p>
                             </div>
                         </div>
@@ -83,7 +142,9 @@ const CartPage: React.FC = () => {
                     placeholder="Enter coupon code"
                     className="w-full px-4 py-2 border mb-4"
                 />
-                <button className="w-full bg-blue-500 text-white p-2">Checkout</button>
+                <button onClick={handleBuyNow} className="w-full bg-blue-500 text-white p-2">
+                    Checkout
+                </button>
             </div>
         </div>
     );

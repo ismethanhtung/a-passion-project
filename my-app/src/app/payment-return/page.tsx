@@ -58,7 +58,7 @@ const PaymentResult = () => {
                 <ul className="text-sm text-gray-700 space-y-3">
                     <li className="flex justify-between">
                         <span className="font-medium">Số tiền:</span>
-                        <span>{vnp_Amount}</span>
+                        <span>{parseInt(vnp_Amount) / 100}</span>
                     </li>
                     <li className="flex justify-between">
                         <span className="font-medium">Mã ngân hàng:</span>

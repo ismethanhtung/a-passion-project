@@ -40,6 +40,12 @@ const UserSettingsForm = () => {
                     type: "text",
                     placeholder: "Enter your learning goals",
                 },
+                {
+                    name: "currentLevel",
+                    label: "Current Level",
+                    type: "text",
+                    placeholder: "Enter your current level",
+                },
             ]}
             onSubmit={handleSubmit}
         />

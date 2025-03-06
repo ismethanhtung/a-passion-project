@@ -6,14 +6,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { fetchCourseById } from "@/api/courses";
 import { fetchReviewsById } from "@/api/review";
-import { addCart } from "@/api/cart";
+import { addCart, fetchCartById } from "@/api/cart";
 
 import Course from "@/interfaces/course";
 import Review from "@/interfaces/review";
 import { Video } from "@/components/ui/video";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
-import handler from "@/api/payment";
 
 const CourseDetail: React.FC = () => {
     const user = useSelector((state: RootState) => state.user.user);
@@ -28,6 +27,7 @@ const CourseDetail: React.FC = () => {
         fetchCourseById(id).then(setCourse).catch(console.error);
         fetchReviewsById(id).then(setReviews).catch(console.error);
     }, [id]);
+
     const checkPurchase = async () => {
         try {
             const response = await fetch(`http://localhost:5000/purchase/check/${id}`, {
@@ -36,22 +36,28 @@ const CourseDetail: React.FC = () => {
                 credentials: "include",
             });
             const data = await response.json();
-
-            console.log("238471293847123412", data);
-
             if (data != null) setIsPurchased(true);
-
-            // Giả sử API trả về { purchased: true } khi người dùng đã mua khóa học
-            return data.purchased; // Trả về giá trị true/false
+            return data.purchased;
         } catch (error) {
             console.log(error);
-            return false; // Trả về false nếu có lỗi
+            return false;
         }
     };
 
     useEffect(() => {
         if (user && course) {
             checkPurchase();
+            const checkCartStatus = async () => {
+                try {
+                    const cartResponse = await fetchCartById(user.id);
+                    const cartItems = cartResponse;
+                    const courseInCart = cartItems.some((item: any) => item.courseId === course.id);
+                    setIsInCart(courseInCart);
+                } catch (error) {
+                    console.error("Lỗi khi kiểm tra giỏ hàng:", error);
+                }
+            };
+            checkCartStatus();
         }
     }, [user, course]);
 
@@ -84,8 +90,6 @@ const CourseDetail: React.FC = () => {
                 }),
             });
             const data = await response.json();
-
-            console.log("238471293847123412", data);
 
             if (data.paymentUrl) {
                 window.location.href = data.paymentUrl;
@@ -137,21 +141,53 @@ const CourseDetail: React.FC = () => {
                             ))}
                         </ul>
                     </div>
-                    <div className="border-2 border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-                        {course.lessons?.map((lesson) => (
-                            <div key={lesson.id}>
-                                <h3
-                                    onClick={() => toggleVideoVisibility(lesson.id)}
-                                    className="py-1 text-sm cursor-pointer text-blue-600"
-                                >
-                                    {lesson.title}
-                                </h3>
-                                {visibleVideo === lesson.id && (
-                                    <Video videoUrl={lesson.videoUrl} isLocked={lesson.isLocked} />
-                                )}
-                            </div>
-                        ))}
+                    <div className="border-2 border-gray-200 p-10 rounded-lg bg-white shadow-lg">
+                        <h2 className="text-2xl font-bold mb-6 text-gray-900">Course Content</h2>
+                        <div className="space-y-4">
+                            {course.lessons?.map((lesson, index) => (
+                                <div key={lesson.id} className="border-b pb-4 last:border-none">
+                                    <div
+                                        onClick={() => {
+                                            if (isPurchased || index < 3) {
+                                                toggleVideoVisibility(lesson.id);
+                                            }
+                                        }}
+                                        className={`flex justify-between items-center py-3 px-5 rounded-lg cursor-pointer transition duration-200 ${
+                                            isPurchased || index < 3
+                                                ? "bg-gray-100 hover:bg-gray-200"
+                                                : "bg-gray-300 cursor-not-allowed"
+                                        }`}
+                                    >
+                                        <span className="text-lg font-semibold text-gray-800 flex-1">
+                                            {index + 1}. {lesson.title}
+                                        </span>
+                                        <span className="text-gray-600 text-sm">
+                                            {isPurchased || index < 3 ? (
+                                                visibleVideo === lesson.id ? (
+                                                    "▲"
+                                                ) : (
+                                                    "▼"
+                                                )
+                                            ) : (
+                                                <img
+                                                    className="w-5 h-5"
+                                                    src="/icons/lock.png"
+                                                    alt="Buy course to unlock"
+                                                />
+                                            )}
+                                        </span>
+                                    </div>
+                                    {visibleVideo === lesson.id && (isPurchased || index < 3) && (
+                                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                            <Video
+                                                videoUrl={lesson.videoUrl}
+                                                isLocked={lesson.isLocked}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div className="border-2 border-gray-200 p-10 rounded-lg">
                         <h2 className="text-xl font-semibold">Course Rating</h2>
@@ -193,19 +229,19 @@ const CourseDetail: React.FC = () => {
                             ) : (
                                 <>
                                     <button
-                                        className="w-full py-3 rounded-lg font-semibold bg-blue-400"
+                                        className="w-full py-3 rounded-lg font-semibold bg-blue-500"
                                         onClick={handleBuyNow}
                                     >
                                         Buy Now
                                     </button>
                                     <button
-                                        className={`w-full py-3 rounded-lg font-semibold ${
-                                            isInCart ? "bg-green-300" : "bg-yellow-400"
-                                        }`}
-                                        onClick={!isInCart ? handleAddCart : undefined}
                                         disabled={isInCart}
+                                        className={`w-full py-3 rounded-lg font-semibold ${
+                                            isInCart ? "bg-gray-400" : "bg-yellow-500"
+                                        }`}
+                                        onClick={handleAddCart}
                                     >
-                                        {isInCart ? "Added to cart" : "Add to cart"}
+                                        {isInCart ? "Added to Cart" : "Add to Cart"}
                                     </button>
                                 </>
                             )}

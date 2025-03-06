@@ -1,0 +1,5 @@
+apple|quả táo|She ate a red apple.|Cô ấy đã ăn một quả táo đỏ.
+run|chạy|He runs every morning.|Anh ấy chạy bộ mỗi sáng.
+beautiful|đẹp|The sunset is very beautiful.|Hoàng hôn rất đẹp.
+strong|mạnh mẽ|He is a very strong man.|Anh ấy là một người đàn ông rất mạnh mẽ.
+happy|hạnh phúc|She feels so happy today.|Hôm nay cô ấy cảm thấy rất hạnh phúc.
