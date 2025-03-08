@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const categories = ["Tất cả", "Economy", "TOEIC", "IELTS", "Old Format"];
+const categories = ["Tất cả", "Economy", "TOEIC", "IELTS", "Old Format", "Placement Test"];
 
 const Tests = () => {
     const router = useRouter();
@@ -11,14 +11,22 @@ const Tests = () => {
 
     const tests = [
         {
-            id: 1,
-            title: " New Economy TOEIC Test 1",
-            description: "Kiểm tra kiến thức về ngữ pháp tiếng Anh.",
+            id: "placement-test-1",
+            title: " Bài Kiểm Tra Đầu Vào",
+            description: "Đánh giá trình độ tiếng Anh trước khi học.",
             duration: "120 phút",
             participants: 0,
             comments: 0,
-            tags: ["Part 5", "TOEIC", "Grammar"],
-            category: "Economy",
+            tags: ["Placement Test", "TOEIC", "Grammar", "Reading"],
+        },
+        {
+            id: "placement-test-2",
+            title: " Bài Kiểm Tra Đầu Vào Từ Vựng",
+            description: "Đánh giá kiến thức từ vựng trước khi học.",
+            duration: "120 phút",
+            participants: 0,
+            comments: 0,
+            tags: ["Placement Test", "Vocabulary"],
         },
         {
             id: 2,
@@ -100,6 +108,16 @@ const Tests = () => {
             participants: 0,
             comments: 0,
             tags: ["Part 5", "IELTS"],
+        },
+        {
+            id: 11,
+            title: "New format Economy TOEIC Test 1",
+            description: "Kiểm tra kiến thức về ngữ pháp và đọc và hiểu văn bản tiếng Anh.",
+            duration: "120 phút",
+            participants: 0,
+            comments: 0,
+            tags: ["Part 5", "TOEIC", "Grammar"],
+            category: "Economy",
         },
     ];
 

@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { fetchCartById, deleteCart, updateCart } from "@/api/cart";
-import { useRouter } from "next/navigation"; // Thêm useRouter để điều hướng
+import { useRouter } from "next/navigation";
 
 const CartPage: React.FC = () => {
     const [cartItems, setCartItems] = useState<any[]>([]);
     const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
     const user = useSelector((state: RootState) => state.user.user);
-    const router = useRouter(); // Khởi tạo useRouter
+    const router = useRouter();
 
     useEffect(() => {
         user && fetchCartById(user.id).then(setCartItems).catch(console.error);
@@ -87,7 +87,6 @@ const CartPage: React.FC = () => {
     );
 
     const handleCourseClick = (courseId: number) => {
-        // Điều hướng đến trang chi tiết khóa học
         router.push(`/courses/${courseId}`);
     };
 

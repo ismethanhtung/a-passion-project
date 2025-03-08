@@ -7,6 +7,7 @@ import { handleLogoutApi } from "@/api/auth/logout";
 import { logout, setUser, setTokens } from "@/store/userSlice";
 import Cookie from "js-cookie";
 import { useRouter } from "next/navigation";
+import Chatbot from "./Chatbot";
 
 export default function Navbar() {
     const dispatch = useDispatch<AppDispatch>();
@@ -15,7 +16,6 @@ export default function Navbar() {
     const [dropdown, setDropdown] = useState<null | "manage" | "user" | "notification">(null);
     const user = useSelector((state: RootState) => state.user.user);
     const [loading, setLoading] = useState(true);
-    const [showChat, setShowChat] = useState(false);
     const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
     const [input, setInput] = useState("");
 
@@ -45,6 +45,7 @@ export default function Navbar() {
                 console.error("Đăng xuất không thành công");
             }
         } catch (error) {
+            console.log(error);
             console.error("Lỗi khi đăng xuất:", error);
         }
     };
@@ -101,49 +102,7 @@ export default function Navbar() {
         );
     }
 
-    const toggleChat = () => setShowChat((prev) => !prev);
-
-    const sendMessage = async () => {
-        if (!input.trim()) return;
-
-        const newMessages = [...messages, { sender: "user", text: input }];
-        setMessages(newMessages);
-        setInput("");
-
-        const payload = {
-            model: "llama-3.2-3b-instruct",
-            messages: newMessages.map((msg) => ({
-                role: msg.sender === "user" ? "user" : "assistant",
-                content: msg.text,
-            })),
-        };
-
-        console.log("🔍 Dữ liệu gửi đi:", JSON.stringify(payload, null, 2));
-
-        try {
-            const response = await fetch("http://192.168.1.50:1234/v1/chat/completions", {
-                method: "POST",
-                credentials: "omit",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Request-Headers": "Content-Type",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await response.json();
-            console.log("✅ Phản hồi từ API:", data);
-
-            if (data.choices && data.choices.length > 0) {
-                setMessages((prev) => [
-                    ...prev,
-                    { sender: "bot", text: data.choices[0].message.content },
-                ]);
-            }
-        } catch (error) {
-            console.error("❌ Lỗi khi gửi tin nhắn:", error);
-        }
-    };
+    // const toggleChat = () => setShowChat((prev) => !prev);
 
     return (
         <div className="sticky top-0 h-16 z-50 bg-gray-100">
@@ -156,7 +115,6 @@ export default function Navbar() {
                         ))}
                     </div>
                 </div>
-
                 {!user ? (
                     <div className="flex items-center space-x-8 font-semibold">
                         <LinkItem text="Login" href="/auth/login" />
@@ -213,16 +171,8 @@ export default function Navbar() {
                                         alt="Message"
                                     />
                                 </a>
-                                <button
-                                    onClick={toggleChat}
-                                    className="relative p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400"
-                                >
-                                    <img
-                                        className="w-7 h-7"
-                                        src="/icons/chatbot.png"
-                                        alt="chatbot"
-                                    />
-                                </button>
+                                <Chatbot />
+
                                 <button
                                     className="relative flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-red-400"
                                     onClick={() => toggleDropdown("user")}
@@ -303,58 +253,6 @@ export default function Navbar() {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                )}
-                {showChat && (
-                    <div className="fixed bottom-20 right-10 w-96 bg-white rounded-xl shadow-lg p-4 border flex flex-col">
-                        {/* Header */}
-                        <div className="flex justify-between items-center border-b pb-2">
-                            <h3 className="text-lg font-semibold">Chatbot</h3>
-                            <button
-                                onClick={toggleChat}
-                                className="text-xl font-bold hover:text-red-500"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="chat-box flex-grow overflow-y-auto p-3 border my-2 h-96 rounded-md bg-gray-100">
-                            {messages.map((msg, index) => (
-                                <div
-                                    key={index}
-                                    className={`mb-2 flex ${
-                                        msg.sender === "user" ? "justify-end" : "justify-start"
-                                    }`}
-                                >
-                                    <span
-                                        className={`p-2 text-sm rounded-lg ${
-                                            msg.sender === "user"
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-gray-300 text-black"
-                                        }`}
-                                    >
-                                        {msg.text}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Input & Send Button */}
-                        <div className="flex">
-                            <input
-                                className="flex-1 p-2 border rounded-l-lg focus:outline-none"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                                placeholder="Type your message..."
-                            />
-                            <button
-                                className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600"
-                                onClick={sendMessage}
-                            >
-                                Send
-                            </button>
                         </div>
                     </div>
                 )}

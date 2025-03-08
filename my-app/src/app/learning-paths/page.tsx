@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchPathById } from "@/api/learningPath";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const learningPaths = [
     {
@@ -32,8 +35,29 @@ const learningPaths = [
     },
 ];
 
-const LearningPath: React.FC = () => {
+const LearningPath: any = () => {
     const [selectedPath, setSelectedPath] = useState<number | null>(null);
+    const [dynamicPaths, setDynamicPaths] = useState<any | null>(null);
+
+    const user = useSelector((state: RootState) => state.user.user);
+    if (!user) {
+        return alert("Bạn cần đăng nhập.");
+    }
+    console.log(user);
+    const userId = parseInt(user.id);
+
+    useEffect(() => {
+        const loadPaths = async () => {
+            try {
+                const fetchedPaths = await fetchPathById(userId);
+                setDynamicPaths(fetchedPaths);
+                console.log(dynamicPaths);
+            } catch (error) {
+                console.error("Error fetching learning paths:", error);
+            }
+        };
+        loadPaths();
+    }, []);
 
     return (
         <div className="container mx-auto p-6">
@@ -81,6 +105,42 @@ const LearningPath: React.FC = () => {
                     </ul>
                 </div>
             )}
+           {dynamicPaths && (
+                <div className="mt-8 p-6 border rounded-lg shadow-md">
+                    <h2 className="text-2xl font-semibold text-center mb-4">Lộ trình AI</h2>
+                    <h3 className="text-xl font-semibold text-center text-blue-600">
+                        {/* {dynamicPaths[0]} */}
+                    </h3>
+                    <p className="text-center text-gray-600 mb-6">
+                        Lộ trình cá nhân hóa theo mục tiêu của bạn.
+                    </p>
+
+                    {/* {dynamicPaths.stages.map((stage, index) => (
+                        <div key={index} className="mb-6 p-4 border rounded-lg bg-gray-50">
+                            <h4 className="text-lg font-semibold">
+                                {stage.title} ({stage.duration})
+                            </h4>
+                            <p className="text-gray-600 mb-2">{stage.description}</p>
+                            <ul className="list-disc list-inside">
+                                {stage.tasks.map((task, taskIndex) => (
+                                    <li key={taskIndex} className="text-gray-700">
+                                        {task}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))} */}
+{/* 
+                    <div className="mt-6 p-4 border rounded-lg bg-yellow-50">
+                        <h4 className="text-lg font-semibold text-center">
+                            {dynamicPaths.finalExam.title}
+                        </h4>
+                        <p className="text-center text-gray-700">
+                            {dynamicPaths.finalExam.description}
+                        </p>
+                    </div> */}
+                </div>
+            )} */}
         </div>
     );
 };

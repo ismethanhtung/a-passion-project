@@ -2,6 +2,122 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { addProgress } from "@/api/progress";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { addEnrollment } from "@/api/enrollment";
+
+const tests = [
+    {
+        id: "placement-test-1",
+        title: " Bài Kiểm Tra Đầu Vào",
+        description: "Đánh giá trình độ tiếng Anh trước khi học.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Placement Test", "TOEIC", "Grammar", "Reading"],
+    },
+    {
+        id: "placement-test-2",
+        title: " Bài Kiểm Tra Đầu Vào Từ Vựng",
+        description: "Đánh giá kiến thức từ vựng trước khi học.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Placement Test", "Vocabulary"],
+    },
+    {
+        id: 2,
+        title: "Economy (old format) TOEIC 4 Test 1",
+        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "TOEIC"],
+    },
+    {
+        id: 3,
+        title: "Longman TOEIC (old format) Test 2",
+        description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "Reading", "TOEIC"],
+    },
+    {
+        id: 4,
+        title: "Economy Y1 TOEIC Test 2",
+        description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "Reading", "TOEIC"],
+    },
+    {
+        id: 5,
+        title: "Economy (old format) TOEIC 4 Test 2",
+        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "TOEIC"],
+    },
+    {
+        id: 6,
+        title: "Economy Longman TOEIC (old format) Test 3",
+        description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "Reading", "TOEIC"],
+    },
+    {
+        id: 7,
+        title: "New Economy TOEIC(old format) Test 4",
+        description: "Kiểm tra kiến thức về ngữ pháp tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "TOEIC", "Grammar"],
+    },
+    {
+        id: 8,
+        title: "Economy (old format) IELTS Simulation 4 Test 2",
+        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "IELTS"],
+    },
+    {
+        id: 9,
+        title: "Economy Y1 TOEIC(old format) Test 2",
+        description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "Reading", "TOEIC"],
+    },
+    {
+        id: 10,
+        title: "New Economy (old format) IELTS Simulation 4 Test 2",
+        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "IELTS"],
+    },
+    {
+        id: 11,
+        title: "New format Economy TOEIC Test 1",
+        description: "Kiểm tra kiến thức về ngữ pháp và đọc và hiểu văn bản tiếng Anh.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["Part 5", "TOEIC", "Grammar"],
+        category: "Economy",
+    },
+];
 
 const TestPage = () => {
     const router = useRouter();
@@ -10,6 +126,14 @@ const TestPage = () => {
     const [userAnswers, setUserAnswers] = useState({});
     const [score, setScore] = useState(null);
     const [timeLeft, setTimeLeft] = useState(1800);
+    const user = useSelector((state: RootState) => state.user.user);
+    if (!user) {
+        return alert("Bạn cần đăng nhập.");
+    }
+    console.log(user);
+    const userId = parseInt(user.id);
+
+    const test = tests.find((t) => t.id.toString() === id);
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -44,20 +168,37 @@ const TestPage = () => {
         setUserAnswers((prev) => ({ ...prev, [qId]: option }));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         let correctCount: any = 0;
         questions.forEach((q: any) => {
             if (userAnswers[q.id] === q.answer) {
                 correctCount += 1;
             }
         });
-        setScore(correctCount);
+
+        const toeicScore: any = Math.round((correctCount / questions.length) * 1000);
+        setScore(toeicScore);
+
+        try {
+            await addProgress({
+                userId: userId,
+                lessonId: 1,
+                enrollmentId: 1,
+                status: test?.title,
+                score: toeicScore,
+                testScores: userAnswers,
+            });
+
+            console.log("Score updated successfully");
+        } catch (error) {
+            console.error("Error updating progress:", error);
+        }
     };
 
     return (
         <div className="container mx-auto max-w-7xl p-6 flex gap-6">
             <div className="flex-1 bg-white shadow-lg rounded-lg p-6">
-                <h1 className="text-3xl font-bold text-blue-600 mb-4">Test {id}</h1>
+                <h1 className="text-3xl font-bold text-blue-600 mb-4">Test {test?.title}</h1>
                 <div className="space-y-6">
                     {questions.map((q: any) => (
                         <div key={q.id} className="p-5 bg-gray-100 rounded-lg shadow">

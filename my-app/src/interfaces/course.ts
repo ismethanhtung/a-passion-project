@@ -23,6 +23,7 @@ interface Course {
     reviews: Review[];
     isPublished: boolean;
     isDeleted: boolean;
+    tags: string;
 }
 
 export default Course;

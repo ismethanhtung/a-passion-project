@@ -4,7 +4,7 @@ import Link from "next/link";
 interface CourseCardProps {
     id: number;
     thumbnail: string;
-    // tag: string;
+    tags: string;
     title: string;
     description: string;
     price: number;
@@ -15,7 +15,7 @@ interface CourseCardProps {
 const CourseCard: React.FC<CourseCardProps> = ({
     id,
     thumbnail,
-    // tag,
+    tags,
     title,
     description,
     price,
@@ -35,7 +35,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 />
             </div>
             <div className="p-4 flex-grow flex flex-col">
-                {/* <span className="text-xs text-gray-500 uppercase">{tag}</span> */}
                 <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
                 <p className="text-sm text-gray-600 py-2 mb-4">{description}</p>
                 <div className="flex items-end justify-between mt-auto">
