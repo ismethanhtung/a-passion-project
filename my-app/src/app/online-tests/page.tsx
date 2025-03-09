@@ -53,7 +53,7 @@ const Tests = () => {
             duration: "120 phút",
             participants: 0,
             comments: 0,
-            tags: ["Part 5", "Reading", "TOEIC"],
+            tags: ["Part 5", "Reading", "TOEIC", "Grammar"],
         },
         {
             id: 5,

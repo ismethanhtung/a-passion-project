@@ -11,6 +11,16 @@ export const fetchUsers = async () => {
     return response.json();
 };
 
+export const fetchUserById = async (id: any) => {
+    const response = await fetch(`${API_BASE_URL}/user/${id}`, {
+        credentials: "include",
+    });
+    if (!response.ok) {
+        throw new Error("Cant get user.");
+    }
+    return response.json();
+};
+
 export const deleteUser = async (id: number) => {
     const response = await fetch(`${API_BASE_URL}/user/${id}`, {
         method: "DELETE",

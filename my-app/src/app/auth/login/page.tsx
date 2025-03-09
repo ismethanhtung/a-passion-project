@@ -8,7 +8,7 @@ import { AppDispatch } from "@/store/store";
 import { handleLoginApi } from "@/api/auth/login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
-import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
+import FacebookLogin from "react-facebook-login-lite";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
