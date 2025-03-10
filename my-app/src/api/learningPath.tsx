@@ -42,8 +42,7 @@ export const updatePath = async (id: number, pathData: object) => {
     });
 
     if (!response.ok) {
-        throw new Error("Không thể cập nhật người dùng.");
+        throw new Error("Không thể cập nhật path.");
     }
-
-    return response.json();
+    return response;
 };

@@ -54,7 +54,6 @@ export default function Navbar() {
         "Courses",
         "Learning Program",
         "Online Tests",
-        "Flashcards",
         "Blogs",
         "Docs",
         "Learning Paths",

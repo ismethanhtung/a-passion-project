@@ -51,7 +51,7 @@ const tests = [
         duration: "120 phút",
         participants: 0,
         comments: 0,
-        tags: ["Part 5", "Reading", "TOEIC"],
+        tags: ["Part 5", "Reading", "TOEIC", "Grammar"],
     },
     {
         id: 5,
@@ -116,6 +116,27 @@ const tests = [
         comments: 0,
         tags: ["Part 5", "TOEIC", "Grammar"],
         category: "Economy",
+    },
+    {
+        id: 12,
+        title: "Bài Kiểm Tra TOEIC New Format Economy",
+        description: "Bài test giúp luyện tập và kiểm tra khả năng sử dụng ngữ pháp và đọc hiểu.",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["TOEIC", "Grammar", "Reading"],
+        category: "New Economy",
+    },
+    {
+        id: 13,
+        title: "Bài Kiểm Tra IELTS New Economy",
+        description:
+            "Bài test mô phỏng đề thi IELTS giúp kiểm tra khả năng đọc hiểu và sử dụng từ vựng",
+        duration: "120 phút",
+        participants: 0,
+        comments: 0,
+        tags: ["IELTS", "Reading", "Vocab"],
+        category: "New Economy",
     },
 ];
 
@@ -197,54 +218,55 @@ const TestPage = () => {
 
     return (
         <div className="container mx-auto max-w-7xl p-6 flex gap-6">
+            {/* Nội dung bài test */}
             <div className="flex-1 bg-white shadow-lg rounded-lg p-6">
                 <h1 className="text-3xl font-bold text-blue-600 mb-4">Test {test?.title}</h1>
                 <div className="space-y-6">
-                    {questions.map((q: any) => (
-                        <div key={q.id} className="p-5 bg-gray-100 rounded-lg shadow">
-                            <h2 className="text-lg font-semibold mb-3">{q.question}</h2>
+                    {questions.map(({ id, question, options }) => (
+                        <div key={id} className="p-5 bg-gray-100 rounded-lg shadow">
+                            <h2 className="text-lg font-semibold mb-3">{question}</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                {q.options.map((opt, index) => (
-                                    <button
-                                        key={index}
-                                        className={`w-full p-3 rounded-lg border text-left font-medium transition-all
+                                {options.map((opt, idx) => {
+                                    const selected = userAnswers[id] === opt.charAt(0);
+                                    return (
+                                        <button
+                                            key={idx}
+                                            className={`w-full p-3 rounded-lg border text-left font-medium transition-all 
                                             ${
-                                                userAnswers[q.id] === opt.charAt(0)
+                                                selected
                                                     ? "bg-blue-500 text-white border-blue-500"
                                                     : "border-gray-300 hover:bg-gray-200"
                                             }`}
-                                        onClick={() => handleSelect(q.id, opt.charAt(0))}
-                                    >
-                                        {opt}
-                                    </button>
-                                ))}
+                                            onClick={() => handleSelect(id, opt.charAt(0))}
+                                        >
+                                            {opt}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
 
+            {/* Sidebar */}
             <div className="w-64 bg-white shadow-lg rounded-lg p-4 sticky top-24 h-fit">
-                <div className="text-center text-lg font-semibold text-red-500 mb-4">
-                    <img
-                        className="inline-block w-6 h-6 mr-4"
-                        src="/icons/clock.png"
-                        alt="Notifications"
-                    />
+                <div className="text-center text-lg font-semibold text-red-500 mb-4 flex justify-center items-center gap-2">
+                    <img className="w-6 h-6" src="/icons/clock.png" alt="Time" />
                     {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
                 </div>
                 <div className="grid grid-cols-5 gap-2 mb-4">
-                    {questions.map((q: any) => (
+                    {questions.map(({ id }) => (
                         <button
-                            key={q.id}
-                            className={`w-10 h-10 rounded-full font-bold transition-all
-                                ${
-                                    userAnswers[q.id]
-                                        ? "bg-blue-500 text-white"
-                                        : "bg-gray-200 hover:bg-gray-300"
-                                }`}
+                            key={id}
+                            className={`w-10 h-10 rounded-full font-bold transition-all 
+                            ${
+                                userAnswers[id]
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-gray-200 hover:bg-gray-300"
+                            }`}
                         >
-                            {q.id}
+                            {id}
                         </button>
                     ))}
                 </div>
@@ -256,7 +278,7 @@ const TestPage = () => {
                 </button>
                 {score !== null && (
                     <p className="text-center mt-4 text-xl font-bold text-blue-600">
-                        Điểm số: {score}/{questions.length}
+                        Điểm số: {score}/990
                     </p>
                 )}
             </div>

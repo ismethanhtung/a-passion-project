@@ -119,6 +119,28 @@ const Tests = () => {
             tags: ["Part 5", "TOEIC", "Grammar"],
             category: "Economy",
         },
+        {
+            id: 12,
+            title: "Bài Kiểm Tra TOEIC New Format Economy",
+            description:
+                "Bài test giúp luyện tập và kiểm tra khả năng sử dụng ngữ pháp và đọc hiểu.",
+            duration: "120 phút",
+            participants: 0,
+            comments: 0,
+            tags: ["TOEIC", "Grammar", "Reading"],
+            category: "New Economy",
+        },
+        {
+            id: 13,
+            title: "Bài Kiểm Tra IELTS New Economy",
+            description:
+                "Bài test mô phỏng đề thi IELTS giúp kiểm tra khả năng đọc hiểu và sử dụng từ vựng",
+            duration: "120 phút",
+            participants: 0,
+            comments: 0,
+            tags: ["IELTS", "Reading", "Vocab"],
+            category: "New Economy",
+        },
     ];
 
     const filteredTests = tests.filter(

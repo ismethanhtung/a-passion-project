@@ -4,15 +4,16 @@ import React, { useState, useEffect } from "react";
 import { fetchPathById } from "@/api/learningPath";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import ReactMarkdown from "react-markdown";
 
 const learningPaths = [
     {
         id: 1,
         title: "Lộ trình cho người mới bắt đầu",
-        description: "Bắt đầu với các khái niệm cơ bản và phát triển dần kỹ năng ngôn ngữ.",
+        description: "Bắt đầu với các khái niệm cơ bản và phát triển dần kỹ năng ngôn ngữ. ",
         courses: [
-            { id: 101, title: "Nhập môn tiếng Anh", url: "/courses/basic-english" },
-            { id: 102, title: "Phát âm cơ bản", url: "/courses/pronunciation" },
+            { id: 101, title: "Nhập môn tiếng Anh", url: "/courses/31" },
+            { id: 102, title: "Phát âm cơ bản", url: "/courses/1" },
         ],
     },
     {
@@ -35,57 +36,57 @@ const learningPaths = [
     },
 ];
 
-const LearningPath: any = () => {
+export default function LearningPath() {
     const [selectedPath, setSelectedPath] = useState<number | null>(null);
-    const [dynamicPaths, setDynamicPaths] = useState<any | null>(null);
+    const [learningPath, setLearningPath] = useState<string | null>(null);
 
     const user = useSelector((state: RootState) => state.user.user);
-    if (!user) {
-        return alert("Bạn cần đăng nhập.");
-    }
-    console.log(user);
-    const userId = parseInt(user.id);
+    const userId = user?.id;
 
     useEffect(() => {
-        const loadPaths = async () => {
+        if (!user) return alert("Bạn cần đăng nhập để xem lộ trình cá nhân hoá.");
+        const fetchLearningPath = async () => {
             try {
-                const fetchedPaths = await fetchPathById(userId);
-                setDynamicPaths(fetchedPaths);
-                console.log(dynamicPaths);
+                const storedPath = await fetchPathById(userId);
+                setLearningPath(storedPath);
             } catch (error) {
-                console.error("Error fetching learning paths:", error);
+                console.error("Lỗi khi lấy lộ trình:", error);
             }
         };
-        loadPaths();
-    }, []);
-
+        fetchLearningPath();
+    }, [userId]);
+    const formatMarkdown = (text: string) => {
+        return text.replace(/-?\s*(http[^\s]+)/g, (_, url) => {
+            return ` [Xem khóa học](${url})`;
+        });
+    };
     return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-6xl font-bold text-center my-12 text-violet-400">Learning Paths</h1>
-            <p className="text-center text-gray-600 mb-6">
-                Chọn lộ trình phù hợp với bạn hoặc để AI gợi ý sau này.
+        <div className="container mx-auto p-8">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-center my-10 text-violet-500">
+                Learning Paths
+            </h1>
+            <p className="text-center text-gray-500 mb-8 text-lg">
+                Chọn lộ trình phù hợp hoặc để AI gợi ý.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {learningPaths.map((path) => (
                     <div
                         key={path.id}
-                        className={`border p-6 rounded-lg shadow-md cursor-pointer ${
-                            selectedPath === path.id
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-200"
+                        className={`p-6 rounded-xl shadow-lg cursor-pointer transition-all transform hover:scale-105 border border-gray-200 bg-white ${
+                            selectedPath === path.id ? "border-violet-500 shadow-xl" : ""
                         }`}
                         onClick={() => setSelectedPath(path.id)}
                     >
-                        <h2 className="text-xl font-semibold">{path.title}</h2>
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">{path.title}</h2>
                         <p className="text-gray-600">{path.description}</p>
                     </div>
                 ))}
             </div>
 
             {selectedPath !== null && (
-                <div className="mt-8 p-6 border rounded-lg shadow-md">
-                    <h2 className="text-2xl font-semibold text-center mb-4">
+                <div className="mt-10 p-6 bg-gray-100 border border-gray-200 rounded-xl shadow-md">
+                    <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
                         Khóa học trong lộ trình
                     </h2>
                     <ul className="space-y-3">
@@ -94,10 +95,15 @@ const LearningPath: any = () => {
                             ?.courses.map((course) => (
                                 <li
                                     key={course.id}
-                                    className="flex justify-between items-center border p-3 rounded-lg"
+                                    className="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200"
                                 >
-                                    <span className="font-medium">{course.title}</span>
-                                    <a href={course.url} className="text-blue-500 underline">
+                                    <span className="font-medium text-gray-800">
+                                        {course.title}
+                                    </span>
+                                    <a
+                                        href={course.url}
+                                        className="text-violet-500 font-medium hover:underline"
+                                    >
                                         Xem khóa học
                                     </a>
                                 </li>
@@ -105,44 +111,34 @@ const LearningPath: any = () => {
                     </ul>
                 </div>
             )}
-           {dynamicPaths && (
-                <div className="mt-8 p-6 border rounded-lg shadow-md">
-                    <h2 className="text-2xl font-semibold text-center mb-4">Lộ trình AI</h2>
-                    <h3 className="text-xl font-semibold text-center text-blue-600">
-                        {/* {dynamicPaths[0]} */}
-                    </h3>
-                    <p className="text-center text-gray-600 mb-6">
-                        Lộ trình cá nhân hóa theo mục tiêu của bạn.
-                    </p>
-
-                    {/* {dynamicPaths.stages.map((stage, index) => (
-                        <div key={index} className="mb-6 p-4 border rounded-lg bg-gray-50">
-                            <h4 className="text-lg font-semibold">
-                                {stage.title} ({stage.duration})
-                            </h4>
-                            <p className="text-gray-600 mb-2">{stage.description}</p>
-                            <ul className="list-disc list-inside">
-                                {stage.tasks.map((task, taskIndex) => (
-                                    <li key={taskIndex} className="text-gray-700">
-                                        {task}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))} */}
-{/* 
-                    <div className="mt-6 p-4 border rounded-lg bg-yellow-50">
-                        <h4 className="text-lg font-semibold text-center">
-                            {dynamicPaths.finalExam.title}
-                        </h4>
-                        <p className="text-center text-gray-700">
-                            {dynamicPaths.finalExam.description}
-                        </p>
-                    </div> */}
+            {learningPath && (
+                <div className="mt-10 p-6 bg-white border border-gray-200 rounded-xl shadow-md">
+                    <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
+                        Lộ trình cá nhân hoá
+                    </h2>
+                    <ReactMarkdown
+                        components={{
+                            ol: ({ node, ...props }) => (
+                                <ol className="list-decimal ml-6 text-gray-700" {...props} />
+                            ),
+                            ul: ({ node, ...props }) => (
+                                <ul className="list-disc ml-6 text-gray-700" {...props} />
+                            ),
+                            a: ({ node, ...props }) => (
+                                <a
+                                    {...props}
+                                    className="text-blue-500 underline hover:text-blue-700"
+                                    target="_blank"
+                                />
+                            ),
+                        }}
+                    >
+                        {learningPath.pathDetails
+                            ? formatMarkdown(learningPath.pathDetails)
+                            : "Lộ trình học chưa có"}
+                    </ReactMarkdown>
                 </div>
-            )} */}
+            )}
         </div>
     );
-};
-
-export default LearningPath;
+}
