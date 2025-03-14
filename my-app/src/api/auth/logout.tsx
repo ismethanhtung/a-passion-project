@@ -6,7 +6,7 @@ export const handleLogoutApi = async () => {
         credentials: "include",
     });
     if (!response.ok) {
-        throw new Error("Cant logout.");
+        console.log("Cant logout.");
     }
     return response;
 };
