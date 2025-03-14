@@ -1,4 +1,5 @@
 "use client";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -32,7 +33,7 @@ const CartPage: React.FC = () => {
         );
 
         try {
-            const response = await fetch("http://localhost:5000/purchase/create_payment_url", {
+            const response = await fetch(`${API_BASE_URL}/purchase/create_payment_url`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

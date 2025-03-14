@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         const { amount, bankCode, orderDescription, orderType, language } = req.body;
 
         try {
-            const response = await fetch("http://localhost:5000/api/purchase/create_payment_url", {
+            const response = await fetch(`${API_BASE_URL}/api/purchase/create_payment_url`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount, bankCode, orderDescription, orderType, language }),

@@ -1,4 +1,7 @@
 "use client";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 import React, { useState, useEffect } from "react";
 import DBTable from "@/components/dbTable";
 
@@ -15,13 +18,13 @@ function TestPage() {
     const [tests, setTests] = useState<Test[]>([]);
 
     const fetchTests = async () => {
-        const response = await fetch("http://localhost:5000/tests");
+        const response = await fetch(`${API_BASE_URL}/tests`);
         const data: Test[] = await response.json();
         setTests(data);
     };
 
     const addTest = async () => {
-        const response = await fetch("http://localhost:5000/tests", {
+        const response = await fetch(`${API_BASE_URL}/tests`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -37,7 +40,7 @@ function TestPage() {
     };
 
     const deleteTest = async (id: number) => {
-        const response = await fetch(`http://localhost:5000/tests/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/tests/${id}`, {
             method: "DELETE",
         });
 

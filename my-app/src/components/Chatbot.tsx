@@ -1,4 +1,7 @@
 "use client";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -50,9 +53,7 @@ export default function Chatbot() {
                 setConversationId(data.id);
 
                 // Lấy lịch sử tin nhắn
-                const messagesResponse = await fetch(
-                    `http://localhost:5000/conversation/user/${userId}`
-                );
+                const messagesResponse = await fetch(`${API_BASE_URL}/conversation/user/${userId}`);
                 const messagesData = await messagesResponse.json();
                 setMessages(
                     messagesData.map((msg) => ({
@@ -110,7 +111,7 @@ export default function Chatbot() {
         setInput("");
 
         try {
-            await fetch(`http://localhost:5000/conversation/${conversationId}/message`, {
+            await fetch(`${API_BASE_URL}/conversation/${conversationId}/message`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ senderId: userId, content: input }),
@@ -202,7 +203,7 @@ export default function Chatbot() {
             console.log(responseText);
             if (isRequestPath) updatePath(userId, { pathDetails: responseText });
 
-            await fetch(`http://localhost:5000/conversation/${conversationId}/message`, {
+            await fetch(`${API_BASE_URL}/conversation/${conversationId}/message`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ senderId: null, content: responseText }),

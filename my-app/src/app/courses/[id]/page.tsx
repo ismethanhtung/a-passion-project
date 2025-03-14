@@ -1,5 +1,5 @@
 "use client";
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
@@ -30,7 +30,7 @@ const CourseDetail: React.FC = () => {
 
     const checkPurchase = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/purchase/check/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/purchase/check/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -77,7 +77,7 @@ const CourseDetail: React.FC = () => {
         if (!user) return alert("Bạn cần đăng nhập.");
         if (!course) return alert("Khóa học không tồn tại.");
         try {
-            const response = await fetch("http://localhost:5000/purchase/create_payment_url", {
+            const response = await fetch(`${API_BASE_URL}/purchase/create_payment_url`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
