@@ -5,18 +5,18 @@ import Contact from "./contact";
 export default function Footer() {
     const learningPrograms = ["Listening", "Reading", "Speaking", "Writing"];
     const aboutUs = [
-        { label: "About", href: "/about" },
-        { label: "Introduce", href: "/introduce" },
-        { label: "Policy", href: "/policy" },
-        { label: "Terms & Conditions", href: "/terms" },
-        { label: "Privacy policy", href: "/privacy" },
-        { label: "Payment policy", href: "/payment" },
+        { label: "About", href: "/footer/about" },
+        { label: "Introduce", href: "/footer/introduce" },
+        { label: "Policy", href: "/footer/policy" },
+        { label: "Terms & Conditions", href: "/footer/terms" },
+        { label: "Privacy policy", href: "/footer/privacy" },
+        { label: "Payment policy", href: "/footer/payment" },
     ];
     const features = [
         { label: "Courses", href: "/courses" },
-        { label: "Learning Program", href: "/programs" },
-        { label: "Online Tests", href: "/tests" },
-        { label: "Flashcards", href: "/flashcards" },
+        { label: "Learning Program", href: "/learning-paths" },
+        { label: "Online Tests", href: "/online-tests" },
+        { label: "Flashcards", href: "/flashcard" },
         { label: "Blogs", href: "/blogs" },
     ];
 
@@ -32,7 +32,7 @@ export default function Footer() {
                     <ul>
                         {learningPrograms.map((program, index) => (
                             <li key={index} className="mb-2">
-                                <LinkItem text={program} href={`/${program.toLowerCase()}`} />
+                                <LinkItem text={program} href={`/courses`} />
                             </li>
                         ))}
                     </ul>

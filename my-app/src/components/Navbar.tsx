@@ -44,6 +44,8 @@ export default function Navbar() {
             } else {
                 console.error("Đăng xuất không thành công");
             }
+            dispatch(logout());
+            router.push("/");
         } catch (error) {
             console.log(error);
             console.error("Lỗi khi đăng xuất:", error);
