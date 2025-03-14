@@ -57,4 +57,4 @@
 57|The contract must be signed by both parties before it becomes _____.|A. effective|B. efficiently|C. effect|D. effectiveness|A
 58|The project was completed _____ than expected.|A. soon|B. sooner|C. soonest|D. soonly|B
 59|All employees are required to _____ to the company's dress code policy.|A. adhere|B. adjust|C. admit|D. adopt|A
-60|The hotel offers _____ services for business travelers.|A. convenience|B. convenient|C. conveniently|D. conveniences|B
+60|The hotel offers _____ services for business traveledrs.|A. convenience|B. convenient|C. conveniently|D. conveniences|B
