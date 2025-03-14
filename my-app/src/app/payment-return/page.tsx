@@ -1,11 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createPurchase } from "@/api/purchase";
 
-const PaymentResult = () => {
+const PaymentResultContent = () => {
     const searchParams = useSearchParams();
     const [status, setStatus] = useState({ code: "", message: "" });
+
     const vnp_Amount = searchParams.get("vnp_Amount") || "0";
     const vnp_BankCode = searchParams.get("vnp_BankCode");
     const vnp_BankTranNo = searchParams.get("vnp_BankTranNo");
@@ -97,6 +99,14 @@ const PaymentResult = () => {
                 </a>
             </div>
         </div>
+    );
+};
+
+const PaymentResult = () => {
+    return (
+        <Suspense fallback={<div className="text-center text-lg">Đang tải...</div>}>
+            <PaymentResultContent />
+        </Suspense>
     );
 };
 

@@ -7,6 +7,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { addEnrollment } from "@/api/enrollment";
 
+interface Question {
+    id: number;
+    question: string;
+    options: string[];
+    answer: string;
+}
+
 const tests = [
     {
         id: "placement-test-1",
@@ -143,13 +150,14 @@ const tests = [
 const TestPage = () => {
     const router = useRouter();
     const { id } = useParams();
-    const [questions, setQuestions] = useState([]);
+    const [questions, setQuestions] = useState<Question[]>([]);
     const [userAnswers, setUserAnswers] = useState({});
     const [score, setScore] = useState(null);
     const [timeLeft, setTimeLeft] = useState(1800);
     const user = useSelector((state: RootState) => state.user.user);
     if (!user) {
-        return alert("Bạn cần đăng nhập.");
+        router.push("/auth/login");
+        return;
     }
     console.log(user);
     const userId = parseInt(user.id);

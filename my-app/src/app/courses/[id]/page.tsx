@@ -7,6 +7,7 @@ import { RootState } from "@/store/store";
 import { fetchCourseById } from "@/api/courses";
 import { fetchReviewsById } from "@/api/review";
 import { addCart, fetchCartById } from "@/api/cart";
+import { useRouter } from "next/navigation";
 
 import Course from "@/interfaces/course";
 import Review from "@/interfaces/review";
@@ -15,6 +16,7 @@ import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
 
 const CourseDetail: React.FC = () => {
+    const router = useRouter();
     const user = useSelector((state: RootState) => state.user.user);
     const { id } = useParams();
     const [course, setCourse] = useState<Course | null>(null);
@@ -62,7 +64,10 @@ const CourseDetail: React.FC = () => {
     }, [user, course]);
 
     const handleAddCart = async () => {
-        if (!user) return alert("Bạn cần đăng nhập.");
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
         if (!course) return alert("Khóa học không tồn tại.");
         try {
             await addCart({ userId: user.id, courseId: course.id, quantity: 1 });
@@ -74,7 +79,10 @@ const CourseDetail: React.FC = () => {
     };
 
     const handleBuyNow = async () => {
-        if (!user) return alert("Bạn cần đăng nhập.");
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
         if (!course) return alert("Khóa học không tồn tại.");
         try {
             const response = await fetch(`${API_BASE_URL}/purchase/create_payment_url`, {
@@ -92,7 +100,7 @@ const CourseDetail: React.FC = () => {
             const data = await response.json();
 
             if (data.paymentUrl) {
-                window.location.href = data.paymentUrl;
+                router.push(data.paymentUrl);
             } else {
                 alert("Không thể tạo URL thanh toán. Vui lòng thử lại!");
             }

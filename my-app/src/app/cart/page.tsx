@@ -14,12 +14,15 @@ const CartPage: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        user && fetchCartById(user.id).then(setCartItems).catch(console.error);
+        if (user) {
+            fetchCartById(user.id).then(setCartItems).catch(console.error);
+        }
     }, [user]);
 
     const handleBuyNow = async () => {
         if (!user) {
-            return alert("Bạn cần đăng nhập.");
+            router.push("/auth/login");
+            return;
         }
 
         const selectedCourses = cartItems.filter((item) => selectedItems.has(item.id));
@@ -54,7 +57,7 @@ const CartPage: React.FC = () => {
             const data = await response.json();
 
             if (data.paymentUrl) {
-                window.location.href = data.paymentUrl;
+                router.push(data.paymentUrl);
             } else {
                 alert("Không thể tạo URL thanh toán. Vui lòng thử lại!");
             }

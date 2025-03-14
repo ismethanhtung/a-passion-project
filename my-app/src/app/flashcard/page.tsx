@@ -2,24 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 
-const FlashcardPage = () => {
-    const [flashcards, setFlashcards] = useState([]);
+interface Flashcard {
+    word: string;
+    meaning: string;
+    example: string;
+    exampleVi: string;
+}
+
+const FlashcardPage: React.FC = () => {
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [flipped, setFlipped] = useState(false);
 
     useEffect(() => {
         const fetchFlashcards = async () => {
             try {
                 const res = await fetch("/flashcards.txt");
                 const text = await res.text();
-                const parsedFlashcards: any = text.split("\n").map((line) => {
-                    const parts = line.split("|");
-                    return {
-                        word: parts[0],
-                        meaning: parts[1],
-                        example: parts[2],
-                        exampleVi: parts[3],
-                    };
+                const parsedFlashcards = text.split("\n").map((line) => {
+                    const [word, meaning, example, exampleVi] = line.split("|");
+                    return { word, meaning, example, exampleVi };
                 });
                 setFlashcards(parsedFlashcards);
             } catch (error) {
@@ -30,12 +31,10 @@ const FlashcardPage = () => {
     }, []);
 
     const nextCard = () => {
-        setFlipped(false);
         setCurrentIndex((prev) => (prev + 1) % flashcards.length);
     };
 
     const markAsKnown = () => {
-        setFlipped(false);
         setFlashcards((prev) => prev.filter((_, index) => index !== currentIndex));
         setCurrentIndex(0);
     };
@@ -50,17 +49,13 @@ const FlashcardPage = () => {
                 <p className="text-3xl font-extrabold text-black">
                     {flashcards[currentIndex].word}
                 </p>
-
                 <p className="text-2xl text-green-700 font-semibold mt-4">
                     {flashcards[currentIndex].meaning}
                 </p>
-
                 <hr className="my-3 border-gray-300" />
-
                 <p className="text-lg text-gray-700 italic">"{flashcards[currentIndex].example}"</p>
                 <p className="text-lg text-gray-500 mt-2">{flashcards[currentIndex].exampleVi}</p>
             </div>
-
             <div className="mt-6 flex space-x-4">
                 <button
                     onClick={nextCard}

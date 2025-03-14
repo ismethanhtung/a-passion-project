@@ -5,7 +5,11 @@ import { fetchPathById } from "@/api/learningPath";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import ReactMarkdown from "react-markdown";
+import { useRouter } from "next/navigation";
 
+interface LearningPath {
+    pathDetails?: string;
+}
 const learningPaths = [
     {
         id: 1,
@@ -38,13 +42,17 @@ const learningPaths = [
 
 export default function LearningPath() {
     const [selectedPath, setSelectedPath] = useState<number | null>(null);
-    const [learningPath, setLearningPath] = useState<string | null>(null);
+    const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
+    const router = useRouter();
 
     const user = useSelector((state: RootState) => state.user.user);
     const userId = user?.id;
 
     useEffect(() => {
-        if (!user) return alert("Bạn cần đăng nhập để xem lộ trình cá nhân hoá.");
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
         const fetchLearningPath = async () => {
             try {
                 const storedPath = await fetchPathById(userId);
@@ -111,33 +119,30 @@ export default function LearningPath() {
                     </ul>
                 </div>
             )}
-            {learningPath && (
-                <div className="mt-10 p-6 bg-white border border-gray-200 rounded-xl shadow-md">
-                    <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
-                        Lộ trình cá nhân hoá
-                    </h2>
-                    <ReactMarkdown
-                        components={{
-                            ol: ({ node, ...props }) => (
-                                <ol className="list-decimal ml-6 text-gray-700" {...props} />
-                            ),
-                            ul: ({ node, ...props }) => (
-                                <ul className="list-disc ml-6 text-gray-700" {...props} />
-                            ),
-                            a: ({ node, ...props }) => (
-                                <a
-                                    {...props}
-                                    className="text-blue-500 underline hover:text-blue-700"
-                                    target="_blank"
-                                />
-                            ),
-                        }}
-                    >
-                        {learningPath.pathDetails
-                            ? formatMarkdown(learningPath.pathDetails)
-                            : "Lộ trình học chưa có"}
-                    </ReactMarkdown>
-                </div>
+            {learningPath ? (
+                <ReactMarkdown
+                    components={{
+                        ol: ({ node, ...props }) => (
+                            <ol className="list-decimal ml-6 text-gray-700" {...props} />
+                        ),
+                        ul: ({ node, ...props }) => (
+                            <ul className="list-disc ml-6 text-gray-700" {...props} />
+                        ),
+                        a: ({ node, ...props }) => (
+                            <a
+                                {...props}
+                                className="text-blue-500 underline hover:text-blue-700"
+                                target="_blank"
+                            />
+                        ),
+                    }}
+                >
+                    {learningPath.pathDetails
+                        ? formatMarkdown(learningPath.pathDetails)
+                        : "Lộ trình học chưa có"}
+                </ReactMarkdown>
+            ) : (
+                <p>Lộ trình học chưa có</p>
             )}
         </div>
     );

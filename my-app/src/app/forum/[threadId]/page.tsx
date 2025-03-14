@@ -1,31 +1,36 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { fetchForumPosts, addForumPost, fetchForumPostById } from "@/api/forumPost";
-import { useParams } from "next/navigation";
 import PostCard from "@/components/forum/PostCard";
 import ForumPost from "@/interfaces/forum/forumPost";
 import { fetchForumThreadById } from "@/api/forumThread";
 
-const ThreadDetail: React.FC<{ params: { threadId: number } }> = ({ params }) => {
+interface ThreadDetailProps {
+    params: Promise<{ threadId: string }>;
+}
+
+const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
     const [posts, setPosts] = useState<ForumPost[]>([]);
     const [newPostContent, setNewPostContent] = useState("");
-    const { threadId } = useParams();
-
-    const getPosts = async () => {
-        const response = await fetchForumThreadById(threadId);
-        console.log(response);
-        setPosts(response.forumPosts);
-    };
-
-    const handleAddPost = async () => {
-        await addForumPost({ content: newPostContent, threadId: threadId });
-        setNewPostContent("");
-        getPosts();
-    };
 
     useEffect(() => {
+        const getPosts = async () => {
+            const { threadId } = await params; // Await params to get threadId
+            const response = await fetchForumThreadById(threadId);
+            console.log(response);
+            setPosts(response.forumPosts);
+        };
+
         getPosts();
-    }, [threadId]);
+    }, [params]);
+
+    const handleAddPost = async () => {
+        const { threadId } = await params; // Await params to get threadId
+        await addForumPost({ content: newPostContent, threadId: parseInt(threadId, 10) });
+        setNewPostContent("");
+        const response = await fetchForumThreadById(threadId);
+        setPosts(response.forumPosts);
+    };
 
     return (
         <div className="container mx-auto px-6">

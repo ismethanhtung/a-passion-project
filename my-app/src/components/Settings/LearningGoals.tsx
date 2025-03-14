@@ -3,11 +3,14 @@ import FormWrapper from "../FormWrapper";
 import { updateUser } from "@/api/user";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import { useRouter } from "next/navigation";
 
 const LearningGoals: any = () => {
+    const router = useRouter();
     const user = useSelector((state: RootState) => state.user.user);
     if (!user) {
-        return alert("Bạn cần đăng nhập.");
+        router.push("/auth/login");
+        return;
     }
     const userId = user.id;
     const handleSubmit = async (formData: Record<string, string>) => {
@@ -21,7 +24,7 @@ const LearningGoals: any = () => {
             await updateUser(Number(userId), formData);
             alert("Cập nhật thông tin thành công!");
         } catch (error) {
-            alert(error);
+            console.log(error);
         }
     };
 
