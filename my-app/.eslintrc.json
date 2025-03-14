@@ -20,7 +20,8 @@
         "react-hooks/exhaustive-deps": "off",
         "react-hooks/rules-of-hooks": "off",
         "@typescript-eslint/no-wrapper-object-types": "off",
-        "jsx-a11y/alt-text": "off"
+        "jsx-a11y/alt-text": "off",
+        "no-unused-expressions": "off"
     },
     "settings": {
         "react": {
