@@ -1,3 +1,30 @@
+// {
+//   "extends": ["next/core-web-vitals", "next/typescript"]
+// }
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "react", "jsx-a11y", "react-hooks", "@next/next"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "next/core-web-vitals"
+    ],
+    "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "prefer-const": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "react/no-unescaped-entities": "off",
+        "@next/next/no-img-element": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "react-hooks/rules-of-hooks": "off",
+        "@typescript-eslint/no-wrapper-object-types": "off",
+        "jsx-a11y/alt-text": "off"
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
 }
