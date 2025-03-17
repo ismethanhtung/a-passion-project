@@ -10,19 +10,16 @@ const ForumPage: React.FC = () => {
     const [filteredThreads, setFilteredThreads] = useState<ForumThread[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [loading, setLoading] = useState(false);
+
     const itemsPerPage = 12;
 
     const getThreads = async () => {
-        setLoading(true);
         try {
             const response = await fetchForumThreads();
             setThreads(response);
             setFilteredThreads(response);
         } catch (error) {
             console.log("Error fetching threads: ", error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -64,7 +61,6 @@ const ForumPage: React.FC = () => {
                     Engage in discussions, ask questions, and connect with others!
                 </p>
             </div>
-
             <div className="flex justify-center mb-8">
                 <input
                     type="text"
@@ -75,25 +71,20 @@ const ForumPage: React.FC = () => {
                 />
             </div>
 
-            {loading ? (
-                <div className="text-center text-gray-500">Loading threads...</div>
+            {displayedThreads.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {displayedThreads.map((thread) => (
+                        <ForumCard key={thread.id} thread={thread} />
+                    ))}
+                </div>
             ) : (
-                <>
-                    {displayedThreads.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {displayedThreads.map((thread) => (
-                                <ForumCard key={thread.id} thread={thread} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center text-gray-500 mt-8">
-                            No threads found. Try searching for another keyword!
-                        </div>
-                    )}
-                </>
+                <div className="flex flex-col items-center justify-center h-64">
+                    <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
+                    <p className="mt-4 text-lg text-gray-700">loading threads...</p>
+                </div>
             )}
 
-            {!loading && totalPages > 1 && (
+            {totalPages > 1 && (
                 <div className="flex justify-center mt-8">
                     <Pagination
                         currentPage={currentPage}

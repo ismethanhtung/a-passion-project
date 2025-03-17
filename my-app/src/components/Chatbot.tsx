@@ -227,9 +227,9 @@ export default function Chatbot() {
             </button>
 
             {showChat && (
-                <div className="fixed bottom-10 right-10 w-1/3 h-2/3 bg-white rounded-xl shadow-lg p-4 border flex flex-col">
-                    <div className="flex justify-between items-center border-b pb-2">
-                        <h3 className="text-lg font-semibold">Chatbot</h3>
+                <div className="fixed bottom-10 right-10 w-1/3 h-[700px] bg-white rounded-xl shadow-xl p-4 border flex flex-col">
+                    <div className="flex justify-between items-center">
+                        <div className="text-lg font-semibold">Chatbot</div>
                         <button
                             onClick={toggleChat}
                             className="text-lg font-bold hover:text-red-500"
@@ -238,7 +238,7 @@ export default function Chatbot() {
                         </button>
                     </div>
 
-                    <div className="chat-box text-sm flex-grow overflow-y-auto p-3 border my-2 h-96 rounded-md bg-gray-100">
+                    <div className="chat-box text-sm flex-grow overflow-y-auto border-y my-2 h-96">
                         {messages.map((msg, index) => (
                             <div
                                 key={index}
@@ -247,10 +247,10 @@ export default function Chatbot() {
                                 }`}
                             >
                                 <div
-                                    className={`p-2 rounded-lg max-w-full break-words leading-[2] ${
+                                    className={`px-3 rounded-lg max-w-full break-words leading-[2] ${
                                         msg.sender === "user"
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-gray-300 text-black"
+                                            ? "bg-purple-400 text-white ml-6"
+                                            : "bg-gray-300 text-black mr-6"
                                     }`}
                                 >
                                     <ReactMarkdown
@@ -261,15 +261,7 @@ export default function Chatbot() {
                                                     {...props}
                                                 />
                                             ),
-                                            h2: ({ node, ...props }) => (
-                                                <h2
-                                                    className="text-2xl font-bold my-3"
-                                                    {...props}
-                                                />
-                                            ),
-                                            h3: ({ node, ...props }) => (
-                                                <h3 className="text-xl font-bold my-2" {...props} />
-                                            ),
+
                                             p: ({ node, ...props }) => (
                                                 <p
                                                     className="text-base leading-relaxed my-2"
@@ -307,16 +299,14 @@ export default function Chatbot() {
 
                     <div className="flex">
                         <input
-                            className="flex-1 p-2 border rounded-l-lg"
+                            className="flex-1 p-1 rounded-l-lg focus:outline-none"
+                            placeholder="Send to Chatbot"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <button
-                            className="bg-blue-500 text-white p-2 rounded-r-lg"
-                            onClick={sendMessage}
-                        >
-                            Send
+                        <button className="" onClick={sendMessage}>
+                            <img src="/icons/send.png" className="w-8 h-8 mr-3" />
                         </button>
                     </div>
                 </div>

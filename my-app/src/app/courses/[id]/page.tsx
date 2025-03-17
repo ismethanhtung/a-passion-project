@@ -119,8 +119,8 @@ const CourseDetail: React.FC = () => {
 
     if (!course)
         return (
-            <div className="text-center text-red-500 text-2xl mt-20">
-                404 - Khóa học không tồn tại
+            <div className="flex flex-col justify-center items-center h-screen">
+                <img src="/icons/loading.gif" alt="Loading..." className="w-24 h-24" />
             </div>
         );
 

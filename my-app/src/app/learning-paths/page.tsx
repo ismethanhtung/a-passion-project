@@ -69,81 +69,105 @@ export default function LearningPath() {
         });
     };
     return (
-        <div className="container mx-auto p-8">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-center my-10 text-violet-500">
-                Learning Paths
-            </h1>
-            <p className="text-center text-gray-500 mb-8 text-lg">
-                Chọn lộ trình phù hợp hoặc để AI gợi ý.
-            </p>
+        <div className="max-w-screen-xl mx-auto p-8">
+            {/* Header */}
+            <header className="text-center my-12">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-violet-600">
+                    Learning Paths
+                </h1>
+                <p className="mt-4 text-lg text-gray-600">
+                    Chọn lộ trình phù hợp hoặc để AI gợi ý.
+                </p>
+            </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Danh sách Learning Paths */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {learningPaths.map((path) => (
                     <div
                         key={path.id}
-                        className={`p-6 rounded-xl shadow-lg cursor-pointer transition-all transform hover:scale-105 border border-gray-200 bg-white ${
-                            selectedPath === path.id ? "border-violet-500 shadow-xl" : ""
-                        }`}
                         onClick={() => setSelectedPath(path.id)}
+                        className={`p-6 bg-white border rounded-xl hover:border-violet-600 shadow transition-all transform hover:scale-105 cursor-pointer 
+                  ${selectedPath === path.id ? "border-violet-600 shadow-xl" : "border-gray-200"}`}
                     >
                         <h2 className="text-xl font-semibold text-gray-800 mb-2">{path.title}</h2>
                         <p className="text-gray-600">{path.description}</p>
                     </div>
                 ))}
-            </div>
+            </section>
 
             {selectedPath !== null && (
-                <div className="mt-10 p-6 bg-gray-100 border border-gray-200 rounded-xl shadow-md">
-                    <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
-                        Khóa học trong lộ trình
-                    </h2>
-                    <ul className="space-y-3">
-                        {learningPaths
-                            .find((path) => path.id === selectedPath)
-                            ?.courses.map((course) => (
-                                <li
-                                    key={course.id}
-                                    className="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200"
-                                >
-                                    <span className="font-medium text-gray-800">
-                                        {course.title}
-                                    </span>
-                                    <a
-                                        href={course.url}
-                                        className="text-violet-500 font-medium hover:underline"
+                <section className="mt-12">
+                    <div className="p-8 bg-gray-50 border border-gray-200 hover:border-violet-600 rounded-xl shadow-md">
+                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+                            Khóa học trong lộ trình
+                        </h2>
+                        <ul className="space-y-4">
+                            {learningPaths
+                                .find((path) => path.id === selectedPath)
+                                ?.courses.map((course) => (
+                                    <li
+                                        key={course.id}
+                                        className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
                                     >
-                                        Xem khóa học
-                                    </a>
-                                </li>
-                            ))}
-                    </ul>
-                </div>
+                                        <span className="font-medium text-gray-800">
+                                            {course.title}
+                                        </span>
+                                        <a
+                                            href={course.url}
+                                            className="text-violet-600 font-medium hover:underline"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Xem khóa học
+                                        </a>
+                                    </li>
+                                ))}
+                        </ul>
+                    </div>
+                </section>
             )}
-            {learningPath ? (
-                <ReactMarkdown
-                    components={{
-                        ol: ({ node, ...props }) => (
-                            <ol className="list-decimal ml-6 text-gray-700" {...props} />
-                        ),
-                        ul: ({ node, ...props }) => (
-                            <ul className="list-disc ml-6 text-gray-700" {...props} />
-                        ),
-                        a: ({ node, ...props }) => (
-                            <a
-                                {...props}
-                                className="text-blue-500 underline hover:text-blue-700"
-                                target="_blank"
-                            />
-                        ),
-                    }}
-                >
-                    {learningPath.pathDetails
-                        ? formatMarkdown(learningPath.pathDetails)
-                        : "Lộ trình học chưa có"}
-                </ReactMarkdown>
-            ) : (
-                <p>Lộ trình học chưa có</p>
-            )}
+
+            <section className="mt-12">
+                {typeof learningPath === "undefined" ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                        <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
+                        <p className="mt-4 text-lg text-gray-700">Đang tải lộ trình học...</p>
+                    </div>
+                ) : learningPath ? (
+                    <div className="p-8 bg-white border border-gray-200 hover:border-violet-600 rounded-xl shadow">
+                        <h2 className="text-3xl font-semibold text-center text-violet-400 mb-6">
+                            Lộ trình cá nhân hoá
+                        </h2>
+                        <ReactMarkdown
+                            components={{
+                                ol: ({ node, ...props }) => (
+                                    <ol className="list-decimal ml-6 text-gray-700" {...props} />
+                                ),
+                                ul: ({ node, ...props }) => (
+                                    <ul className="list-disc ml-6 text-gray-700" {...props} />
+                                ),
+                                a: ({ node, ...props }) => (
+                                    <a
+                                        {...props}
+                                        className="text-blue-500 underline hover:text-blue-700"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    />
+                                ),
+                            }}
+                        >
+                            {learningPath.pathDetails
+                                ? formatMarkdown(learningPath.pathDetails)
+                                : "Lộ trình học chưa có"}
+                        </ReactMarkdown>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-64">
+                        <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
+                        <p className="mt-4 text-lg text-gray-700">Đang tải lộ trình học...</p>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }
