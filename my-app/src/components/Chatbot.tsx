@@ -46,6 +46,7 @@ export default function Chatbot() {
         const initConversation = async () => {
             try {
                 const response1 = await fetchCourses();
+                console.log("🍪🍪🍪🍪🍪", document.cookie);
 
                 console.log(response1);
                 const response = await addConversation(userId, "Chatbot");

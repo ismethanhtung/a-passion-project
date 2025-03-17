@@ -60,6 +60,7 @@ function ProgressPage() {
                         { key: "userId" },
                         { key: "enrollmentId" },
                         { key: "status" },
+                        { key: "score" },
                         { key: "feedback" },
                     ]}
                     onCreate={handleAddProgress}

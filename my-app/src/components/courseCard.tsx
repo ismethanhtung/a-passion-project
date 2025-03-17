@@ -9,7 +9,7 @@ interface CourseCardProps {
     description: string;
     price: number;
     newPrice: number;
-    // rating: number;
+    rating: number;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -20,7 +20,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     description,
     price,
     newPrice,
-    // rating,
+    rating,
 }) => {
     return (
         <Link
@@ -46,7 +46,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     </div>
                     <div className="flex bg-red-50 rounded-lg p-1">
                         <img src="/icons/star.png" className="size-3" />
-                        <p className="text-xs pl-1 font-bold text-gray-500">{4.6}</p>
+                        <p className="text-xs pl-1 font-bold text-gray-500">{rating}</p>
                     </div>
                 </div>
             </div>

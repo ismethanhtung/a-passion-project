@@ -19,6 +19,7 @@ const Blogs: React.FC = () => {
         const getBlogs = async () => {
             try {
                 const data = await fetchBlogs();
+                if (!data) return;
                 setBlogs(data);
                 setFilteredBlogs(data);
             } catch (error) {
