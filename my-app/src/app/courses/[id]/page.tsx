@@ -113,6 +113,9 @@ const CourseDetail: React.FC = () => {
     const toggleVideoVisibility = (lessonId: number) => {
         setVisibleVideo((prev) => (prev === lessonId ? null : lessonId));
     };
+    const formatCurrency = (price: number): string => {
+        return price.toLocaleString("vi-VN");
+    };
 
     if (!course)
         return (
@@ -221,11 +224,11 @@ const CourseDetail: React.FC = () => {
                         <h2 className="text-xl font-semibold mb-4">Course Price</h2>
                         <div className="flex items-center gap-4">
                             <span className="text-2xl font-bold text-green-600">
-                                ${course.newPrice || course.price}
+                                {formatCurrency(course.newPrice) || formatCurrency(course.price)}đ
                             </span>
                             {course.newPrice && (
                                 <span className="text-sm line-through text-gray-500">
-                                    ${course.price}
+                                    {formatCurrency(course.price)}đ
                                 </span>
                             )}
                         </div>
@@ -245,7 +248,7 @@ const CourseDetail: React.FC = () => {
                                     <button
                                         disabled={isInCart}
                                         className={`w-full py-3 rounded-lg font-semibold ${
-                                            isInCart ? "bg-gray-400" : "bg-yellow-500"
+                                            isInCart ? "bg-yellow-200" : "bg-yellow-500"
                                         }`}
                                         onClick={handleAddCart}
                                     >

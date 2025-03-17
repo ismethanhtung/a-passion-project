@@ -11,6 +11,9 @@ interface CourseCardProps {
     newPrice: number;
     rating: number;
 }
+const formatCurrency = (price: number): string => {
+    return price.toLocaleString("vi-VN");
+};
 
 const CourseCard: React.FC<CourseCardProps> = ({
     id,
@@ -39,9 +42,13 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <p className="text-sm text-gray-600 py-2 mb-4">{description}</p>
                 <div className="flex items-end justify-between mt-auto">
                     <div>
-                        <p className=" text-lg font-bold text-indigo-600">{newPrice}đ</p>
+                        <p className=" text-lg font-bold text-indigo-600">
+                            {formatCurrency(newPrice)}đ
+                        </p>
                         {newPrice && (
-                            <span className="text line-through text-yellow-400">{price}đ</span>
+                            <span className="text line-through text-yellow-400">
+                                {formatCurrency(price)}đ
+                            </span>
                         )}
                     </div>
                     <div className="flex bg-red-50 rounded-lg p-1">
