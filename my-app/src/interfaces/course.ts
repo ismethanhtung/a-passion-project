@@ -24,6 +24,7 @@ interface Course {
     isPublished: boolean;
     isDeleted: boolean;
     tags: string;
+    rating: number;
 }
 
 export default Course;
