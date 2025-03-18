@@ -192,7 +192,7 @@ const Tests = () => {
                     filteredTests.map((test) => (
                         <div
                             key={test.id}
-                            className="border border-gray-300 rounded-lg p-4 shadow-md hover:shadow-lg transition cursor-pointer"
+                            className="border border-gray-300 rounded-lg p-4 shadow-md hover:shadow-lg hover:border-blue-500 transition cursor-pointer"
                         >
                             <h2 className="text-lg font-semibold text-gray-800">{test.title}</h2>
                             <p className="text-gray-600 text-sm mb-3">{test.description}</p>

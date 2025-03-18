@@ -67,7 +67,9 @@ const ChatPage: React.FC = () => {
     return (
         <div className="h-[calc(100vh-64px)] flex">
             <aside className="w-1/3 border-r border-gray-200 p-4">
-                <h2 className="text-2xl font-bold mb-4 text-gray-800">Conversations</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center text-violet-400">
+                    Conversations
+                </h2>
                 <ul className="space-y-4">
                     {dummyConversations.map((conv) => (
                         <li

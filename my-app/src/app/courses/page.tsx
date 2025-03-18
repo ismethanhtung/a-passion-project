@@ -16,6 +16,8 @@ const Sources: React.FC = () => {
     const itemsPerPage = 6;
     const [selectedRating, setSelectedRating] = useState<number | null>(null);
     const [isFree, setIsFree] = useState<boolean | null>(null);
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
 
     useEffect(() => {
         const getCourses = async () => {
@@ -48,7 +50,20 @@ const Sources: React.FC = () => {
 
     useEffect(() => {
         filterCourses();
-    }, [searchTerm, filter, selectedRating, isFree]);
+    }, [searchTerm, filter, selectedRating, isFree, selectedSkills]);
+
+    const handleSkillChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const skill = e.target.value;
+        setSelectedSkills((prev) =>
+            prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+        );
+    };
+
+    const handleLevelChange = (level: string) => {
+        setSelectedLevels((prev) =>
+            prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+        );
+    };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
@@ -69,12 +84,25 @@ const Sources: React.FC = () => {
     const filterCourses = () => {
         const options = {
             keys: ["title", "description"],
-            threshold: 0.3,
-            distance: 100,
+            threshold: 0.4,
+            distance: 200,
+            includeScore: true,
+            includeMatches: true,
+            ignoreLocation: true,
+            findAllMatches: true,
+            shouldSort: true,
         };
 
         const fuse = new Fuse(courses, options);
         let filtered = searchTerm ? fuse.search(searchTerm).map((result) => result.item) : courses;
+
+        if (selectedSkills.length > 0) {
+            const skillResults = selectedSkills.flatMap((skill) =>
+                fuse.search(skill).map((result) => result.item)
+            );
+            const skillSet = new Set(skillResults);
+            filtered = filtered.filter((course) => skillSet.has(course));
+        }
 
         if (filter === "price") {
             filtered.sort((a, b) => (a.newPrice || a.price) - (b.newPrice || b.price));
@@ -90,6 +118,13 @@ const Sources: React.FC = () => {
             filtered = filtered.filter((course) =>
                 isFree ? course.newPrice === 0 : course.price > 0
             );
+        }
+        if (selectedLevels.length > 0) {
+            const levelResults = selectedLevels.flatMap((level) =>
+                fuse.search(level).map((result) => result.item)
+            );
+            const levelSet = new Set(levelResults);
+            filtered = filtered.filter((course) => levelSet.has(course));
         }
 
         setFilteredCourses(filtered);
@@ -137,16 +172,23 @@ const Sources: React.FC = () => {
             {/* Filter and Main Content Layout */}
             <div className="flex">
                 {/* Sidebar */}
-                <div className="w-1/5">
-                    {/* Language Skills */}
+                <div className="w-1/5 mt-6">
                     <div className="mb-6">
-                        <h3 className="font-semibold text-gray-600">Language Skills</h3>
-                        <select className="border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                            <option value="speaking">Speaking</option>
-                            <option value="listening">Listening</option>
-                            <option value="reading">Reading</option>
-                            <option value="writing">Writing</option>
-                        </select>
+                        <h3 className="font-semibold text-gray-600 mb-4">Language Skills</h3>
+                        <div className="space-y-2">
+                            {["speaking", "listening", "reading", "writing"].map((skill) => (
+                                <label key={skill} className="flex items-center text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        value={skill}
+                                        checked={selectedSkills.includes(skill)}
+                                        onChange={handleSkillChange}
+                                        className="mr-2"
+                                    />
+                                    {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Ratings Filter */}
@@ -235,7 +277,12 @@ const Sources: React.FC = () => {
                         <div className="space-y-2">
                             {["Beginner", "Intermediate", "Advanced"].map((level) => (
                                 <label key={level} className="block text-gray-600">
-                                    <input type="checkbox" value={level} className="mr-2" />
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLevels.includes(level)}
+                                        onChange={() => handleLevelChange(level)}
+                                        className="mr-2"
+                                    />
                                     {level}
                                 </label>
                             ))}

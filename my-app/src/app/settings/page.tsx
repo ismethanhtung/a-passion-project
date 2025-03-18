@@ -10,7 +10,7 @@ import CurrentLevel from "@/components/Settings/CurrentLevel";
 const SettingsPage = () => {
     return (
         <div className="container mx-auto p-8 space-y-8">
-            <h1 className="text-3xl font-bold text-red-300">User Settings</h1>
+            <h1 className="text-3xl font-bold text-red-300 text-center py-4">User Settings</h1>
             <div className="flex">
                 <SettingsForm />
                 <PasswordChangeForm />

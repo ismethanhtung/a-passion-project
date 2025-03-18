@@ -54,8 +54,8 @@ const ForumPage: React.FC = () => {
     return (
         <div className="container mx-auto px-6">
             <div className="text-center my-12">
-                <h1 className="text-5xl font-bold text-gray-800">
-                    Welcome to the <span className="text-red-400">Forum</span>
+                <h1 className="text-5xl font-bold text-gray-700">
+                    Welcome to the <span className="text-red-300">Forum</span>
                 </h1>
                 <p className="text-gray-600 mt-4 text-lg">
                     Engage in discussions, ask questions, and connect with others!
@@ -67,7 +67,7 @@ const ForumPage: React.FC = () => {
                     placeholder="Search threads..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="w-full md:w-1/2 border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-red-400 transition-all duration-300"
+                    className="w-full md:w-1/2 border-2 border-violet-200 rounded-lg px-4 py-2"
                 />
             </div>
 

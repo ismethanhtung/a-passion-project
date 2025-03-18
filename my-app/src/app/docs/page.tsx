@@ -75,7 +75,7 @@ const Docs: React.FC = () => {
                 {displayedDocs.map((doc) => (
                     <div
                         key={doc.id}
-                        className="border-2 border-gray-200 rounded-lg p-6 hover:shadow-lg"
+                        className="border-2 border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-violet-300"
                     >
                         <h2 className="text-2xl font-semibold mb-2 text-gray-800">{doc.title}</h2>
                         <p className="text-gray-600 mb-4">{doc.description}</p>

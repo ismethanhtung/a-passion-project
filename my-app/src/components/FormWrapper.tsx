@@ -36,7 +36,10 @@ const FormWrapper: React.FC<FormWrapperProps> = ({ title, fields, onSubmit }) =>
     };
 
     return (
-        <form onSubmit={handleSubmit} className="w-full mx-4 p-6 border-2 rounded-lg shadow">
+        <form
+            onSubmit={handleSubmit}
+            className="w-full mx-4 p-6 border-2 rounded-lg shadow border-violet-200 border-2"
+        >
             <h2 className="text-lg font-medium mb-4">{title}</h2>
             {fields.map((field) => (
                 <div key={field.name} className="mb-4">
@@ -69,7 +72,7 @@ const FormWrapper: React.FC<FormWrapperProps> = ({ title, fields, onSubmit }) =>
             ))}
             <button
                 type="submit"
-                className="w-full px-8 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50"
+                className="w-full px-8 py-2 bg-slate-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
                 disabled={loading}
             >
                 {loading ? "Processing..." : "Submit"}

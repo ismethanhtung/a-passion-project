@@ -15,7 +15,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
 
     useEffect(() => {
         const getPosts = async () => {
-            const { threadId } = await params; // Await params to get threadId
+            const { threadId } = await params;
             const response = await fetchForumThreadById(threadId);
             console.log(response);
             setPosts(response.forumPosts);
@@ -25,7 +25,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
     }, [params]);
 
     const handleAddPost = async () => {
-        const { threadId } = await params; // Await params to get threadId
+        const { threadId } = await params;
         await addForumPost({ content: newPostContent, threadId: parseInt(threadId, 10) });
         setNewPostContent("");
         const response = await fetchForumThreadById(threadId);
@@ -34,7 +34,9 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
 
     return (
         <div className="container mx-auto px-6">
-            <h1 className="text-3xl font-bold mb-6">Thread Posts</h1>
+            <h1 className="text-4xl font-bold mb-6 text-center py-10 text-green-300">
+                Thread Posts
+            </h1>
             {posts.map((post) => (
                 <PostCard key={post.id} post={post} />
             ))}

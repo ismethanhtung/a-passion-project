@@ -125,7 +125,7 @@ const CartPage: React.FC = () => {
 
     return (
         <div className="container mx-auto p-8 flex gap-8">
-            <div className="w-3/4 bg-white p-6 rounded-lg border-2 border-gray-200">
+            <div className="w-3/4 bg-white p-6 rounded-lg border-2 border-violet-200">
                 <h1 className="text-3xl font-semibold my-10">Your Cart</h1>
                 {cartItems.map(({ id, course, quantity }) => (
                     <div key={id} className="flex justify-between items-center border-t p-4">
@@ -165,7 +165,7 @@ const CartPage: React.FC = () => {
                 ))}
             </div>
 
-            <div className="w-1/3 bg-white p-6 rounded-lg border-2 border-gray-200">
+            <div className="w-1/3 bg-white p-6 rounded-lg border-2 border-violet-200">
                 <h2 className="text-2xl font-semibold py-8">Summary</h2>
 
                 <div className="my-2">Do you have promo code?</div>

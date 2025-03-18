@@ -8,18 +8,20 @@ interface ForumCardProps {
 
 const ForumCard: React.FC<ForumCardProps> = ({ thread }) => {
     return (
-        <div className="border rounded-lg shadow-md hover:shadow-lg p-4 transition duration-200 bg-white">
-            <h2 className="text-xl font-semibold text-gray-800">{thread.title}</h2>
-            <div>{thread.content}</div>
-            <p className="text-sm text-gray-500 mt-2">
+        <div className="border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-violet-400 p-5 transition duration-200 bg-white">
+            <h2 className="text-lg font-semibold text-violet-700 mb-2">{thread.title}</h2>
+            <p className="text-gray-700">{thread.content}</p>
+
+            <p className="text-sm text-gray-500 mt-3">
                 Created on {new Date(thread.createdAt).toLocaleDateString()}
             </p>
+
             <div className="mt-4">
                 <Link
                     href={`/forum/${thread.id}`}
-                    className="text-red-500 font-semibold hover:underline"
+                    className="inline-block bg-violet-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-violet-600 transition"
                 >
-                    View All Post
+                    View All Posts
                 </Link>
             </div>
         </div>

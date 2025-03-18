@@ -89,7 +89,7 @@ export default function LearningPath() {
                         className={`p-6 bg-white border rounded-xl hover:border-violet-600 shadow transition-all transform hover:scale-105 cursor-pointer 
                   ${selectedPath === path.id ? "border-violet-600 shadow-xl" : "border-gray-200"}`}
                     >
-                        <h2 className="text-xl font-semibold text-gray-800 mb-2">{path.title}</h2>
+                        <h2 className="text-xl font-semibold text-violet-500 mb-2">{path.title}</h2>
                         <p className="text-gray-600">{path.description}</p>
                     </div>
                 ))}
@@ -98,7 +98,7 @@ export default function LearningPath() {
             {selectedPath !== null && (
                 <section className="mt-12">
                     <div className="p-8 bg-gray-50 border border-gray-200 hover:border-violet-600 rounded-xl shadow-md">
-                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+                        <h2 className="text-2xl font-semibold text-center text-violet-500 mb-6">
                             Khóa học trong lộ trình
                         </h2>
                         <ul className="space-y-4">
@@ -135,7 +135,7 @@ export default function LearningPath() {
                     </div>
                 ) : learningPath ? (
                     <div className="p-8 bg-white border border-gray-200 hover:border-violet-600 rounded-xl shadow">
-                        <h2 className="text-3xl font-semibold text-center text-violet-400 mb-6">
+                        <h2 className="text-3xl font-semibold text-center text-violet-500 mb-6">
                             Lộ trình cá nhân hoá
                         </h2>
                         <ReactMarkdown

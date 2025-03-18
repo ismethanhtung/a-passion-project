@@ -54,11 +54,11 @@ export default function Navbar() {
 
     const links = [
         "Courses",
-        "Learning Program",
         "Online Tests",
         "Blogs",
         "Docs",
         "Learning Paths",
+        "Learning Program",
         "Flashcard",
         "Forum",
     ];
