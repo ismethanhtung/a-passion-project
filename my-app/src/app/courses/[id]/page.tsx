@@ -259,48 +259,46 @@ const CourseDetail: React.FC = () => {
                         <h3 className="text-lg font-semibold mb-4">Preview Video</h3>
                         <Video videoUrl="https://vimeo.com/1037130772" isLocked={false} />
                     </div>
-                    {isPurchased || (
-                        <div className="border border-gray-200 p-10 rounded-lg">
-                            <h2 className="text-xl font-semibold mb-4">Course Price</h2>
-                            <div className="flex items-center gap-4">
-                                <span className="text-2xl font-bold text-green-600">
-                                    {formatCurrency(course.newPrice)}đ
+                    <div className="border border-gray-200 p-10 rounded-lg">
+                        <h2 className="text-xl font-semibold mb-4">Course Price</h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-2xl font-bold text-green-600">
+                                {formatCurrency(course.newPrice)}đ
+                            </span>
+                            {course.price && (
+                                <span className="text-sm line-through text-gray-500">
+                                    {formatCurrency(course.price)}đ
                                 </span>
-                                {course.price && (
-                                    <span className="text-sm line-through text-gray-500">
-                                        {formatCurrency(course.price)}đ
-                                    </span>
-                                )}
-                            </div>
-                            <div className="mt-6 space-y-4">
-                                {isPurchased ? (
-                                    <button className="w-full py-3 rounded-lg font-semibold bg-green-300">
-                                        Purchased
-                                    </button>
-                                ) : (
-                                    <>
-                                        <button
-                                            className="w-full py-3 rounded-lg font-semibold bg-blue-500 text-white transition hover:bg-blue-600"
-                                            onClick={handleBuyNow}
-                                        >
-                                            Buy Now
-                                        </button>
-                                        <button
-                                            disabled={isInCart}
-                                            className={`w-full py-3 rounded-lg font-semibold transition ${
-                                                isInCart
-                                                    ? "bg-yellow-200 text-gray-700"
-                                                    : "bg-yellow-500 text-white hover:bg-yellow-600"
-                                            }`}
-                                            onClick={handleAddCart}
-                                        >
-                                            {isInCart ? "Added to Cart" : "Add to Cart"}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                            )}
                         </div>
-                    )}
+                        <div className="mt-6 space-y-4">
+                            {isPurchased ? (
+                                <button className="w-full py-3 rounded-lg font-semibold bg-green-300">
+                                    Purchased
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        className="w-full py-3 rounded-lg font-semibold bg-blue-500 text-white transition hover:bg-blue-600"
+                                        onClick={handleBuyNow}
+                                    >
+                                        Buy Now
+                                    </button>
+                                    <button
+                                        disabled={isInCart}
+                                        className={`w-full py-3 rounded-lg font-semibold transition ${
+                                            isInCart
+                                                ? "bg-yellow-200 text-gray-700"
+                                                : "bg-yellow-500 text-white hover:bg-yellow-600"
+                                        }`}
+                                        onClick={handleAddCart}
+                                    >
+                                        {isInCart ? "Added to Cart" : "Add to Cart"}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

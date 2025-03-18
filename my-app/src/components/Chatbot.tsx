@@ -227,7 +227,7 @@ export default function Chatbot() {
             </button>
 
             {showChat && (
-                <div className="fixed bottom-10 right-10 w-1/3 h-[700px] bg-white rounded-xl shadow-xl p-4 border flex flex-col">
+                <div className="fixed bottom-10 right-10 w-1/3 h-[700px] bg-white rounded-xl shadow-xl p-4 border border-violet-300 flex flex-col">
                     <div className="flex justify-between items-center">
                         <div className="text-lg font-semibold">Chatbot</div>
                         <button

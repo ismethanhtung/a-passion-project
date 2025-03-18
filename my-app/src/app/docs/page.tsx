@@ -40,6 +40,90 @@ const docsData = [
         description: "Các bài tập luyện nói giúp bạn giao tiếp tự tin hơn.",
         url: "/docs/a.pdf",
     },
+    {
+        id: 7,
+        title: "Kỹ năng viết tiếng Anh",
+        description: "Hướng dẫn viết email, báo cáo và bài luận một cách chuyên nghiệp.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 8,
+        title: "Giao tiếp tiếng Anh cơ bản",
+        description: "Phát triển kỹ năng giao tiếp cơ bản cho người mới học.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 9,
+        title: "Giao tiếp tiếng Anh nâng cao",
+        description: "Cải thiện kỹ năng giao tiếp cho môi trường chuyên nghiệp.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 10,
+        title: "Từ vựng IELTS cơ bản",
+        description: "Danh sách từ vựng cần thiết cho kỳ thi IELTS.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 11,
+        title: "Ngữ pháp nâng cao",
+        description: "Các cấu trúc ngữ pháp phức tạp giúp bạn viết và nói chính xác.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 12,
+        title: "Kỹ năng đọc hiểu tiếng Anh",
+        description: "Chiến lược đọc hiểu hiệu quả cho văn bản tiếng Anh.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 13,
+        title: "Phân tích bài báo tiếng Anh",
+        description: "Học cách phân tích và hiểu các bài báo tiếng Anh.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 14,
+        title: "Phát triển từ vựng chuyên ngành",
+        description: "Từ vựng chuyên ngành cho các lĩnh vực cụ thể.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 15,
+        title: "Luyện phát âm chuyên sâu",
+        description: "Các bài tập luyện phát âm nâng cao cho người học.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 16,
+        title: "Khóa học TOEIC cơ bản",
+        description: "Chuẩn bị cho kỳ thi TOEIC với các bài tập và bài kiểm tra.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 17,
+        title: "Khóa học TOEIC nâng cao",
+        description: "Tăng cường kỹ năng để đạt điểm cao trong kỳ thi TOEIC.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 18,
+        title: "Học tiếng Anh qua phim ảnh",
+        description: "Sử dụng phim ảnh để cải thiện kỹ năng nghe và từ vựng.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 19,
+        title: "Học tiếng Anh qua nhạc",
+        description: "Học qua lời bài hát và giai điệu để làm quen với ngữ điệu tiếng Anh.",
+        url: "/docs/a.pdf",
+    },
+    {
+        id: 20,
+        title: "Học tiếng Anh qua truyện ngắn",
+        description: "Đọc và phân tích truyện ngắn để nâng cao khả năng đọc hiểu.",
+        url: "/docs/a.pdf",
+    },
 ];
 
 const Docs: React.FC = () => {
