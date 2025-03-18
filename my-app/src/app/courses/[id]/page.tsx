@@ -28,26 +28,22 @@ const CourseDetail: React.FC = () => {
     const [isInCart, setIsInCart] = useState<boolean>(false);
     const [isPurchased, setIsPurchased] = useState<boolean>(false);
 
-    // Khởi tạo trạng thái loading và kiểm tra mount
     const [loading, setLoading] = useState<boolean>(true);
     const [isMounted, setIsMounted] = useState<boolean>(false);
 
-    // Khi rời trang, cảnh báo người dùng
-    useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
-            e.returnValue = "Nếu bạn rời khỏi trang, thay đổi hiện tại sẽ không được lưu lại.";
-        };
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, []);
+    // useEffect(() => {
+    //     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    //         e.preventDefault();
+    //         e.returnValue = "Nếu bạn rời khỏi trang, thay đổi hiện tại sẽ không được lưu lại.";
+    //     };
+    //     window.addEventListener("beforeunload", handleBeforeUnload);
+    //     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    // }, []);
 
-    // Đánh dấu component đã mount
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    // Kiểm tra đăng nhập
     useEffect(() => {
         if (!isMounted) return;
         if (!user) {
@@ -56,16 +52,13 @@ const CourseDetail: React.FC = () => {
         }
     }, [isMounted, user, router]);
 
-    // Fetch dữ liệu khóa học và review
     useEffect(() => {
         fetchCourseById(id).then(setCourse).catch(console.error);
         fetchReviewsById(id).then(setReviews).catch(console.error);
     }, [id]);
 
-    // Kiểm tra trạng thái mua hàng và giỏ hàng nếu có user và course
     useEffect(() => {
         if (user && course) {
-            // Kiểm tra mua hàng
             const checkPurchase = async () => {
                 try {
                     const response = await fetch(`${API_BASE_URL}/purchase/check/${id}`, {
@@ -81,7 +74,6 @@ const CourseDetail: React.FC = () => {
             };
             checkPurchase();
 
-            // Kiểm tra giỏ hàng
             const checkCartStatus = async () => {
                 try {
                     const cartItems = await fetchCartById(user.id);
@@ -95,17 +87,14 @@ const CourseDetail: React.FC = () => {
         }
     }, [user, course, id]);
 
-    // Hàm xử lý chuyển đổi hiển thị video cho bài học
     const toggleVideoVisibility = (lessonId: number) => {
         setVisibleVideo((prev) => (prev === lessonId ? null : lessonId));
     };
 
-    // Định dạng tiền tệ
     const formatCurrency = (price: number): string => {
         return price.toLocaleString("vi-VN");
     };
 
-    // Xử lý thêm vào giỏ hàng
     const handleAddCart = async () => {
         if (!user) {
             router.push("/auth/login");
@@ -121,7 +110,6 @@ const CourseDetail: React.FC = () => {
         }
     };
 
-    // Xử lý thanh toán ngay
     const handleBuyNow = async () => {
         if (!user) {
             router.push("/auth/login");
@@ -163,7 +151,6 @@ const CourseDetail: React.FC = () => {
 
     return (
         <div className="container mx-auto p-8 space-y-8">
-            {/* Thông tin khóa học */}
             <div className="border border-gray-200 p-10 rounded-lg flex flex-col lg:flex-row gap-6">
                 <img
                     src={course.thumbnail}
@@ -180,7 +167,6 @@ const CourseDetail: React.FC = () => {
                 </div>
             </div>
 
-            {/* Nội dung khóa học & Video */}
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="border border-gray-200 p-10 rounded-lg">
