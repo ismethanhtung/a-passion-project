@@ -13,15 +13,22 @@ const dummyConversations = [
         id: 2,
         name: "Tùng Thanh Nguyễn",
         avatar: "/images/avatar/avatar2.png",
-        lastMessage: "Let's catch up tomorrow.",
+        lastMessage: "Go play tomorrow?",
         lastTime: "1:30 PM",
     },
     {
         id: 3,
         name: "Tùng Nguyễn Thanh",
         avatar: "/images/avatar/avatar3.png",
-        lastMessage: "Can you send the files?",
+        lastMessage: "I am fine thank you and you?",
         lastTime: "12:15 PM",
+    },
+    {
+        id: 4,
+        name: "Thanh Tùng Nguyễn",
+        avatar: "/images/avatar/avatar4.png",
+        lastMessage: "Đi giữa trời khuya sao đêm lấp lánh",
+        lastTime: "12:00 PM",
     },
 ];
 
@@ -59,7 +66,6 @@ const dummyMessages = [
 const ChatPage: React.FC = () => {
     return (
         <div className="h-[calc(100vh-64px)] flex">
-            {/* Sidebar - Danh sách cuộc trò chuyện */}
             <aside className="w-1/3 border-r border-gray-200 p-4">
                 <h2 className="text-2xl font-bold mb-4 text-gray-800">Conversations</h2>
                 <ul className="space-y-4">
@@ -85,9 +91,7 @@ const ChatPage: React.FC = () => {
                 </ul>
             </aside>
 
-            {/* Main Chat Area */}
             <main className="flex flex-col flex-grow p-4">
-                {/* Header của cuộc trò chuyện */}
                 <header className="flex items-center justify-between border-b border-gray-200 pb-3">
                     <div className="flex items-center">
                         <img
@@ -104,7 +108,6 @@ const ChatPage: React.FC = () => {
                     </div>
                     <div>
                         <button className="p-2 hover:bg-gray-100 rounded-full">
-                            {/* Biểu tượng cài đặt */}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-6 w-6 text-gray-600"
@@ -123,7 +126,6 @@ const ChatPage: React.FC = () => {
                     </div>
                 </header>
 
-                {/* Vùng tin nhắn */}
                 <div className="flex-grow overflow-y-auto my-4 space-y-4 px-2">
                     {dummyMessages.map((msg) => (
                         <div
@@ -144,10 +146,8 @@ const ChatPage: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Khu vực nhập tin nhắn */}
                 <div className="border-t border-gray-200 pt-3 flex items-center space-x-3">
                     <button className="p-2 hover:bg-gray-100 rounded-full">
-                        {/* Icon Attachment */}
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-6 w-6 text-gray-600"

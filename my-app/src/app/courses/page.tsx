@@ -5,6 +5,7 @@ import Pagination from "@/components/Pagination";
 import Course from "@/interfaces/course";
 import { fetchCourses } from "@/api/courses";
 import { fetchReviews } from "@/api/review";
+import Fuse from "fuse.js";
 
 const Sources: React.FC = () => {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -66,9 +67,14 @@ const Sources: React.FC = () => {
     };
 
     const filterCourses = () => {
-        let filtered = courses.filter((course) =>
-            course.title.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const options = {
+            keys: ["title", "description"],
+            threshold: 0.3,
+            distance: 100,
+        };
+
+        const fuse = new Fuse(courses, options);
+        let filtered = searchTerm ? fuse.search(searchTerm).map((result) => result.item) : courses;
 
         if (filter === "price") {
             filtered.sort((a, b) => (a.newPrice || a.price) - (b.newPrice || b.price));

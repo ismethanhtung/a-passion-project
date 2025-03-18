@@ -30,7 +30,7 @@ const CartPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64">
+            <div className="flex flex-col items-center justify-center h-64 py-96">
                 <img src="/icons/loading.gif" alt="Loading..." className="w-12 h-12" />
                 <p className="mt-4 text-lg text-gray-700">loading cart...</p>
             </div>
@@ -125,11 +125,11 @@ const CartPage: React.FC = () => {
 
     return (
         <div className="container mx-auto p-8 flex gap-8">
-            <div className="w-2/3 bg-white p-6 rounded-lg border-2 border-gray-200">
+            <div className="w-3/4 bg-white p-6 rounded-lg border-2 border-gray-200">
                 <h1 className="text-3xl font-semibold my-10">Your Cart</h1>
                 {cartItems.map(({ id, course, quantity }) => (
                     <div key={id} className="flex justify-between items-center border-t p-4">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 w-1/2">
                             <input
                                 type="checkbox"
                                 checked={selectedItems.has(id)}
@@ -147,9 +147,14 @@ const CartPage: React.FC = () => {
                                 >
                                     {course.title}
                                 </h2>
-                                <p>{course.newPrice || course.price}đ</p>
                             </div>
                         </div>
+                        <p>
+                            {course.newPrice.toLocaleString("vi-VN") ||
+                                course.price.toLocaleString("vi-VN")}
+                            đ
+                        </p>
+
                         <div className="flex items-center gap-6">
                             <button onClick={() => updateQuantity(id, quantity - 1)}>-</button>
                             <span>{quantity}</span>
@@ -162,18 +167,27 @@ const CartPage: React.FC = () => {
 
             <div className="w-1/3 bg-white p-6 rounded-lg border-2 border-gray-200">
                 <h2 className="text-2xl font-semibold py-8">Summary</h2>
-                <div className="flex justify-between mb-4">
-                    <span>Total:</span>
-                    <span className="text-green-600 font-semibold">{totalPrice}đ</span>
-                </div>
+
+                <div className="my-2">Do you have promo code?</div>
+
                 <input
                     type="text"
                     placeholder="Enter coupon code"
                     className="w-full px-4 py-2 border mb-4"
                 />
-                <button onClick={handleBuyNow} className="w-full bg-blue-500 text-white p-2">
+
+                <div className="flex justify-between py-4">
+                    <span>Total:</span>
+                    <span className="text-green-600 font-semibold">{totalPrice}đ</span>
+                </div>
+                <button
+                    onClick={handleBuyNow}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2"
+                >
                     Checkout
                 </button>
+
+                <div className="mt-4 text-sm text-gray-400">Need help? Call me at 0926550470</div>
             </div>
         </div>
     );
