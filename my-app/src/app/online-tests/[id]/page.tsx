@@ -261,7 +261,12 @@ const TestPage: React.FC = () => {
     };
 
     if (!isMounted || loading) {
-        return <div className="container mx-auto p-6 text-center">Loading...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center h-64 py-96">
+                <img src="/icons/loading.gif" alt="Loading..." className="w-12 h-12" />
+                <p className="mt-4 text-lg text-gray-700">Loading test...</p>
+            </div>
+        );
     }
 
     // Trang kết quả

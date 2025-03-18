@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 const Settings: React.FC = () => {
@@ -9,7 +10,6 @@ const Settings: React.FC = () => {
                 Dashboard
             </h1>
 
-            {/* Stats Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="bg-white p-4 rounded-lg shadow-md border-violet-200 border-2">
                     <h2 className="text-xl font-semibold">Total Learning Time</h2>
@@ -34,19 +34,19 @@ const Settings: React.FC = () => {
                 <h2 className="text-2xl font-semibold mb-4">Quick Settings</h2>
                 <ul className="space-y-3">
                     <li className="border-b pb-2">
-                        <a href="/courses" className="text-blue-500 hover:underline">
+                        <Link href={"/courses"} className="text-blue-500 hover:underline">
                             Manage Courses
-                        </a>
+                        </Link>
                     </li>
                     <li className="border-b pb-2">
-                        <a href="#" className="text-blue-500 hover:underline">
+                        <Link href={"/"} className="text-blue-500 hover:underline">
                             Subscription Plans
-                        </a>
+                        </Link>
                     </li>
                     <li>
-                        <a href="#" className="text-blue-500 hover:underline">
+                        <Link href={"/settings"} className="text-blue-500 hover:underline">
                             Account Settings
-                        </a>
+                        </Link>
                     </li>
                 </ul>
             </div>
