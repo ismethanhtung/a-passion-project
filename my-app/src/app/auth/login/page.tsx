@@ -18,24 +18,18 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
+
     const responseFacebook = async (response: any) => {
         console.log(response);
         const res = await fetch(`${backendUrl}/facebook-login`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                accessToken: response,
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken: response }),
         });
-
         const data = await res.json();
         console.log("Đăng nhập Facebook thành công:", data);
-
         dispatch(
             login({
                 user: data.response.user,
@@ -43,7 +37,6 @@ function Login() {
                 refreshToken: data.response.refreshToken,
             })
         );
-
         router.push("/");
     };
 
@@ -52,7 +45,6 @@ function Login() {
             const response = await handleLoginApi(email, password);
             const data = await response.json();
             console.log("Đăng nhập thành công:", data);
-
             dispatch(
                 login({
                     user: data.user,
@@ -60,7 +52,6 @@ function Login() {
                     refreshToken: data.refreshToken,
                 })
             );
-
             router.push("/");
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);
@@ -85,13 +76,11 @@ function Login() {
                                 </h1>
                             </div>
                         </div>
-
                         {error && (
                             <div className="bg-red-100 text-red-700 p-2.5 rounded-lg mb-4">
                                 {error}
                             </div>
                         )}
-
                         <div className="mb-5">
                             <input
                                 id="email"
@@ -103,7 +92,6 @@ function Login() {
                                 required
                             />
                         </div>
-
                         <div className="mb-5">
                             <input
                                 id="password"
@@ -114,7 +102,6 @@ function Login() {
                                 className="border text-sm rounded-lg block w-full p-2.5"
                             />
                         </div>
-
                         <div className="flex justify-between w-full mb-5">
                             <div className="flex">
                                 <div className="flex items-center h-5">
@@ -138,21 +125,18 @@ function Login() {
                                 className="hover:underline"
                             />
                         </div>
-
                         <button
                             onClick={handleLogin}
                             className="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full"
                         >
                             Sign in
                         </button>
-
                         <div className="text-center">
                             <p className="text-gray-600 py-6">or log in with:</p>
                             <div className="flex justify-center">
                                 <GoogleLoginButton onError={setError} />
                             </div>
                         </div>
-
                         <div className="text-center">
                             <div className="flex justify-between space-x-4 mt-4">
                                 <FacebookLogin
@@ -175,7 +159,6 @@ function Login() {
                                         </button>
                                     )}
                                 />
-
                                 <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
                                     <img src="/logos/facebook.png" className="size-5" alt="" />
                                 </button>
@@ -184,7 +167,6 @@ function Login() {
                                 </button>
                             </div>
                         </div>
-
                         <div className="mt-4 flex content-center justify-center">
                             <p className="text-gray-600 flex text-sm mr-2">
                                 Don't have an account?

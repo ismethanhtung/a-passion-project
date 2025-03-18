@@ -1,6 +1,4 @@
 "use client";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -10,14 +8,42 @@ import { useRouter } from "next/navigation";
 const CartPage: React.FC = () => {
     const [cartItems, setCartItems] = useState<any[]>([]);
     const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+    const [loading, setLoading] = useState(true);
     const user = useSelector((state: RootState) => state.user.user);
     const router = useRouter();
 
     useEffect(() => {
         if (user) {
-            fetchCartById(user.id).then(setCartItems).catch(console.error);
+            fetchCartById(user.id)
+                .then((data) => {
+                    setCartItems(data);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    setLoading(false);
+                });
+        } else {
+            setLoading(false);
         }
     }, [user]);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64">
+                <img src="/icons/loading.gif" alt="Loading..." className="w-12 h-12" />
+                <p className="mt-4 text-lg text-gray-700">loading cart...</p>
+            </div>
+        );
+    }
+
+    if (!cartItems.length) {
+        return (
+            <div className="text-center text-3xl text-red-300 font-bold py-96">
+                Your cart is empty
+            </div>
+        );
+    }
 
     const handleBuyNow = async () => {
         if (!user) {
@@ -36,23 +62,26 @@ const CartPage: React.FC = () => {
         );
 
         try {
-            const response = await fetch(`${API_BASE_URL}/purchase/create_payment_url`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    amount: totalAmount,
-                    orderDescription: `Thanh toán cho các khóa học: ${selectedCourses
-                        .map((item) => item.course.title)
-                        .join(", ")}`,
-                    orderType: "education",
-                    language: "vn",
-                    userId: user.id,
-                    courses: selectedCourses.map((item) => ({
-                        courseId: item.course.id,
-                        quantity: item.quantity,
-                    })),
-                }),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/purchase/create_payment_url`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        amount: totalAmount,
+                        orderDescription: `Thanh toán cho các khóa học: ${selectedCourses
+                            .map((item) => item.course.title)
+                            .join(", ")}`,
+                        orderType: "education",
+                        language: "vn",
+                        userId: user.id,
+                        courses: selectedCourses.map((item) => ({
+                            courseId: item.course.id,
+                            quantity: item.quantity,
+                        })),
+                    }),
+                }
+            );
 
             const data = await response.json();
 
@@ -94,9 +123,6 @@ const CartPage: React.FC = () => {
         router.push(`/courses/${courseId}`);
     };
 
-    // if (!user) return <div className="text-center text-lg">You need to login</div>;
-    if (!cartItems.length) return <div className="text-center text-lg">Your cart is empty</div>;
-
     return (
         <div className="container mx-auto p-8 flex gap-8">
             <div className="w-2/3 bg-white p-6 rounded-lg border-2 border-gray-200">
@@ -117,7 +143,7 @@ const CartPage: React.FC = () => {
                             <div>
                                 <h2
                                     className="text-xl font-semibold cursor-pointer"
-                                    onClick={() => handleCourseClick(course.id)} // Khi nhấp vào tên khóa học sẽ điều hướng
+                                    onClick={() => handleCourseClick(course.id)}
                                 >
                                     {course.title}
                                 </h2>
