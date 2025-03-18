@@ -120,7 +120,7 @@ const CourseDetail: React.FC = () => {
     if (!course)
         return (
             <div className="flex flex-col justify-center items-center h-screen">
-                <img src="/icons/loading.gif" alt="Loading..." className="w-24 h-24" />
+                <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
             </div>
         );
 
@@ -224,9 +224,9 @@ const CourseDetail: React.FC = () => {
                         <h2 className="text-xl font-semibold mb-4">Course Price</h2>
                         <div className="flex items-center gap-4">
                             <span className="text-2xl font-bold text-green-600">
-                                {formatCurrency(course.newPrice) || formatCurrency(course.price)}đ
+                                {formatCurrency(course.newPrice)}đ
                             </span>
-                            {course.newPrice && (
+                            {course.price && (
                                 <span className="text-sm line-through text-gray-500">
                                     {formatCurrency(course.price)}đ
                                 </span>

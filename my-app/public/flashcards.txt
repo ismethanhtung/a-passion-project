@@ -3,3 +3,18 @@ run|chạy|He runs every morning.|Anh ấy chạy bộ mỗi sáng.
 beautiful|đẹp|The sunset is very beautiful.|Hoàng hôn rất đẹp.
 strong|mạnh mẽ|He is a very strong man.|Anh ấy là một người đàn ông rất mạnh mẽ.
 happy|hạnh phúc|She feels so happy today.|Hôm nay cô ấy cảm thấy rất hạnh phúc.
+sad|buồn|He is feeling sad today.|Hôm nay anh ấy cảm thấy buồn.
+angry|tức giận|She got angry at the news.|Cô ấy tức giận vì tin tức đó.
+delicious|ngon|This pizza is absolutely delicious.|Cái bánh pizza này thật sự ngon.
+fast|nhanh|The car is very fast on the highway.|Chiếc xe rất nhanh trên đường cao tốc.
+intelligent|thông minh|The student is incredibly intelligent.|Học sinh này vô cùng thông minh.
+cold|lạnh|It is very cold outside this morning.|Ngoài trời rất lạnh sáng nay.
+warm|ấm áp|The room feels warm and inviting.|Phòng cảm giác ấm áp và mời gọi.
+bright|sáng|The room is bright with natural light.|Phòng được chiếu sáng bởi ánh sáng tự nhiên.
+calm|bình tĩnh|He stayed calm during the crisis.|Anh ấy giữ được bình tĩnh trong khủng hoảng.
+excited|hào hứng|She is excited about her upcoming trip.|Cô ấy rất hào hứng với chuyến đi sắp tới.
+curious|tò mò|The child is curious about everything.|Đứa trẻ tò mò về mọi thứ.
+gentle|nhẹ nhàng|The breeze was gentle and soothing.|Cơn gió nhẹ nhàng và dễ chịu.
+rich|giàu có|The story is rich in historical detail.|Câu chuyện giàu chi tiết lịch sử.
+simple|đơn giản|The design is simple yet effective.|Thiết kế đơn giản nhưng hiệu quả.
+modern|hiện đại|The building has a modern architecture.|Tòa nhà có kiến trúc hiện đại.

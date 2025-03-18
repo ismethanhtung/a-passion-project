@@ -7,7 +7,7 @@ let date1 = date > 9 ? date : `0${date}`;
 const fetchBlogs = async () => {
     try {
         const response = await fetch(
-            `https://newsapi.org/v2/everything?q=technology&from=${year}-${month}-${date1}&sortBy=publishedAt&apiKey=ac4bd79fc7c547ec9964d7e43f0f823b`
+            `https://gnews.io/api/v4/search?q=technology&from=${year}-${month}-${date1}&sortby=publishedAt&token=YOUR_GNEWS_API_TOKEN`
         );
         const data = await response.json();
         return data.articles;

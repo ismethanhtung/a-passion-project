@@ -45,7 +45,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         <p className=" text-lg font-bold text-indigo-600">
                             {formatCurrency(newPrice)}đ
                         </p>
-                        {newPrice && (
+                        {price && (
                             <span className="text line-through text-yellow-400">
                                 {formatCurrency(price)}đ
                             </span>

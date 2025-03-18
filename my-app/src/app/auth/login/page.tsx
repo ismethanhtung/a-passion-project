@@ -155,10 +155,13 @@ function Login() {
 
                         <div className="text-center">
                             <div className="flex justify-between space-x-4 mt-4">
-                                {/* <FacebookLogin
+                                <FacebookLogin
                                     appId="1379549779684690"
                                     version="v10.0"
-                                    callback={responseFacebook}
+                                    onSuccess={responseFacebook}
+                                    onFailure={(error) =>
+                                        console.error("Facebook login failed:", error)
+                                    }
                                     render={(renderProps) => (
                                         <button
                                             onClick={renderProps.onClick}
@@ -166,12 +169,12 @@ function Login() {
                                         >
                                             <img
                                                 src="/logos/facebook.png"
-                                                className="size-5"
+                                                className="size-12"
                                                 alt="Facebook Login"
                                             />
                                         </button>
                                     )}
-                                /> */}
+                                />
 
                                 <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
                                     <img src="/logos/facebook.png" className="size-5" alt="" />

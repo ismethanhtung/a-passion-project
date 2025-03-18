@@ -232,7 +232,7 @@ export default function Chatbot() {
                         <div className="text-lg font-semibold">Chatbot</div>
                         <button
                             onClick={toggleChat}
-                            className="text-lg font-bold hover:text-red-500"
+                            className="text-2xl font-bold hover:text-red-500"
                         >
                             ×
                         </button>
@@ -249,8 +249,8 @@ export default function Chatbot() {
                                 <div
                                     className={`px-3 rounded-lg max-w-full break-words leading-[2] ${
                                         msg.sender === "user"
-                                            ? "bg-purple-400 text-white ml-6"
-                                            : "bg-gray-300 text-black mr-6"
+                                            ? "bg-purple-400 text-white ml-10"
+                                            : "bg-gray-300 text-black mr-10"
                                     }`}
                                 >
                                     <ReactMarkdown
@@ -306,7 +306,7 @@ export default function Chatbot() {
                             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
                         <button className="" onClick={sendMessage}>
-                            <img src="/icons/send.png" className="w-8 h-8 mr-3" />
+                            <img src="/icons/send.png" className="w-7 h-7 mr-3" />
                         </button>
                     </div>
                 </div>

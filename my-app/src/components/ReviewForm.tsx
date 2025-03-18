@@ -74,7 +74,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                     className="w-full border-gray-200 border-2 border rounded-lg p-3 resize-none"
                 />
             </div>
-            <button type="submit" className="px-4 py-2 mb-6 bg-blue-400 text-white rounded">
+            <button
+                type="submit"
+                className="px-4 py-2 mb-6 bg-blue-600 hover:bg-blue-700 text-white rounded transition duration-200"
+            >
                 Submit
             </button>
         </form>

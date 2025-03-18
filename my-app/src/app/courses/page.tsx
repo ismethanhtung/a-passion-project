@@ -13,58 +13,79 @@ const Sources: React.FC = () => {
     const [filter, setFilter] = useState<"all" | "price" | "rating">("all");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
-
-    const getCourses = async () => {
-        try {
-            const [coursesData, reviewsData] = await Promise.all([fetchCourses(), fetchReviews()]);
-
-            const coursesWithRatings = coursesData.map((course: Course) => {
-                const courseReviews = reviewsData.filter(
-                    (review: any) => review.courseId === course.id && review.rating > 0
-                );
-                const averageRating =
-                    courseReviews.length > 0
-                        ? courseReviews.reduce(
-                              (sum: number, review: any) => sum + review.rating,
-                              0
-                          ) / courseReviews.length
-                        : 0;
-
-                const roundedRating =
-                    courseReviews.length > 0 ? Number(averageRating.toFixed(1)) : 0;
-                return { ...course, rating: roundedRating };
-            });
-
-            setCourses(coursesWithRatings);
-            setFilteredCourses(coursesWithRatings);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    const [selectedRating, setSelectedRating] = useState<number | null>(null);
+    const [isFree, setIsFree] = useState<boolean | null>(null);
 
     useEffect(() => {
+        const getCourses = async () => {
+            try {
+                const [coursesData, reviewsData] = await Promise.all([
+                    fetchCourses(),
+                    fetchReviews(),
+                ]);
+                const coursesWithRatings = coursesData.map((course: Course) => {
+                    const courseReviews = reviewsData.filter(
+                        (review: any) => review.courseId === course.id && review.rating > 0
+                    );
+                    const averageRating =
+                        courseReviews.length > 0
+                            ? courseReviews.reduce(
+                                  (sum: number, review: any) => sum + review.rating,
+                                  0
+                              ) / courseReviews.length
+                            : 0;
+                    return { ...course, rating: Number(averageRating.toFixed(1)) };
+                });
+                setCourses(coursesWithRatings);
+                setFilteredCourses(coursesWithRatings);
+            } catch (error) {
+                console.error(error);
+            }
+        };
         getCourses();
     }, []);
 
+    useEffect(() => {
+        filterCourses();
+    }, [searchTerm, filter, selectedRating, isFree]);
+
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
-        filterCourses(e.target.value, filter);
     };
 
-    const handleFilterChange = (newFilter: "all" | "price" | "rating") => {
+    const handleFilterChange = (newFilter: any) => {
         setFilter(newFilter);
-        filterCourses(searchTerm, newFilter);
     };
 
-    const filterCourses = (search: string, filter: "all" | "price" | "rating") => {
+    const handleRatingFilter = (rating: number | null) => {
+        setSelectedRating(rating);
+    };
+
+    const handlePriceFilter = (free: boolean | null) => {
+        setIsFree(free);
+    };
+
+    const filterCourses = () => {
         let filtered = courses.filter((course) =>
-            course.title.toLowerCase().includes(search.toLowerCase())
+            course.title.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
         if (filter === "price") {
-            filtered = filtered.sort((a, b) => (a.newPrice || a.price) - (b.newPrice || b.price));
+            filtered.sort((a, b) => (a.newPrice || a.price) - (b.newPrice || b.price));
         } else if (filter === "rating") {
-            // filtered = filtered.sort((a, b) => b.rating - a.rating);
+            filtered.sort((a, b) => b.rating - a.rating);
         }
+
+        if (selectedRating !== null) {
+            filtered = filtered.filter((course) => course.rating >= selectedRating);
+        }
+
+        if (isFree !== null) {
+            filtered = filtered.filter((course) =>
+                isFree ? course.newPrice === 0 : course.price > 0
+            );
+        }
+
         setFilteredCourses(filtered);
     };
 
@@ -80,7 +101,6 @@ const Sources: React.FC = () => {
 
     return (
         <div className="container mx-auto">
-            {/* Header Section */}
             <div className="flex my-16">
                 <div className="w-4/6 pt-12 px-10">
                     <h1 className="font-bold text-3xl">
@@ -97,7 +117,7 @@ const Sources: React.FC = () => {
                     </p>
                 </div>
                 <img
-                    className="object-cover block w-5/12 pr-24 rounded-lg mb-6"
+                    className="object-cover block w-5/12 pr-24 rounded-lg mb-1"
                     src="/images/course.png"
                     alt=""
                 />
@@ -111,7 +131,7 @@ const Sources: React.FC = () => {
             {/* Filter and Main Content Layout */}
             <div className="flex">
                 {/* Sidebar */}
-                <div className="w-1/4 p-6">
+                <div className="w-1/5">
                     {/* Language Skills */}
                     <div className="mb-6">
                         <h3 className="font-semibold text-gray-600">Language Skills</h3>
@@ -123,16 +143,62 @@ const Sources: React.FC = () => {
                         </select>
                     </div>
 
-                    {/* Level Filter */}
+                    {/* Ratings Filter */}
                     <div className="mb-6">
-                        <h3 className="font-semibold text-gray-600 mb-2">Level</h3>
+                        <h3 className="font-semibold text-gray-600 mb-2">Ratings</h3>
                         <div className="space-y-2">
-                            {["Beginner", "Intermediate", "Advanced"].map((level) => (
-                                <label key={level} className="block text-gray-600">
-                                    <input type="checkbox" value={level} className="mr-2" />
-                                    {level}
+                            {[4, 3, 2, 1].map((rating) => (
+                                <label key={rating} className="flex items-center text-gray-600">
+                                    <input
+                                        type="radio"
+                                        name="rating"
+                                        value={rating}
+                                        checked={selectedRating === rating}
+                                        onChange={() => handleRatingFilter(rating)}
+                                        className="mr-2"
+                                    />
+                                    <div className="flex items-center mr-2">
+                                        {Array.from({ length: 5 }, (_, i) => (
+                                            <img
+                                                key={i}
+                                                src="/icons/star.png"
+                                                alt="star"
+                                                className={`size-4 mr-0.5 ${
+                                                    i < rating ? "opacity-100" : "opacity-50"
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="flex-grow">{`${rating} & up`}</span>
                                 </label>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Price Filter */}
+                    <div className="mb-6">
+                        <h3 className="font-semibold text-gray-600 mb-2">Price</h3>
+                        <div className="space-y-2">
+                            <label className="block text-gray-600">
+                                <input
+                                    type="radio"
+                                    name="price"
+                                    checked={isFree === true}
+                                    onChange={() => handlePriceFilter(true)}
+                                    className="mr-2"
+                                />
+                                Free
+                            </label>
+                            <label className="block text-gray-600">
+                                <input
+                                    type="radio"
+                                    name="price"
+                                    checked={isFree === false}
+                                    onChange={() => handlePriceFilter(false)}
+                                    className="mr-2"
+                                />
+                                Paid
+                            </label>
                         </div>
                     </div>
 
@@ -157,53 +223,16 @@ const Sources: React.FC = () => {
                         </select>
                     </div>
 
-                    {/* Ratings Filter */}
+                    {/* Level Filter */}
                     <div className="mb-6">
-                        <h3 className="font-semibold text-gray-600 mb-2">Ratings</h3>
+                        <h3 className="font-semibold text-gray-600 mb-2">Level</h3>
                         <div className="space-y-2">
-                            {[4, 3, 2, 1].map((rating) => (
-                                <label
-                                    key={rating}
-                                    className="block text-gray-600 flex items-center"
-                                >
-                                    <input
-                                        type="radio"
-                                        name="rating"
-                                        value={rating}
-                                        className="mr-2"
-                                    />
-
-                                    <div className="flex items-center mr-2">
-                                        {Array.from({ length: 5 }).map((_, i) => (
-                                            <img
-                                                key={i}
-                                                src="/icons/star.png"
-                                                alt="star"
-                                                className={`size-4 mr-0.5 ${
-                                                    i < rating ? "opacity-100" : "opacity-50"
-                                                }`}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <span className="flex-grow">{`${rating} & up`}</span>
+                            {["Beginner", "Intermediate", "Advanced"].map((level) => (
+                                <label key={level} className="block text-gray-600">
+                                    <input type="checkbox" value={level} className="mr-2" />
+                                    {level}
                                 </label>
                             ))}
-                        </div>
-                    </div>
-
-                    {/* Price Filter */}
-                    <div className="mb-6">
-                        <h3 className="font-semibold text-gray-600 mb-2">Price</h3>
-                        <div className="space-y-2">
-                            <label className="block text-gray-600">
-                                <input type="checkbox" value="free" className="mr-2" />
-                                Free
-                            </label>
-                            <label className="block text-gray-600">
-                                <input type="checkbox" value="paid" className="mr-2" />
-                                Paid
-                            </label>
                         </div>
                     </div>
 
@@ -220,7 +249,6 @@ const Sources: React.FC = () => {
 
                 {/* Main Content */}
                 <div className="w-3/4 p-6">
-                    {/* Search Bar and Sort */}
                     <div className="flex justify-between items-center mb-6">
                         <input
                             type="text"
@@ -229,31 +257,26 @@ const Sources: React.FC = () => {
                             onChange={handleSearch}
                             className="border-2 border-gray-300 rounded-lg px-4 py-2 w-1/2"
                         />
-                        <div className="mb-6 w-1/4">
-                            <h3 className="font-semibold text-gray-600">Sort By</h3>
-                            <select
-                                value={filter}
-                                onChange={(e) =>
-                                    handleFilterChange(e.target.value as "all" | "price" | "rating")
-                                }
-                                className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
-                            >
-                                <option value="all">All</option>
-                                <option value="price">Sort by Price</option>
-                                <option value="rating">Sort by Rating</option>
-                                <option value="popularity">Most Popular</option>
-                                <option value="newest">Newest</option>
-                            </select>
-                        </div>
+                        <select
+                            value={filter}
+                            onChange={(e) =>
+                                handleFilterChange(e.target.value as "all" | "price" | "rating")
+                            }
+                            className="border-2 border-gray-300 rounded-lg px-4 py-2 w-1/4"
+                        >
+                            <option value="all">All</option>
+                            <option value="price">Sort by Price</option>
+                            <option value="rating">Sort by Rating</option>
+                            <option value="popularity">Most Popular</option>
+                            <option value="newest">Newest</option>
+                        </select>
                     </div>
 
-                    {/* Course Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {displayedCourses.map((course, index) => (
                             <CourseCard key={index} {...course} />
                         ))}
                     </div>
-
                     <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}

@@ -25,8 +25,8 @@ const learningPaths = [
         title: "Lộ trình trung cấp",
         description: "Nâng cao từ vựng và cải thiện kỹ năng giao tiếp.",
         courses: [
-            { id: 201, title: "Giao tiếp thực tế", url: "/courses/real-life-conversation" },
-            { id: 202, title: "Ngữ pháp nâng cao", url: "/courses/advanced-grammar" },
+            { id: 201, title: "Giao tiếp thực tế", url: "/courses/17" },
+            { id: 202, title: "Ngữ pháp nâng cao", url: "/courses/18" },
         ],
     },
     {
@@ -34,8 +34,8 @@ const learningPaths = [
         title: "Lộ trình chuyên sâu",
         description: "Luyện thi chứng chỉ và sử dụng ngôn ngữ chuyên sâu.",
         courses: [
-            { id: 301, title: "Luyện thi TOEIC", url: "/courses/toeic-prep" },
-            { id: 302, title: "Viết luận chuyên nghiệp", url: "/courses/academic-writing" },
+            { id: 301, title: "Luyện thi TOEIC", url: "/courses/19" },
+            { id: 302, title: "Viết luận chuyên nghiệp", url: "/courses/20" },
         ],
     },
 ];
