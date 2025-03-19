@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface LearningPath {
     pathDetails?: string;
@@ -13,29 +14,29 @@ interface LearningPath {
 const learningPaths = [
     {
         id: 1,
-        title: "Lộ trình cho người mới bắt đầu",
-        description: "Bắt đầu với các khái niệm cơ bản và phát triển dần kỹ năng ngôn ngữ. ",
+        title: "Beginner Learning Path",
+        description: "Start with the fundamentals and gradually build your language skills.",
         courses: [
-            { id: 101, title: "Nhập môn tiếng Anh", url: "/courses/31" },
-            { id: 102, title: "Phát âm cơ bản", url: "/courses/1" },
+            { id: 101, title: "Introduction to English", url: "/courses/31" },
+            { id: 102, title: "Basic Pronunciation", url: "/courses/1" },
         ],
     },
     {
         id: 2,
-        title: "Lộ trình trung cấp",
-        description: "Nâng cao từ vựng và cải thiện kỹ năng giao tiếp.",
+        title: "Intermediate Learning Path",
+        description: "Expand your vocabulary and improve communication skills.",
         courses: [
-            { id: 201, title: "Giao tiếp thực tế", url: "/courses/17" },
-            { id: 202, title: "Ngữ pháp nâng cao", url: "/courses/18" },
+            { id: 201, title: "Real-Life Conversations", url: "/courses/17" },
+            { id: 202, title: "Advanced Grammar", url: "/courses/18" },
         ],
     },
     {
         id: 3,
-        title: "Lộ trình chuyên sâu",
-        description: "Luyện thi chứng chỉ và sử dụng ngôn ngữ chuyên sâu.",
+        title: "Advanced Learning Path",
+        description: "Master the language with test preparation and professional skills.",
         courses: [
-            { id: 301, title: "Luyện thi TOEIC", url: "/courses/19" },
-            { id: 302, title: "Viết luận chuyên nghiệp", url: "/courses/20" },
+            { id: 301, title: "TOEIC Exam Preparation", url: "/courses/19" },
+            { id: 302, title: "Professional Writing", url: "/courses/20" },
         ],
     },
 ];
@@ -63,11 +64,13 @@ export default function LearningPath() {
         };
         fetchLearningPath();
     }, [userId]);
+
     const formatMarkdown = (text: string) => {
         return text.replace(/-?\s*(http[^\s]+)/g, (_, url) => {
             return ` [Xem khóa học](${url})`;
         });
     };
+
     return (
         <div className="max-w-screen-xl mx-auto p-8">
             {/* Header */}
@@ -76,7 +79,7 @@ export default function LearningPath() {
                     Learning Paths
                 </h1>
                 <p className="mt-4 text-lg text-gray-600">
-                    Chọn lộ trình phù hợp hoặc để AI gợi ý.
+                    "Choose the right path or let AI recommend one for you."
                 </p>
             </header>
 
@@ -99,7 +102,7 @@ export default function LearningPath() {
                 <section className="mt-12">
                     <div className="p-8 bg-gray-50 border border-gray-200 hover:border-violet-600 rounded-xl shadow-md">
                         <h2 className="text-2xl font-semibold text-center text-violet-500 mb-6">
-                            Khóa học trong lộ trình
+                            Courses in path
                         </h2>
                         <ul className="space-y-4">
                             {learningPaths
@@ -118,7 +121,7 @@ export default function LearningPath() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            Xem khóa học
+                                            Visit Course
                                         </a>
                                     </li>
                                 ))}
@@ -129,15 +132,28 @@ export default function LearningPath() {
 
             <section className="mt-12">
                 {typeof learningPath === "undefined" ? (
-                    <div className="flex flex-col items-center justify-center h-64">
-                        <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
-                        <p className="mt-4 text-lg text-gray-700">Đang tải lộ trình học...</p>
+                    <div className="font-semibold text-center text-violet-300 mb-4">
+                        No personalized learning path yet? Create one with the chatbot, update your
+                        goals, and set your current level
+                        <Link href={"/settings"} className="text-blue-500 hover:underline">
+                            {" "}
+                            here
+                        </Link>
+                        .
                     </div>
                 ) : learningPath ? (
                     <div className="p-8 bg-white border border-gray-200 hover:border-violet-600 rounded-xl shadow">
                         <h2 className="text-3xl font-semibold text-center text-violet-500 mb-6">
-                            Lộ trình cá nhân hoá
+                            Personalized Learning Path
                         </h2>
+                        <div className=" font-semibold text-center text-violet-300 mb-4">
+                            Chưa phù hợp? tạo lộ trình mới theo yêu cầu bằng Chatbot, update your
+                            goals and current level
+                            <Link href={"/settings"} className="text-blue-500 hover:underline">
+                                {" "}
+                                here
+                            </Link>
+                        </div>
                         <ReactMarkdown
                             components={{
                                 ol: ({ node, ...props }) => (
@@ -162,9 +178,13 @@ export default function LearningPath() {
                         </ReactMarkdown>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-64">
-                        <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
-                        <p className="mt-4 text-lg text-gray-700">Đang tải lộ trình học...</p>
+                    <div className="font-semibold text-center text-violet-300 mb-4">
+                        No personalized learning path yet? Create one with the chatbot, update your
+                        goals, and set your current level
+                        <Link href={"/settings"} className="text-blue-500 hover:underline">
+                            {" "}
+                            here.
+                        </Link>
                     </div>
                 )}
             </section>

@@ -113,7 +113,7 @@ function SignUp() {
                             Sign up
                         </button>
                         <div className="text-center">
-                            <p className="text-gray-600 py-6">or continue with:</p>
+                            <p className="text-gray-600 py-4">or continue with:</p>
                             <div className="flex justify-center">
                                 <GoogleLoginButton onError={setError} />
                             </div>

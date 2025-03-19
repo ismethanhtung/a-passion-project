@@ -31,25 +31,16 @@ const CourseDetail: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [isMounted, setIsMounted] = useState<boolean>(false);
 
-    // useEffect(() => {
-    //     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    //         e.preventDefault();
-    //         e.returnValue = "Nếu bạn rời khỏi trang, thay đổi hiện tại sẽ không được lưu lại.";
-    //     };
-    //     window.addEventListener("beforeunload", handleBeforeUnload);
-    //     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    // }, []);
-
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
     useEffect(() => {
         if (!isMounted) return;
-        if (!user) {
-            router.push("/auth/login");
-            return;
-        }
+        // if (!user) {
+        //     router.push("/auth/login");
+        //     return;
+        // }
     }, [isMounted, user, router]);
 
     useEffect(() => {

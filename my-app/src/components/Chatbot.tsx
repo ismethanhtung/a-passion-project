@@ -10,6 +10,7 @@ import { fetchUserById } from "@/api/user";
 import { fetchCourses } from "@/api/courses";
 import ReactMarkdown from "react-markdown";
 import { updatePath } from "@/api/learningPath";
+import { useRef } from "react";
 
 export default function Chatbot() {
     const [showChat, setShowChat] = useState(false);
@@ -20,6 +21,7 @@ export default function Chatbot() {
     const user = useSelector((state: RootState) => state.user.user);
     const userId: any = user?.id;
     const toggleChat = () => setShowChat((prev) => !prev);
+    const chatBoxRef = useRef<HTMLDivElement>(null);
 
     function formatCourses(courseList) {
         if (!Array.isArray(courseList) || courseList.length === 0) {
@@ -68,6 +70,11 @@ export default function Chatbot() {
         };
         initConversation();
     }, [userId]);
+    useEffect(() => {
+        if (chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+        }
+    }, [messages]);
     const removeVietnameseDiacritics = (str: string): string => {
         return str
             .normalize("NFD") // Tách dấu khỏi ký tự gốc
@@ -232,69 +239,114 @@ export default function Chatbot() {
                         <div className="text-lg font-semibold">Chatbot</div>
                         <button
                             onClick={toggleChat}
-                            className="text-2xl font-bold hover:text-red-500"
+                            className="text-2xl font-semibold hover:text-violet-500"
                         >
                             ×
                         </button>
                     </div>
 
-                    <div className="chat-box text-sm flex-grow overflow-y-auto border-y my-2 h-96">
-                        {messages.map((msg, index) => (
-                            <div
-                                key={index}
-                                className={`mb-2 flex ${
-                                    msg.sender === "user" ? "justify-end" : "justify-start"
-                                }`}
-                            >
+                    <div
+                        ref={chatBoxRef}
+                        className="chat-box text-sm flex-grow overflow-y-auto border-y my-2 h-full"
+                    >
+                        {messages.length === 0 ? (
+                            <div className="text-center text-gray-700 p-3 py-48">
+                                <h2 className="text-lg font-semibold text-violet-400">
+                                    Welcome to Your Language Learning Assistant!
+                                </h2>
+                                <p className="text-sm mt-1">I'm here to help you with:</p>
+                                <ul className="text-sm mt-1 space-y-1 list-disc list-inside text-blue-600">
+                                    <li>Answering your language-related questions</li>
+                                    <li>Recommending personalized learning paths</li>
+                                    <li>Suggesting courses, materials, practice tests</li>
+                                </ul>
+                                <p className="text-sm mt-2">
+                                    Type your question below or choose a suggested message! 👇
+                                </p>
+                            </div>
+                        ) : (
+                            messages.map((msg, index) => (
                                 <div
-                                    className={`px-3 rounded-lg max-w-full break-words leading-[2] ${
-                                        msg.sender === "user"
-                                            ? "bg-purple-400 text-white ml-10"
-                                            : "bg-gray-300 text-black mr-10"
+                                    key={index}
+                                    className={`mb-2 flex ${
+                                        msg.sender === "user" ? "justify-end" : "justify-start"
                                     }`}
                                 >
-                                    <ReactMarkdown
-                                        components={{
-                                            h1: ({ node, ...props }) => (
-                                                <h1
-                                                    className="text-3xl font-bold my-4"
-                                                    {...props}
-                                                />
-                                            ),
-
-                                            p: ({ node, ...props }) => (
-                                                <p
-                                                    className="text-base leading-relaxed my-2"
-                                                    {...props}
-                                                />
-                                            ),
-                                            ol: ({ node, ...props }) => (
-                                                <ol className="list-decimal ml-6 my-2" {...props} />
-                                            ),
-                                            ul: ({ node, ...props }) => (
-                                                <ul className="list-disc ml-6 my-2" {...props} />
-                                            ),
-                                            a: ({ node, ...props }) => (
-                                                <a
-                                                    {...props}
-                                                    className="text-blue-500 underline hover:text-blue-700"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                />
-                                            ),
-                                            blockquote: ({ node, ...props }) => (
-                                                <blockquote
-                                                    className="border-l-4 border-gray-300 pl-4 italic my-4"
-                                                    {...props}
-                                                />
-                                            ),
+                                    <div
+                                        className={`px-3 rounded-lg max-w-full break-words leading-[2] ${
+                                            msg.sender === "user"
+                                                ? "bg-purple-400 text-white ml-10"
+                                                : "bg-gray-300 text-black mr-10"
+                                        }`}
+                                    >
+                                        <ReactMarkdown
+                                            components={{
+                                                h1: (props) => (
+                                                    <h1
+                                                        className="text-3xl font-bold my-4"
+                                                        {...props}
+                                                    />
+                                                ),
+                                                p: (props) => (
+                                                    <p
+                                                        className="text-base leading-relaxed my-2"
+                                                        {...props}
+                                                    />
+                                                ),
+                                                ol: (props) => (
+                                                    <ol
+                                                        className="list-decimal ml-6 my-2"
+                                                        {...props}
+                                                    />
+                                                ),
+                                                ul: (props) => (
+                                                    <ul
+                                                        className="list-disc ml-6 my-2"
+                                                        {...props}
+                                                    />
+                                                ),
+                                                a: (props) => (
+                                                    <a
+                                                        className="text-blue-500 underline hover:text-blue-700"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        {...props}
+                                                    />
+                                                ),
+                                                blockquote: (props) => (
+                                                    <blockquote
+                                                        className="border-l-4 border-gray-300 pl-4 italic my-4"
+                                                        {...props}
+                                                    />
+                                                ),
+                                            }}
+                                        >
+                                            {formatMarkdown(msg.text)}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                        {messages.length === 0 && (
+                            <div className="p-2 flex flex-nowrap gap-2 mt-auto overflow-x-auto">
+                                {[
+                                    "Làm sao để bắt đầu?",
+                                    "Khóa học phù hợp với tôi?",
+                                    "Tạo lộ trình cá nhân hoá",
+                                ].map((s, i) => (
+                                    <button
+                                        key={i}
+                                        className="bg-violet-100 px-3 py-1 rounded-full text-sm hover:bg-violet-200 whitespace-nowrap"
+                                        onClick={() => {
+                                            setInput(s);
+                                            sendMessage();
                                         }}
                                     >
-                                        {formatMarkdown(msg.text)}
-                                    </ReactMarkdown>
-                                </div>
+                                        {s}
+                                    </button>
+                                ))}
                             </div>
-                        ))}
+                        )}
                     </div>
 
                     <div className="flex">
@@ -305,8 +357,8 @@ export default function Chatbot() {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <button className="" onClick={sendMessage}>
-                            <img src="/icons/send.png" className="w-7 h-7 mr-3" />
+                        <button onClick={sendMessage}>
+                            <img src="/icons/send.png" className="w-6 h-6 mr-3" alt="Send" />
                         </button>
                     </div>
                 </div>
