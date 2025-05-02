@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ClientProvider from "@/store/ClientProvider";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
     title: "Code Alone",
