@@ -1,6 +1,33 @@
 {
   "version": 3,
   "middleware": {},
-  "functions": {},
+  "functions": {
+    "/api/speech-to-text/route": {
+      "files": [
+        "server/server-reference-manifest.js",
+        "server/app/api/speech-to-text/route_client-reference-manifest.js",
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/speech-to-text/route.js"
+      ],
+      "name": "app/api/speech-to-text/route",
+      "page": "/api/speech-to-text/route",
+      "matchers": [
+        {
+          "regexp": "^/api/speech\\-to\\-text$",
+          "originalSource": "/api/speech-to-text"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "KjQQwpc1aPebT5nyv/7wofkQITRqGSyKzafrXS/3b4U="
+      }
+    }
+  },
   "sortedMiddleware": []
 }

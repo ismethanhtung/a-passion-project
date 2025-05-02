@@ -52,11 +52,14 @@ const CourseDetail: React.FC = () => {
         if (user && course) {
             const checkPurchase = async () => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/purchase/check/${id}`, {
-                        method: "GET",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include",
-                    });
+                    const response = await fetch(
+                        `${API_BASE_URL}/purchase/check/${id}`,
+                        {
+                            method: "GET",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                        }
+                    );
                     const data = await response.json();
                     if (data != null) setIsPurchased(true);
                 } catch (error) {
@@ -68,7 +71,9 @@ const CourseDetail: React.FC = () => {
             const checkCartStatus = async () => {
                 try {
                     const cartItems = await fetchCartById(user.id);
-                    const courseInCart = cartItems.some((item: any) => item.courseId === course.id);
+                    const courseInCart = cartItems.some(
+                        (item: any) => item.courseId === course.id
+                    );
                     setIsInCart(courseInCart);
                 } catch (error) {
                     console.error("Lỗi khi kiểm tra giỏ hàng:", error);
@@ -93,7 +98,11 @@ const CourseDetail: React.FC = () => {
         }
         if (!course) return alert("Khóa học không tồn tại.");
         try {
-            await addCart({ userId: user.id, courseId: course.id, quantity: 1 });
+            await addCart({
+                userId: user.id,
+                courseId: course.id,
+                quantity: 1,
+            });
             setIsInCart(true);
             alert("Khóa học đã được thêm vào giỏ hàng!");
         } catch (error) {
@@ -108,18 +117,21 @@ const CourseDetail: React.FC = () => {
         }
         if (!course) return alert("Khóa học không tồn tại.");
         try {
-            const response = await fetch(`${API_BASE_URL}/purchase/create_payment_url`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    amount: course.newPrice || course.price,
-                    orderDescription: `Thanh toán cho khóa học: ${course.title}`,
-                    orderType: "education",
-                    language: "vn",
-                    userId: user.id,
-                    courseId: id,
-                }),
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/purchase/create_payment_url`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        amount: course.newPrice || course.price,
+                        orderDescription: `Thanh toán cho khóa học: ${course.title}`,
+                        orderType: "education",
+                        language: "vn",
+                        userId: user.id,
+                        courseId: id,
+                    }),
+                }
+            );
             const data = await response.json();
             if (data.paymentUrl) {
                 router.push(data.paymentUrl);
@@ -135,7 +147,11 @@ const CourseDetail: React.FC = () => {
     if (!course) {
         return (
             <div className="flex flex-col justify-center items-center h-screen">
-                <img src="/icons/loading.gif" alt="Loading..." className="w-16 h-16" />
+                <img
+                    src="/icons/loading.gif"
+                    alt="Loading..."
+                    className="w-16 h-16"
+                />
             </div>
         );
     }
@@ -149,7 +165,9 @@ const CourseDetail: React.FC = () => {
                     className="w-full lg:w-80 h-40 lg:h-48 object-cover rounded-lg"
                 />
                 <div className="flex-1">
-                    <h1 className="text-3xl lg:text-4xl font-bold mb-4">{course.title}</h1>
+                    <h1 className="text-3xl lg:text-4xl font-bold mb-4">
+                        {course.title}
+                    </h1>
                     <p className="text-gray-700">{course.description}</p>
                     <div className="flex gap-4 text-gray-500 mt-4">
                         <span>{course.lessons?.length || 0} Lessons</span>
@@ -161,22 +179,43 @@ const CourseDetail: React.FC = () => {
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="border border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course Objectives</h2>
+                        <h2 className="text-xl font-semibold mb-4">
+                            Course Objectives
+                        </h2>
                         <ul className="list-disc ml-6 space-y-2 text-gray-700">
                             {course.objectives.split(". ").map((goal, i) => (
                                 <li key={i}>{goal}</li>
                             ))}
                         </ul>
                     </div>
+                    <div className="border border-gray-200 p-10 rounded-lg">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Learning Outcomes
+                        </h2>
+                        <ul className="list-disc ml-6 space-y-2 text-gray-700">
+                            {course.learning_outcomes
+                                .split(". ")
+                                .map((goal, i) => (
+                                    <li key={i}>{goal}</li>
+                                ))}
+                        </ul>
+                    </div>
                     <div className="border border-gray-200 p-10 rounded-lg bg-white shadow">
-                        <h2 className="text-2xl font-bold mb-6 text-gray-900">Course Content</h2>
+                        <h2 className="text-2xl font-bold mb-6 text-gray-900">
+                            Course Content
+                        </h2>
                         <div className="space-y-4">
                             {course.lessons?.map((lesson, index) => (
-                                <div key={lesson.id} className="border-b pb-4 last:border-none">
+                                <div
+                                    key={lesson.id}
+                                    className="border-b pb-4 last:border-none"
+                                >
                                     <div
                                         onClick={() => {
                                             if (isPurchased || index < 3) {
-                                                toggleVideoVisibility(lesson.id);
+                                                toggleVideoVisibility(
+                                                    lesson.id
+                                                );
                                             }
                                         }}
                                         className={`flex justify-between items-center py-3 px-5 rounded-lg cursor-pointer transition duration-200 ${
@@ -204,23 +243,28 @@ const CourseDetail: React.FC = () => {
                                             )}
                                         </span>
                                     </div>
-                                    {visibleVideo === lesson.id && (isPurchased || index < 3) && (
-                                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                            <Video
-                                                videoUrl={lesson.videoUrl}
-                                                isLocked={lesson.isLocked}
-                                            />
-                                        </div>
-                                    )}
+                                    {visibleVideo === lesson.id &&
+                                        (isPurchased || index < 3) && (
+                                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                                <Video
+                                                    videoUrl={lesson.videoUrl}
+                                                    isLocked={lesson.isLocked}
+                                                />
+                                            </div>
+                                        )}
                                 </div>
                             ))}
                         </div>
                     </div>
                     <div className="border border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course Rating</h2>
+                        <h2 className="text-xl font-semibold mb-4">
+                            Course Rating
+                        </h2>
                         <ReviewForm
                             courseId={Number(id)}
-                            onReviewAdded={() => fetchReviewsById(id).then(setReviews)}
+                            onReviewAdded={() =>
+                                fetchReviewsById(id).then(setReviews)
+                            }
                         />
                         {reviews.length > 0 ? (
                             <ReviewList reviews={reviews} />
@@ -233,11 +277,18 @@ const CourseDetail: React.FC = () => {
                 {/* Sidebar */}
                 <div className="space-y-6">
                     <div className="border border-gray-200 p-10 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-4">Preview Video</h3>
-                        <Video videoUrl="https://vimeo.com/1037130772" isLocked={false} />
+                        <h3 className="text-lg font-semibold mb-4">
+                            Preview Video
+                        </h3>
+                        <Video
+                            videoUrl="https://vimeo.com/1037130772"
+                            isLocked={false}
+                        />
                     </div>
                     <div className="border border-gray-200 p-10 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Course Price</h2>
+                        <h2 className="text-xl font-semibold mb-4">
+                            Course Price
+                        </h2>
                         <div className="flex items-center gap-4">
                             <span className="text-2xl font-bold text-green-600">
                                 {formatCurrency(course.newPrice)}đ
@@ -270,7 +321,9 @@ const CourseDetail: React.FC = () => {
                                         }`}
                                         onClick={handleAddCart}
                                     >
-                                        {isInCart ? "Added to Cart" : "Add to Cart"}
+                                        {isInCart
+                                            ? "Added to Cart"
+                                            : "Add to Cart"}
                                     </button>
                                 </>
                             )}

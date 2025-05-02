@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ClientProvider from "@/store/ClientProvider";
-import Footer from "@/components/footer";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
     title: "Code Alone",
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+    children,
+}: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="en">
             <body style={{ fontFamily: "Poppins, sans-serif" }}>

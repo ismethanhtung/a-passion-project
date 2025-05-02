@@ -1,7 +1,4 @@
 {
-  "/page": "app/page.js",
-  "/auth/login/page": "app/auth/login/page.js",
-  "/courses/page": "app/courses/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/online-tests/page": "app/online-tests/page.js"
+  "/api/speech-to-text/route": "app/api/speech-to-text/route.js",
+  "/pronunciation/page": "app/pronunciation/page.js"
 }

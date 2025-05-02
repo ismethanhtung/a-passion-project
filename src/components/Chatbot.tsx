@@ -56,7 +56,9 @@ export default function Chatbot() {
                 setConversationId(data.id);
 
                 // Lấy lịch sử tin nhắn
-                const messagesResponse = await fetch(`${API_BASE_URL}/conversation/user/${userId}`);
+                const messagesResponse = await fetch(
+                    `${API_BASE_URL}/conversation/user/${userId}`
+                );
                 const messagesData = await messagesResponse.json();
                 setMessages(
                     messagesData.map((msg) => ({
@@ -119,11 +121,14 @@ export default function Chatbot() {
         setInput("");
 
         try {
-            await fetch(`${API_BASE_URL}/conversation/${conversationId}/message`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ senderId: userId, content: input }),
-            });
+            await fetch(
+                `${API_BASE_URL}/conversation/${conversationId}/message`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ senderId: userId, content: input }),
+                }
+            );
 
             let relevantCourses: any = [];
             // Nếu là câu hỏi về khóa học
@@ -131,11 +136,14 @@ export default function Chatbot() {
 
             if (isCourseQuery(input)) {
                 console.log("🟢 input:", input);
-                const findCoursesInVectorDB = await fetch(`http://localhost:8000/search`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query: input, top_k: 5 }),
-                });
+                const findCoursesInVectorDB = await fetch(
+                    `http://localhost:8000/search`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query: input, top_k: 5 }),
+                    }
+                );
 
                 relevantCourses = await findCoursesInVectorDB.json();
             }
@@ -190,34 +198,48 @@ export default function Chatbot() {
             console.log("🟢 promptMessages:", promptMessages);
 
             // Gửi prompt đến Groq API
-            const aiResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer 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`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    model: "llama3-8b-8192",
-                    messages: promptMessages,
-                    temperature: 0.7,
-                    max_tokens: 2000,
-                }),
-            });
+            const aiResponse = await fetch(
+                "https://api.groq.com/openai/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer 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`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: "llama3-8b-8192",
+                        messages: promptMessages,
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                    }),
+                }
+            );
 
             const data = await aiResponse.json();
             const responseText =
-                data.choices?.[0]?.message?.content?.trim() || "Lỗi khi nhận phản hồi!";
+                data.choices?.[0]?.message?.content?.trim() ||
+                "Lỗi khi nhận phản hồi!";
 
             console.log(responseText);
-            if (isRequestPath) updatePath(userId, { pathDetails: responseText });
+            if (isRequestPath)
+                updatePath(userId, { pathDetails: responseText });
 
-            await fetch(`${API_BASE_URL}/conversation/${conversationId}/message`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ senderId: null, content: responseText }),
-            });
+            await fetch(
+                `${API_BASE_URL}/conversation/${conversationId}/message`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        senderId: null,
+                        content: responseText,
+                    }),
+                }
+            );
 
-            setMessages((prev) => [...prev, { sender: "bot", text: responseText }]);
+            setMessages((prev) => [
+                ...prev,
+                { sender: "bot", text: responseText },
+            ]);
         } catch (error) {
             console.log("❌ Error:", error);
         }
@@ -229,12 +251,19 @@ export default function Chatbot() {
     };
     return (
         <>
-            <button onClick={toggleChat} className="relative p-1.5 rounded-full focus:outline-none">
-                <img className="w-7 h-7" src="/icons/chatbot.png" alt="chatbot" />
+            <button
+                onClick={toggleChat}
+                className="relative p-1.5 rounded-full focus:outline-none"
+            >
+                <img
+                    className="w-7 h-7"
+                    src="/icons/chatbot.png"
+                    alt="chatbot"
+                />
             </button>
 
             {showChat && (
-                <div className="fixed bottom-10 right-10 w-1/3 h-[700px] bg-white rounded-xl shadow-xl p-4 border border-violet-300 flex flex-col">
+                <div className="fixed top-64 right-10 w-1/3 h-[700px] bg-white rounded-xl shadow-xl p-4 border border-violet-300 flex flex-col">
                     <div className="flex justify-between items-center">
                         <div className="text-lg font-semibold">Chatbot</div>
                         <button
@@ -254,14 +283,25 @@ export default function Chatbot() {
                                 <h2 className="text-lg font-semibold text-violet-400">
                                     Welcome to Your Language Learning Assistant!
                                 </h2>
-                                <p className="text-sm mt-1">I'm here to help you with:</p>
+                                <p className="text-sm mt-1">
+                                    I'm here to help you with:
+                                </p>
                                 <ul className="text-sm mt-1 space-y-1 list-disc list-inside text-blue-600">
-                                    <li>Answering your language-related questions</li>
-                                    <li>Recommending personalized learning paths</li>
-                                    <li>Suggesting courses, materials, practice tests</li>
+                                    <li>
+                                        Answering your language-related
+                                        questions
+                                    </li>
+                                    <li>
+                                        Recommending personalized learning paths
+                                    </li>
+                                    <li>
+                                        Suggesting courses, materials, practice
+                                        tests
+                                    </li>
                                 </ul>
                                 <p className="text-sm mt-2">
-                                    Type your question below or choose a suggested message! 👇
+                                    Type your question below or choose a
+                                    suggested message! 👇
                                 </p>
                             </div>
                         ) : (
@@ -269,7 +309,9 @@ export default function Chatbot() {
                                 <div
                                     key={index}
                                     className={`mb-2 flex ${
-                                        msg.sender === "user" ? "justify-end" : "justify-start"
+                                        msg.sender === "user"
+                                            ? "justify-end"
+                                            : "justify-start"
                                     }`}
                                 >
                                     <div
@@ -355,10 +397,16 @@ export default function Chatbot() {
                             placeholder="Send to Chatbot"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                            onKeyDown={(e) =>
+                                e.key === "Enter" && sendMessage()
+                            }
                         />
                         <button onClick={sendMessage}>
-                            <img src="/icons/send.png" className="w-6 h-6 mr-3" alt="Send" />
+                            <img
+                                src="/icons/send.png"
+                                className="w-6 h-6 mr-3"
+                                alt="Send"
+                            />
                         </button>
                     </div>
                 </div>

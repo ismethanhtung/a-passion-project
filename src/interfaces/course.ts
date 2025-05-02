@@ -25,6 +25,7 @@ interface Course {
     isDeleted: boolean;
     tags: string;
     rating: number;
+    learning_outcomes: string;
 }
 
 export default Course;
