@@ -225,7 +225,7 @@ export default function Navbar() {
                 <div className="flex items-center">
                     <Link href="/" className="flex items-center space-x-2">
                         <span className="text-2xl font-bold bg-gradient-to-r from-[#6E59A5] to-[#33C3F0] bg-clip-text text-transparent">
-                            Lingua Nova
+                            LinguaX
                         </span>
                     </Link>
                 </div>
@@ -394,7 +394,7 @@ export default function Navbar() {
 
                         {!user ? (
                             <div className="hidden lg:flex items-center space-x-2">
-                                <button className="p-3 rounded-md hover:bg-gray-100 transition-colors duration-150">
+                                <button className="p-3 rounded-md hover:bg-gray-200 transition-colors duration-150">
                                     <Search className="h-4 w-4" />
                                 </button>
                                 <Link href="/auth/login">
@@ -409,12 +409,12 @@ export default function Navbar() {
                                 </Link>
                             </div>
                         ) : (
-                            <div className="hidden lg:flex items-center space-x-2">
-                                <button className="p-2 rounded-full hover:bg-gray-100">
+                            <div className="hidden lg:flex items-center space-x-4">
+                                <button className="p-2 rounded-lg hover:bg-gray-200">
                                     <Search className="h-5 w-5" />
                                 </button>
                                 <div className="relative dropdown">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-6">
                                         <button
                                             className="relative p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400"
                                             onClick={() =>
@@ -444,8 +444,8 @@ export default function Navbar() {
                                             }
                                         >
                                             <img
-                                                className="size-10 rounded-full border border-gray-200"
-                                                src="/images/avatar/avatar3.png"
+                                                className="size-10 p-1 rounded-full border border-gray-200 "
+                                                src="/images/avatar/avatar2.png"
                                                 alt="User Avatar"
                                             />
                                         </button>

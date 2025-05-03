@@ -42,18 +42,23 @@ const CallToActionSection: React.FC = () => {
                         Ready to Start Your Language Learning Journey?
                     </h2>
                     <p className="text-lg md:text-xl text-white font-medium mb-10 max-w-2xl mx-auto drop-shadow-sm">
-                        Join over 10 million students who have transformed their
-                        lives through language learning. Start for free and
-                        discover your potential today.
+                        Join over 10 students who have transformed their lives
+                        through language learning. Start for free and discover
+                        your potential today.
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-                        <Button className="bg-white text-[#6E59A5] hover:bg-gray-100 px-8 py-3 rounded-lg font-medium shadow-xl shadow-indigo-900/20">
+                        <Button
+                            href="/courses"
+                            className="bg-transparent border-2 border-white text-white hover:bg-white/20 px-8 py-2 rounded-lg font-medium transition-colors shadow-lg"
+                        >
                             Start Learning for Free
                         </Button>
-                        <Button className="bg-transparent border-2 border-white text-white hover:bg-white/20 px-8 py-3 rounded-lg font-medium transition-colors shadow-lg">
+                        <Button
+                            href="/courses"
+                            className="bg-transparent border-2 border-white text-white hover:bg-white/20 px-8 py-2 rounded-lg font-medium transition-colors shadow-lg"
+                        >
                             Explore All Courses{" "}
-                            <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </div>
 

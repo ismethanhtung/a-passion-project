@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assessPronunciationWithGroq } from "@/lib/groq-service";
+import { transcribeAudioWithAssemblyAI } from "@/lib/assembly-ai-service";
+import { transcribeAudioWithAzure } from "@/lib/azure-speech-service";
 
-// Sử dụng Web Speech Recognition API thông qua edge runtime
-export const runtime = "edge";
+// Sử dụng Node.js runtime để hỗ trợ các thư viện xử lý âm thanh
+export const runtime = "nodejs";
 
 // Định nghĩa kiểu cho phản hồi phân tích phát âm
 type PronunciationFeedback = {
@@ -28,91 +30,131 @@ const handleApiError = (error: any, message: string) => {
     );
 };
 
-export async function POST(request: NextRequest) {
+/**
+ * Xử lý yêu cầu chuyển đổi âm thanh thành văn bản
+ */
+export async function POST(req: NextRequest) {
     try {
-        // Xử lý FormData (file âm thanh)
-        const formData = await request.formData();
-        const audioFile = formData.get("audio") as File | null;
-        const originalText = formData.get("text") as string;
-        const language = formData.get("language") as string;
+        // Nhận FormData từ request
+        const formData = await req.formData();
+        const audioFile = formData.get("audio") as File;
+        const language = (formData.get("language") as string) || "en-US";
 
-        if (!audioFile || !originalText || !language) {
+        if (!audioFile) {
             return NextResponse.json(
-                {
-                    error: "Missing required parameters",
-                    fields: {
-                        audioFile: !!audioFile,
-                        originalText: !!originalText,
-                        language: !!language,
-                    },
-                },
+                { error: "No audio file provided" },
                 { status: 400 }
             );
         }
 
-        // Sử dụng dịch vụ Speech to Text - Thực hiện chuyển đổi âm thanh thành văn bản
-        let transcription = "";
-
-        try {
-            // Trong môi trường thực tế, sử dụng một dịch vụ STT như:
-            // 1. Google Cloud Speech-to-Text
-            // 2. Azure Speech Services
-            // 3. Amazon Transcribe
-
-            // Ví dụ: nếu bạn muốn sử dụng Google Cloud Speech-to-Text:
-            // transcription = await convertSpeechToTextWithGoogleCloud(audioFile, language);
-
-            // Ví dụ: nếu bạn muốn sử dụng Azure Speech Services:
-            // transcription = await convertSpeechToTextWithAzure(audioFile, language);
-
-            // Hiện tại, WebSpeech API chỉ hoạt động ở client-side, không thể gọi trực tiếp từ server
-            // Nên chúng ta sẽ tiếp tục mô phỏng ở server, và sẽ dùng WebSpeech API thực tế ở client-side
-
-            // Phiên bản nâng cấp tạm thời - tự nhiên hơn, nhưng vẫn là mô phỏng
-            transcription = await enhancedSimulateSpeechToText(
-                audioFile,
-                originalText,
-                language
+        // AssemblyAI API Key (trong môi trường thực tế, nên đặt trong biến môi trường)
+        const API_KEY = process.env.ASSEMBLY_AI_API_KEY || "";
+        if (!API_KEY) {
+            // Sử dụng mock data cho mục đích phát triển nếu không có API key
+            console.warn(
+                "No AssemblyAI API key found. Using mock transcription."
             );
-        } catch (error) {
-            return handleApiError(error, "Error processing speech to text");
-        }
 
-        // Phân tích phát âm sử dụng Groq AI
-        try {
-            // Sử dụng Groq API để phân tích phát âm sâu hơn
-            const analysis = await assessPronunciationWithGroq(
-                transcription,
-                originalText,
-                language
-            );
+            // Tạo phản hồi giả lập với độ trễ giả
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             return NextResponse.json({
-                transcription,
-                analysis,
-                originalText,
-            });
-        } catch (error) {
-            // Nếu Groq gặp lỗi, sử dụng phương pháp phân tích cơ bản
-            console.error(
-                "Error using Groq, falling back to basic analysis:",
-                error
-            );
-
-            const basicAnalysis = analyzePronunciation(
-                transcription,
-                originalText,
-                language
-            );
-
-            return NextResponse.json({
-                transcription,
-                analysis: basicAnalysis,
-                originalText,
+                transcription:
+                    "Đây là kết quả mẫu từ API giả lập. Vui lòng cấu hình API key để sử dụng chức năng thực tế.",
             });
         }
+
+        // Đọc nội dung tệp âm thanh
+        const audioBuffer = await audioFile.arrayBuffer();
+        const audioBase64 = Buffer.from(audioBuffer).toString("base64");
+
+        // Gọi AssemblyAI API
+        // Bước 1: Tải lên âm thanh
+        const uploadResponse = await fetch(
+            "https://api.assemblyai.com/v2/upload",
+            {
+                method: "POST",
+                headers: {
+                    Authorization: API_KEY,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    audio_data: audioBase64,
+                }),
+            }
+        );
+
+        if (!uploadResponse.ok) {
+            throw new Error("Failed to upload audio to AssemblyAI");
+        }
+
+        const uploadData = await uploadResponse.json();
+        const audioUrl = uploadData.upload_url;
+
+        // Bước 2: Tạo yêu cầu phiên âm
+        const transcriptResponse = await fetch(
+            "https://api.assemblyai.com/v2/transcript",
+            {
+                method: "POST",
+                headers: {
+                    Authorization: API_KEY,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    audio_url: audioUrl,
+                    language_code: language,
+                }),
+            }
+        );
+
+        if (!transcriptResponse.ok) {
+            throw new Error("Failed to request transcription from AssemblyAI");
+        }
+
+        const transcriptData = await transcriptResponse.json();
+        const transcriptId = transcriptData.id;
+
+        // Bước 3: Đợi và lấy kết quả phiên âm
+        let result;
+        let status = "processing";
+
+        while (status !== "completed" && status !== "error") {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            const resultResponse = await fetch(
+                `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: API_KEY,
+                    },
+                }
+            );
+
+            if (!resultResponse.ok) {
+                throw new Error(
+                    "Failed to get transcription result from AssemblyAI"
+                );
+            }
+
+            result = await resultResponse.json();
+            status = result.status;
+
+            if (status === "error") {
+                throw new Error(`Transcription error: ${result.error}`);
+            }
+        }
+
+        // Trả về kết quả phiên âm
+        return NextResponse.json({
+            transcription: result.text || "",
+        });
     } catch (error) {
-        return handleApiError(error, "Internal server error");
+        console.error("Speech-to-text error:", error);
+        return NextResponse.json(
+            { error: "Failed to transcribe audio" },
+            { status: 500 }
+        );
     }
 }
 
@@ -122,83 +164,90 @@ async function enhancedSimulateSpeechToText(
     originalText: string,
     language: string
 ): Promise<string> {
-    // Mô phỏng kết quả với độ chính xác thay đổi dựa trên độ dài và phức tạp của văn bản
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const words = originalText.split(/\s+/);
-            const complexity = Math.min(words.length * 0.1, 1); // Độ phức tạp tăng theo độ dài
+    try {
+        // Tạo một số kết nối mạng và xử lý âm thanh thực tế
+        // Ở đây chúng ta sẽ mô phỏng việc này
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const words = originalText.split(/\s+/);
+                const complexity = Math.min(words.length * 0.1, 1); // Độ phức tạp tăng theo độ dài
 
-            const simulatedWords = words.map((word) => {
-                // Xác suất giữ nguyên từ giảm dần theo độ phức tạp và độ dài từ
-                const keepWordProbability =
-                    0.8 - complexity * 0.2 - (word.length > 7 ? 0.1 : 0);
-                if (Math.random() < keepWordProbability) {
-                    return word;
+                const simulatedWords = words.map((word) => {
+                    // Xác suất giữ nguyên từ giảm dần theo độ phức tạp và độ dài từ
+                    const keepWordProbability =
+                        0.85 - complexity * 0.2 - (word.length > 7 ? 0.1 : 0);
+                    if (Math.random() < keepWordProbability) {
+                        return word;
+                    }
+
+                    // Mô phỏng các lỗi phát âm phổ biến, ngày càng thực tế hơn
+                    if (word.length <= 2) return word; // Từ ngắn ít sai
+
+                    // Lỗi phụ thuộc vào ngôn ngữ
+                    let errors: string[] = [];
+                    if (language.startsWith("en")) {
+                        // Lỗi tiếng Anh phổ biến
+                        errors = [
+                            word.replace(/th/i, "t"), // "this" -> "tis"
+                            word.replace(/v/i, "b"), // "very" -> "bery"
+                            word.replace(/r/i, "l"), // "right" -> "light"
+                            word.replace(/[aeiou]/i, getRandomVowel()), // Thay thế nguyên âm ngẫu nhiên
+                            word.replace(/ing$/, "in"), // "running" -> "runnin"
+                            word.replace(/ed$/, "t"), // "walked" -> "walkt"
+                            word, // Giữ nguyên từ
+                        ];
+                    } else if (language.startsWith("fr")) {
+                        // Lỗi tiếng Pháp phổ biến
+                        errors = [
+                            word.replace(/r/g, "h"), // Phát âm "r" kiểu Pháp
+                            word.replace(/u/g, "ou"), // Khó phát âm "u" tiếng Pháp
+                            word.replace(/eu/g, "e"), // "deux" -> "dex"
+                            word, // Giữ nguyên từ
+                        ];
+                    } else {
+                        // Lỗi chung cho các ngôn ngữ khác
+                        errors = [
+                            word.replace(/[aeiou]/i, getRandomVowel()),
+                            word.replace(/[bcdfghjklmnpqrstvwxyz]$/i, ""),
+                            word + "s",
+                            word,
+                        ];
+                    }
+
+                    return errors[Math.floor(Math.random() * errors.length)];
+                });
+
+                // Thêm khả năng bỏ từ, thêm từ, hoặc đảo vị trí
+                let finalResult = [...simulatedWords]; // Tạo bản sao để tránh thay đổi mảng gốc
+
+                // 15% khả năng bỏ một từ ngẫu nhiên
+                if (words.length > 3 && Math.random() < 0.15) {
+                    const indexToRemove = Math.floor(
+                        Math.random() * finalResult.length
+                    );
+                    finalResult.splice(indexToRemove, 1);
                 }
 
-                // Mô phỏng các lỗi phát âm phổ biến, ngày càng thực tế hơn
-                if (word.length <= 2) return word; // Từ ngắn ít sai
-
-                // Lỗi phụ thuộc vào ngôn ngữ
-                let errors: string[] = [];
-                if (language.startsWith("en")) {
-                    // Lỗi tiếng Anh phổ biến
-                    errors = [
-                        word.replace(/th/i, "t"), // "this" -> "tis"
-                        word.replace(/v/i, "b"), // "very" -> "bery"
-                        word.replace(/r/i, "l"), // "right" -> "light"
-                        word.replace(/[aeiou]/i, getRandomVowel()), // Thay thế nguyên âm ngẫu nhiên
-                        word.replace(/ing$/, "in"), // "running" -> "runnin"
-                        word.replace(/ed$/, "t"), // "walked" -> "walkt"
-                        word, // Giữ nguyên từ
-                    ];
-                } else if (language.startsWith("fr")) {
-                    // Lỗi tiếng Pháp phổ biến
-                    errors = [
-                        word.replace(/r/g, "h"), // Phát âm "r" kiểu Pháp
-                        word.replace(/u/g, "ou"), // Khó phát âm "u" tiếng Pháp
-                        word.replace(/eu/g, "e"), // "deux" -> "dex"
-                        word, // Giữ nguyên từ
-                    ];
-                } else {
-                    // Lỗi chung cho các ngôn ngữ khác
-                    errors = [
-                        word.replace(/[aeiou]/i, getRandomVowel()),
-                        word.replace(/[bcdfghjklmnpqrstvwxyz]$/i, ""),
-                        word + "s",
-                        word,
-                    ];
+                // 10% khả năng lặp lại một từ
+                if (Math.random() < 0.1 && finalResult.length > 0) {
+                    const indexToRepeat = Math.floor(
+                        Math.random() * finalResult.length
+                    );
+                    finalResult.splice(
+                        indexToRepeat,
+                        0,
+                        finalResult[indexToRepeat]
+                    );
                 }
 
-                return errors[Math.floor(Math.random() * errors.length)];
-            });
-
-            // Thêm khả năng bỏ từ, thêm từ, hoặc đảo vị trí
-            let finalResult = [...simulatedWords]; // Tạo bản sao để tránh thay đổi mảng gốc
-
-            // 20% khả năng bỏ một từ ngẫu nhiên
-            if (words.length > 3 && Math.random() < 0.2) {
-                const indexToRemove = Math.floor(
-                    Math.random() * finalResult.length
-                );
-                finalResult.splice(indexToRemove, 1);
-            }
-
-            // 10% khả năng lặp lại một từ
-            if (Math.random() < 0.1 && finalResult.length > 0) {
-                const indexToRepeat = Math.floor(
-                    Math.random() * finalResult.length
-                );
-                finalResult.splice(
-                    indexToRepeat,
-                    0,
-                    finalResult[indexToRepeat]
-                );
-            }
-
-            resolve(finalResult.join(" "));
-        }, 1000); // Mô phỏng độ trễ xử lý
-    });
+                resolve(finalResult.join(" "));
+            }, 1000); // Mô phỏng độ trễ xử lý
+        });
+    } catch (error) {
+        console.error("Error in enhancedSimulateSpeechToText:", error);
+        // Nếu có lỗi, trả về text gốc với một vài thay đổi nhỏ
+        return originalText;
+    }
 }
 
 // Hàm trợ giúp tạo nguyên âm ngẫu nhiên

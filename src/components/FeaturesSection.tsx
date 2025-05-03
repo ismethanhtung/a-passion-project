@@ -85,7 +85,7 @@ const FeaturesSection: React.FC = () => {
                 "Discover tips, techniques, and insights from polyglots and language educators to enhance your learning.",
             icon: <FileText className="h-6 w-6 text-white" />,
             iconBg: "bg-[#FF9666]",
-            link: "/blog",
+            link: "/blogs",
         },
         {
             title: "Learning Paths",
@@ -93,7 +93,7 @@ const FeaturesSection: React.FC = () => {
                 "Follow structured learning paths tailored to your goals, whether for travel, business, or academic purposes.",
             icon: <Calendar className="h-6 w-6 text-white" />,
             iconBg: "bg-[#4ADE80]",
-            link: "/learning/paths",
+            link: "/learning-paths",
         },
         {
             title: "Flashcards",
@@ -139,7 +139,7 @@ const FeaturesSection: React.FC = () => {
                 <div className="absolute bottom-12 -left-24 w-80 h-80 bg-[#6E59A5]/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div className="container mx-auto px-4 relative z-10">
+            <div className="container mx-auto px-12 relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <div className="inline-flex items-center bg-[#6E59A5]/5 rounded-full px-4 py-2 mb-4">
                         <Sparkles className="h-4 w-4 text-[#6E59A5] mr-2" />
@@ -223,11 +223,10 @@ const FeaturesSection: React.FC = () => {
                                 Try it free
                             </Button>
                         </div>
-                        <div className="bg-gradient-to-br from-[#6E59A5] to-[#33C3F0] h-full p-8 md:p-0 hidden md:flex items-center justify-center">
+                        <div className="bg-gradient-to-br from-[#010104] to-[#0c132c] h-full   md:p-0 hidden md:flex items-center justify-center">
                             <img
-                                src="/images/ai-assistant.png"
+                                src="/images/ai-image.svg"
                                 alt="AI Language Assistant"
-                                className="max-h-96 rounded-lg shadow-lg"
                                 onError={(e) => {
                                     e.currentTarget.src =
                                         "https://placehold.co/400x500/6E59A5/ffffff?text=AI+Language+Assistant";

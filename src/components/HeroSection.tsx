@@ -73,14 +73,14 @@ const HeroSection = () => {
                         {/* Call to Action Buttons */}
                         <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 fade-in-up">
                             <Link
-                                href="/signup"
+                                href="/courses"
                                 className="inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg py-2.5 px-6 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:opacity-90"
                             >
                                 Start Learning Now{" "}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Link>
                             <Link
-                                href="/demo"
+                                href="/courses"
                                 className="inline-flex items-center justify-center border-2 border-purple-600 text-purple-600 rounded-lg py-2 px-6 text-base font-medium hover:bg-purple-50 transition-all duration-300"
                             >
                                 <Play className="mr-2 h-4 w-4" /> Watch Demo
@@ -110,31 +110,31 @@ const HeroSection = () => {
                     </div>
 
                     {/* Right Content - Illustration Card */}
-                    <div className="relative hidden lg:block fade-in-right">
+                    <div className="relative hidden lg:block fade-in-right px-8">
                         {/* Decorative elements with simple animations */}
-                        <div className="absolute -top-16 -left-16 w-32 h-32 bg-purple-400/20 rounded-full animate-float"></div>
-                        <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-blue-400/20 rounded-full animate-float-delay"></div>
+                        <div className="absolute -top-10 -left-10 w-32 h-32 bg-purple-400/20 rounded-full animate-float"></div>
+                        <div className="absolute -bottom-8 -right-4 w-20 h-20 bg-blue-400/20 rounded-full animate-float-delay"></div>
 
-                        <div className="bg-white rounded-3xl p-8 shadow-xl backdrop-blur-lg transition-all duration-500 hover:shadow-2xl border border-gray-100/50 hover:-translate-y-2">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg backdrop-blur-lg transition-all duration-500 hover:shadow-xl border border-gray-100/50 hover:-translate-y-1">
                             <div className="relative z-10">
-                                <div className="absolute -top-24 -right-12 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-2xl"></div>
+                                <div className="absolute -top-20 -right-8 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-2xl"></div>
 
-                                <div className="flex items-center justify-center mb-8 hover:scale-105 transition-transform duration-300">
-                                    <div className="h-24 w-24 bg-gradient-to-br from-purple-600 to-blue-500 rounded-full flex items-center justify-center shadow-xl">
-                                        <Globe className="h-12 w-12 text-white" />
+                                <div className="flex items-center justify-center mb-6 hover:scale-105 transition-transform duration-300">
+                                    <div className="h-20 w-20 bg-gradient-to-br from-purple-600 to-blue-500 rounded-full flex items-center justify-center shadow-xl">
+                                        <Globe className="h-10 w-10 text-white" />
                                     </div>
                                 </div>
 
-                                <h3 className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                                <h3 className="text-xl font-bold text-center mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                                     Immersive Language Journey
                                 </h3>
 
                                 {/* Feature grid with improved styling */}
-                                <div className="grid grid-cols-2 gap-6 mb-8">
+                                <div className="grid grid-cols-2 gap-4 mb-6">
                                     {[
                                         {
                                             icon: (
-                                                <Award className="h-6 w-6 text-purple-600" />
+                                                <Award className="h-5 w-5 text-purple-600" />
                                             ),
                                             text: "Certified Instructors",
                                             description:
@@ -142,7 +142,7 @@ const HeroSection = () => {
                                         },
                                         {
                                             icon: (
-                                                <Languages className="h-6 w-6 text-blue-500" />
+                                                <Languages className="h-5 w-5 text-blue-500" />
                                             ),
                                             text: "Native Speakers",
                                             description:
@@ -150,7 +150,7 @@ const HeroSection = () => {
                                         },
                                         {
                                             icon: (
-                                                <CheckCircle className="h-6 w-6 text-orange-500" />
+                                                <CheckCircle className="h-5 w-5 text-orange-500" />
                                             ),
                                             text: "Proven Methods",
                                             description:
@@ -158,7 +158,7 @@ const HeroSection = () => {
                                         },
                                         {
                                             icon: (
-                                                <Play className="h-6 w-6 text-green-500" />
+                                                <Play className="h-5 w-5 text-green-500" />
                                             ),
                                             text: "Interactive Lessons",
                                             description: "Engage and practice",
@@ -166,17 +166,17 @@ const HeroSection = () => {
                                     ].map((item, index) => (
                                         <div
                                             key={index}
-                                            className="flex flex-col p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+                                            className="flex flex-col p-3 bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-100"
                                         >
                                             <div className="flex items-center mb-2">
-                                                <div className="mr-3 p-2 rounded-full bg-white shadow">
+                                                <div className="mr-2 p-2 rounded-full bg-white shadow">
                                                     {item.icon}
                                                 </div>
                                                 <span className="text-sm font-semibold text-gray-800">
                                                     {item.text}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-gray-500 pl-12">
+                                            <p className="text-xs text-gray-500 pl-8">
                                                 {item.description}
                                             </p>
                                         </div>
@@ -184,10 +184,10 @@ const HeroSection = () => {
                                 </div>
 
                                 {/* AI Assistant Chat Preview */}
-                                <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                                    <div className="flex items-center justify-between mb-4">
+                                <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+                                    <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center">
-                                            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-3">
+                                            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-2">
                                                 <span className="text-white font-bold">
                                                     AI
                                                 </span>
@@ -201,40 +201,39 @@ const HeroSection = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
                                             Live
                                         </span>
                                     </div>
-                                    <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-700 mb-4">
+                                    <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700 mb-3">
                                         Hey there! Ready to practice your{" "}
-                                        {selectedLanguage} skills with me? Let's
-                                        make learning fun!
+                                        {selectedLanguage} skills with me?
                                     </div>
-                                    <div className="flex flex-col space-y-2">
+                                    <div className="flex flex-col space-y-1">
                                         <Link
                                             href="/chat"
-                                            className="flex justify-center items-center bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white py-2.5 rounded-lg transition-all duration-300 text-sm font-medium"
+                                            className="flex justify-center items-center bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white py-2 rounded-lg transition-all duration-300 text-sm font-medium"
                                         >
                                             Start Chatting Now
                                         </Link>
                                         <Link
                                             href="/pronunciation"
-                                            className="flex justify-center items-center bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white py-2.5 rounded-lg transition-all duration-300 text-sm font-medium"
+                                            className="flex justify-center items-center bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white py-2 rounded-lg transition-all duration-300 text-sm font-medium"
                                         >
-                                            <Mic className="mr-2 h-4 w-4" />
+                                            <Mic className="mr-1 h-4 w-4" />
                                             Practice Pronunciation
                                         </Link>
                                     </div>
                                 </div>
 
                                 {/* Progress Indicator */}
-                                <div className="absolute -right-12 bottom-32 bg-white rounded-xl p-4 shadow-lg animate-float">
-                                    <div className="flex items-center space-x-3">
+                                <div className="absolute -right-8 bottom-24 bg-white rounded-xl p-3 shadow-lg animate-float">
+                                    <div className="flex items-center space-x-2">
                                         <div className="flex">
                                             {[1, 2, 3, 4].map((i) => (
                                                 <div
                                                     key={i}
-                                                    className={`w-2 h-8 rounded-full mx-0.5 ${
+                                                    className={`w-2 h-6 rounded-full mx-0.5 ${
                                                         i === 4
                                                             ? "bg-gray-200"
                                                             : "bg-purple-600"

@@ -49,7 +49,7 @@ const StatsSection: React.FC = () => {
     ];
 
     return (
-        <section className="py-24 relative overflow-hidden">
+        <section className="py-24 px-24 relative overflow-hidden">
             {/* Background decorative elements */}
             <div className="absolute inset-0 opacity-40">
                 <div className="absolute h-80 w-80 rounded-full bg-[#6E59A5]/10 -top-20 -left-20 blur-3xl"></div>

@@ -40,7 +40,7 @@ export default function Home() {
             <StatsSection />
 
             {/* Featured Courses */}
-            <section className="py-24 bg-gray-50">
+            <section className="py-24 px-24 bg-gray-50">
                 <div className="container mx-auto px-4 md:px-6 lg:px-8">
                     <div className="text-center max-w-3xl mx-auto mb-16">
                         <div className="inline-flex items-center bg-[#6E59A5]/5 rounded-full px-4 py-2 mb-4">
@@ -86,7 +86,7 @@ export default function Home() {
                                     thumbnail={course.thumbnail}
                                     price={course.price}
                                     newPrice={course.newPrice}
-                                    tags={course.categoryId?.toString()}
+                                    tags={course.tags}
                                     rating={4.5 + Math.random() * 0.5}
                                     time={Math.floor(Math.random() * 20) + 5}
                                 />
@@ -97,7 +97,7 @@ export default function Home() {
                     <div className="flex justify-center mt-12">
                         <Link
                             href="/courses"
-                            className="inline-flex items-center justify-center px-6 py-3 border-2 border-[#6E59A5] text-[#6E59A5] rounded-lg font-medium hover:bg-[#6E59A5]/5 transition-colors"
+                            className="inline-flex items-center justify-center px-6 py-2 border-2 border-[#6E59A5] text-[#6E59A5] rounded-lg font-medium hover:bg-[#6E59A5]/5 transition-colors"
                         >
                             View All Courses{" "}
                             <ArrowRight className="ml-2 h-4 w-4" />

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, Quote } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface CommentProps {
     userName: string;
@@ -62,7 +62,6 @@ function Comment({
     return (
         <div className="h-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-[#6E59A5]/30">
             <div className="relative">
-                <Quote className="absolute -top-2 -left-2 h-8 w-8 text-[#6E59A5]/10" />
                 <div className="mb-8">
                     <div className="flex items-center mb-4">
                         <div className="relative">
@@ -71,9 +70,6 @@ function Comment({
                                 className="w-12 h-12 rounded-full mr-4 border-2 border-white shadow-md"
                                 alt={userName}
                             />
-                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#6E59A5] rounded-full flex items-center justify-center">
-                                <Quote className="h-3 w-3 text-white" />
-                            </div>
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-800">
@@ -131,7 +127,7 @@ export default function CommentList() {
                 ))}
             </div>
             <div className="text-center mt-12">
-                <button className="inline-flex items-center px-6 py-3 rounded-lg border-2 border-[#6E59A5] text-[#6E59A5] font-medium hover:bg-[#6E59A5]/5 transition-colors">
+                <button className="inline-flex items-center px-6 py-2 rounded-lg border-2 border-[#6E59A5] text-[#6E59A5] font-medium hover:bg-[#6E59A5]/5 transition-colors">
                     Read More Success Stories
                 </button>
             </div>

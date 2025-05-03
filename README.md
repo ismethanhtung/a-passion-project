@@ -85,3 +85,47 @@ GROQ_API_KEY=your_api_key_here
 2. Thêm tùy chọn giọng đọc mẫu với nhiều giọng địa phương khác nhau
 3. Tích hợp với API TTS để đọc mẫu chất lượng cao
 4. Tạo tính năng theo dõi tiến trình và thống kê cải thiện qua thời gian
+
+# Tính năng nhận dạng và đánh giá phát âm
+
+## Tích hợp Vosk Speech Recognition
+
+Ứng dụng đã được tích hợp với Vosk để hỗ trợ nhận dạng giọng nói ngay cả khi không có kết nối Internet. Tính năng này giúp người dùng có thể luyện tập phát âm ở bất kỳ đâu, không phụ thuộc vào kết nối mạng.
+
+### Cách sử dụng:
+
+1. Truy cập trang `/pronunciation` để bắt đầu luyện tập
+2. Hệ thống sẽ tự động tải model Vosk khi cần thiết
+3. Khi bạn bấm vào nút ghi âm, hệ thống sẽ:
+    - Thử sử dụng Web Speech API trước (cần kết nối Internet)
+    - Nếu gặp lỗi network, tự động chuyển sang dùng Vosk
+    - Phân tích chất lượng phát âm dựa trên kết quả nhận dạng
+
+### Ưu điểm của Vosk:
+
+-   Hoạt động hoàn toàn offline
+-   Hỗ trợ nhiều ngôn ngữ
+-   Nhận dạng chính xác cao
+-   Xử lý nhanh ngay trên trình duyệt
+
+## Hướng dẫn sử dụng
+
+1. Chọn chế độ: **Cụm từ có sẵn** hoặc **Nhập nội dung**
+2. Chọn ngôn ngữ bạn muốn luyện tập
+3. Nhấn nút **Bắt đầu ghi âm** và đọc to, rõ ràng
+4. Xem phản hồi và đánh giá về phát âm của bạn
+5. Sử dụng gợi ý để cải thiện phát âm
+
+## Xử lý lỗi
+
+Nếu gặp vấn đề khi nhận dạng giọng nói:
+
+-   Đảm bảo đã cho phép trình duyệt truy cập microphone
+-   Thử làm mới trang và ghi âm lại
+-   Kiểm tra microphone có hoạt động bình thường không
+-   Sử dụng trình duyệt Chrome, Edge hoặc Safari mới nhất
+
+## Lưu ý kỹ thuật
+
+-   Vosk model sẽ được tải khi cần thiết (~50MB)
+-   Khi không có kết nối Internet, hệ thống vẫn có thể phân tích phát âm bằng Vosk

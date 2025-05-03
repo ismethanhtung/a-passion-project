@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assessPronunciationWithGroq } from "@/lib/groq-service";
+import { transcribeAudioWithAssemblyAI } from "@/lib/assembly-ai-service";
+import { transcribeAudioWithAzure } from "@/lib/azure-speech-service";
 
 // Định nghĩa kiểu dữ liệu cho phản hồi
 type PronunciationFeedback = {
@@ -80,14 +82,47 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
-                // Trong môi trường thực tế, gửi file âm thanh đến dịch vụ speech-to-text như
-                // Google Cloud Speech-to-Text hoặc Azure Speech Services
-                // Ở đây, chúng ta mô phỏng kết quả
-                recordedText = await simulateAudioTranscription(
-                    audioFile,
-                    originalText,
-                    language
-                );
+                // Sử dụng dịch vụ speech-to-text thực tế để chuyển đổi âm thanh thành văn bản
+                try {
+                    console.log(
+                        "Attempting to use AssemblyAI for speech-to-text..."
+                    );
+                    recordedText = await transcribeAudioWithAssemblyAI(
+                        audioFile,
+                        language
+                    );
+                    console.log(
+                        "AssemblyAI transcription successful:",
+                        recordedText
+                    );
+                } catch (assemblyError) {
+                    console.warn(
+                        "AssemblyAI transcription failed, trying Azure:",
+                        assemblyError
+                    );
+
+                    // Nếu AssemblyAI thất bại, thử sử dụng Azure
+                    try {
+                        recordedText = await transcribeAudioWithAzure(
+                            audioFile,
+                            language
+                        );
+                        console.log(
+                            "Azure transcription successful:",
+                            recordedText
+                        );
+                    } catch (azureError) {
+                        console.warn("Azure transcription failed:", azureError);
+
+                        // Nếu cả hai dịch vụ đều thất bại, sử dụng phương pháp mô phỏng
+                        console.log("Falling back to simulation method");
+                        recordedText = await simulateAudioTranscription(
+                            audioFile,
+                            originalText,
+                            language
+                        );
+                    }
+                }
             } catch (error) {
                 return handleApiError(error, "Error processing form data");
             }

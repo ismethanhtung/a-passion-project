@@ -30,7 +30,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     newPrice,
     rating = 4.5,
     time = 10,
-    students = Math.floor(Math.random() * 1000) + 100,
+    students = Math.floor(Math.random() * 50) + 50,
     lessons = Math.floor(Math.random() * 30) + 5,
 }) => {
     // Convert tags string to array for rendering
