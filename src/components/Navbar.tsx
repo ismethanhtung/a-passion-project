@@ -221,7 +221,7 @@ export default function Navbar() {
 
     return (
         <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b shadow-sm">
-            <div className="container mx-auto px-20 py-3 flex items-center justify-between">
+            <div className="container mx-auto px-20 py-2 flex items-center justify-between">
                 <div className="flex items-center">
                     <Link href="/" className="flex items-center space-x-2">
                         <span className="text-2xl font-bold bg-gradient-to-r from-[#6E59A5] to-[#33C3F0] bg-clip-text text-transparent">

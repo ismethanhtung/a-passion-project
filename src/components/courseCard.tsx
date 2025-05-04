@@ -42,7 +42,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             className="group bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#6E59A5]/30 flex flex-col h-full transform hover:-translate-y-1"
         >
             <div className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
                 <img
                     src={thumbnail}
                     alt={title}
@@ -53,7 +53,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         {tagsList.slice(0, 2).map((tag, index) => (
                             <span
                                 key={index}
-                                className="px-2 py-1 bg-[#6E59A5] text-white text-xs font-medium rounded-md"
+                                className="px-2 py-1 bg-[#6E59A5]  text-white text-xs font-medium rounded-md"
                             >
                                 {tag}
                             </span>
@@ -72,11 +72,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </div>
             </div>
 
-            <div className="p-5 flex-grow flex flex-col">
+            <div className="p-4 flex-grow flex flex-col">
                 <h2 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-[#6E59A5] transition-colors">
                     {title}
                 </h2>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2 italic">
                     {description}
                 </p>
 
@@ -101,7 +101,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         </div>
                         <div className="flex items-center text-gray-500">
                             <Clock className="h-4 w-4 mr-1" />
-                            <span className="text-sm">{time}h</span>
+                            <span className="text-sm">{time} Hrs</span>
                         </div>
                     </div>
                 </div>

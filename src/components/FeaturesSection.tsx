@@ -139,7 +139,7 @@ const FeaturesSection: React.FC = () => {
                 <div className="absolute bottom-12 -left-24 w-80 h-80 bg-[#6E59A5]/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div className="container mx-auto px-12 relative z-10">
+            <div className="container mx-auto px-16 relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <div className="inline-flex items-center bg-[#6E59A5]/5 rounded-full px-4 py-2 mb-4">
                         <Sparkles className="h-4 w-4 text-[#6E59A5] mr-2" />
