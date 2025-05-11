@@ -129,36 +129,85 @@ export class VoskService {
      */
     public async recognizeSpeech(audioBlob: Blob): Promise<string> {
         try {
+            console.log("Vosk: Bắt đầu nhận dạng giọng nói...");
+            console.log(
+                `Vosk: Audio blob có kích thước ${audioBlob.size} bytes, loại ${audioBlob.type}`
+            );
+
             // Đảm bảo Vosk đã được khởi tạo
             if (!this.model) {
+                console.log("Vosk: Model chưa được khởi tạo, đang khởi tạo...");
                 const initialized = await this.initialize();
+                console.log(
+                    `Vosk: Khởi tạo ${initialized ? "thành công" : "thất bại"}`
+                );
                 if (!initialized) {
                     throw new Error("Vosk model could not be initialized");
                 }
             }
 
             // Tạo recognizer nếu chưa có
+            console.log("Vosk: Đang tạo recognizer...");
             const recognizer = this.createRecognizer();
+            console.log("Vosk: Đã tạo recognizer thành công");
 
             // Convert AudioBlob to AudioBuffer
+            console.log("Vosk: Đang chuyển đổi AudioBlob thành ArrayBuffer...");
             const arrayBuffer = await audioBlob.arrayBuffer();
+            console.log(
+                `Vosk: Đã chuyển đổi thành ArrayBuffer có kích thước ${arrayBuffer.byteLength} bytes`
+            );
+
+            console.log("Vosk: Đang tạo AudioContext...");
             const audioContext = new (window.AudioContext ||
                 (window as any).webkitAudioContext)();
+            console.log(
+                `Vosk: Đã tạo AudioContext với sampleRate ${audioContext.sampleRate}Hz`
+            );
+
+            console.log("Vosk: Đang giải mã AudioData...");
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            console.log(`Vosk: Đã giải mã AudioBuffer với ${audioBuffer.numberOfChannels} kênh, 
+                độ dài ${audioBuffer.length} samples, 
+                sample rate ${audioBuffer.sampleRate}Hz, 
+                thời lượng ${audioBuffer.duration} giây`);
+
+            // Chuyển đổi AudioBuffer thành Float32Array phù hợp với Vosk
+            console.log(
+                "Vosk: Đang chuyển đổi AudioBuffer thành Float32Array..."
+            );
+            const audioData = this.audioBufferToFloat32Array(audioBuffer);
+            console.log(
+                `Vosk: Đã chuyển đổi thành Float32Array có độ dài ${audioData.length}`
+            );
 
             // Xử lý audio data
             return new Promise((resolve, reject) => {
+                console.log("Vosk: Thiết lập handlers cho recognizer...");
                 // Lắng nghe kết quả
                 const resultHandler = (message: any) => {
+                    console.log("Vosk: Nhận được sự kiện kết quả:", message);
                     const result = message.result;
                     if (result && result.text) {
+                        console.log(
+                            `Vosk: Nhận dạng thành công với kết quả: "${result.text}"`
+                        );
                         recognizer.removeEventListener("result", resultHandler);
                         resolve(result.text);
+                    } else {
+                        console.log(
+                            "Vosk: Nhận được kết quả không có văn bản:",
+                            message
+                        );
                     }
                 };
 
                 // Lắng nghe lỗi
                 const errorHandler = (error: any) => {
+                    console.error(
+                        "Vosk: Có lỗi trong quá trình nhận dạng:",
+                        error
+                    );
                     recognizer.removeEventListener("error", errorHandler);
                     reject(error);
                 };
@@ -168,22 +217,89 @@ export class VoskService {
 
                 // Gửi dữ liệu âm thanh để phân tích
                 try {
-                    recognizer.acceptWaveform(audioBuffer);
+                    console.log(
+                        "Vosk: Đang gửi dữ liệu âm thanh đến recognizer..."
+                    );
+                    // Thay đổi từ recognizer.acceptWaveform(audioBuffer) thành:
+                    recognizer.acceptWaveform(audioData);
+                    console.log("Vosk: Đã gửi dữ liệu âm thanh thành công");
 
                     // Sau một khoảng thời gian nếu không có kết quả, trả về chuỗi rỗng
+                    console.log("Vosk: Thiết lập thời gian chờ 5 giây...");
                     setTimeout(() => {
+                        console.log("Vosk: Hết thời gian chờ kết quả");
                         recognizer.removeEventListener("result", resultHandler);
                         recognizer.removeEventListener("error", errorHandler);
                         resolve("");
                     }, 5000);
                 } catch (error) {
+                    console.error("Vosk: Lỗi khi gửi dữ liệu âm thanh:", error);
                     errorHandler(error);
                 }
             });
         } catch (error) {
-            console.error("Error recognizing speech with Vosk:", error);
+            console.error(
+                "Vosk: Lỗi tổng thể trong quá trình nhận dạng giọng nói:",
+                error
+            );
+            console.error(
+                "Vosk: Chi tiết lỗi:",
+                error instanceof Error ? error.message : String(error)
+            );
+            console.error(
+                "Vosk: Stack trace:",
+                error instanceof Error ? error.stack : "Không có stack trace"
+            );
             throw error;
         }
+    }
+
+    /**
+     * Chuyển đổi AudioBuffer thành Float32Array thích hợp cho Vosk
+     * @param audioBuffer AudioBuffer từ Web Audio API
+     * @returns Float32Array phù hợp với Vosk
+     */
+    private audioBufferToFloat32Array(audioBuffer: AudioBuffer): Float32Array {
+        console.log("Vosk: Đang chuyển đổi AudioBuffer sang Float32Array...");
+
+        // Lấy kênh âm thanh đầu tiên
+        const inputChannel = audioBuffer.getChannelData(0);
+
+        // Nếu cần resampling (Vosk thường yêu cầu 16kHz)
+        if (audioBuffer.sampleRate !== 16000) {
+            console.log(
+                `Vosk: Cần resampling từ ${audioBuffer.sampleRate}Hz xuống 16000Hz`
+            );
+
+            // Tính tỷ lệ resampling
+            const ratio = 16000 / audioBuffer.sampleRate;
+            const outputLength = Math.floor(inputChannel.length * ratio);
+            const output = new Float32Array(outputLength);
+
+            // Resampling đơn giản bằng linear interpolation
+            for (let i = 0; i < outputLength; i++) {
+                const position = i / ratio;
+                const index = Math.floor(position);
+                const fraction = position - index;
+
+                if (index < inputChannel.length - 1) {
+                    output[i] =
+                        inputChannel[index] * (1 - fraction) +
+                        inputChannel[index + 1] * fraction;
+                } else {
+                    output[i] = inputChannel[index];
+                }
+            }
+
+            console.log(
+                `Vosk: Đã resampling thành công, độ dài mới: ${output.length}`
+            );
+            return output;
+        }
+
+        // Nếu không cần resampling, trả về dữ liệu gốc
+        console.log("Vosk: Không cần resampling, sử dụng dữ liệu âm thanh gốc");
+        return inputChannel;
     }
 
     /**

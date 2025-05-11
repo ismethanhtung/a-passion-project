@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+// Định nghĩa kiểu dữ liệu cho chủ đề viết
 export type WritingTopic = {
     id: string;
     title: string;
@@ -12,21 +13,29 @@ export type WritingTopic = {
         max: number;
     };
     timeLimit?: number; // thời gian giới hạn tính bằng phút
+    language: string; // Ngôn ngữ yêu cầu viết (ví dụ: "en", "fr", "de", "es", "jp")
 };
 
+// Định nghĩa kiểu dữ liệu cho bài viết
 export type WritingResponse = {
+    id: string;
     content: string;
     originalPrompt: string;
     timestamp: string;
-    id: string;
+    topicId: string;
+    language: string;
+    title?: string;
+    wordCount?: number;
 };
 
+// Định nghĩa kiểu dữ liệu cho feedback từ Grok
 export type WritingFeedback = {
+    writingId: string;
     overallScore: number;
     grammar: {
         score: number;
         comments: string[];
-        examples: Array<{
+        errors: Array<{
             original: string;
             correction: string;
             explanation: string;
@@ -51,13 +60,17 @@ export type WritingFeedback = {
     };
     improvements: string[];
     improvedVersion: string;
+    timestamp: string;
 };
 
+// Singleton service để quản lý các hoạt động liên quan đến writing practice
 export class WritingService {
     private static instance: WritingService;
+    private readonly STORAGE_KEY = "writing_responses";
+    private readonly FEEDBACK_KEY = "writing_feedbacks";
 
     private constructor() {
-        // Singleton pattern
+        // Private constructor cho singleton pattern
     }
 
     public static getInstance(): WritingService {
@@ -68,12 +81,14 @@ export class WritingService {
     }
 
     /**
-     * Lấy chủ đề viết ngẫu nhiên dựa trên cấp độ và danh mục
+     * Lấy danh sách chủ đề viết dựa trên các tiêu chí lọc
      */
-    public getRandomTopic(
+    public getTopics(
         level?: "beginner" | "intermediate" | "advanced",
-        category?: string
-    ): WritingTopic {
+        category?: string,
+        language?: string,
+        limit: number = 6
+    ): WritingTopic[] {
         let filteredTopics = this.getDefaultTopics();
 
         if (level) {
@@ -88,24 +103,76 @@ export class WritingService {
             );
         }
 
-        if (filteredTopics.length === 0) {
-            // Nếu không có chủ đề phù hợp, trả về một chủ đề mặc định
-            return this.getDefaultTopics()[0];
+        if (language) {
+            filteredTopics = filteredTopics.filter(
+                (topic) => topic.language === language
+            );
         }
 
-        const randomIndex = Math.floor(Math.random() * filteredTopics.length);
-        return filteredTopics[randomIndex];
+        // Shuffle array để lấy ngẫu nhiên
+        const shuffled = [...filteredTopics].sort(() => 0.5 - Math.random());
+
+        // Trả về số lượng chủ đề theo limit
+        return shuffled.slice(0, limit);
     }
 
     /**
-     * Tạo chủ đề viết tùy chỉnh dựa trên mô tả
+     * Lấy một chủ đề viết ngẫu nhiên
+     */
+    public getRandomTopic(
+        level?: "beginner" | "intermediate" | "advanced",
+        category?: string,
+        language: string = "en"
+    ): WritingTopic {
+        const topics = this.getTopics(level, category, language, 10);
+
+        if (topics.length === 0) {
+            // Fallback nếu không có chủ đề nào
+            return this.getFallbackTopic(language);
+        }
+
+        const randomIndex = Math.floor(Math.random() * topics.length);
+        return topics[randomIndex];
+    }
+
+    /**
+     * Lấy chủ đề dự phòng khi không tìm thấy chủ đề phù hợp
+     */
+    private getFallbackTopic(language: string = "en"): WritingTopic {
+        const defaultTopic: WritingTopic = {
+            id: "default",
+            title: language === "en" ? "General Writing" : "Viết Tổng Quát",
+            description:
+                language === "en"
+                    ? "Practice your general writing skills"
+                    : "Luyện tập kỹ năng viết tổng quát",
+            level: "intermediate",
+            category: language === "en" ? "General" : "Tổng quát",
+            prompt:
+                language === "en"
+                    ? "Write an essay discussing the importance of education in modern society."
+                    : "Viết một bài luận thảo luận về tầm quan trọng của giáo dục trong xã hội hiện đại.",
+            wordCount: {
+                min: 200,
+                max: 350,
+            },
+            timeLimit: 30,
+            language: language,
+        };
+
+        return defaultTopic;
+    }
+
+    /**
+     * Tạo chủ đề viết tùy chỉnh từ mô tả
      */
     public async createCustomTopic(
         description: string,
-        level: "beginner" | "intermediate" | "advanced" = "intermediate"
+        level: "beginner" | "intermediate" | "advanced" = "intermediate",
+        language: string = "en"
     ): Promise<WritingTopic> {
         try {
-            // Gọi API để tạo prompt viết từ mô tả
+            // Gọi API để tạo prompt từ mô tả
             const response = await fetch("/api/writing/generate-prompt", {
                 method: "POST",
                 headers: {
@@ -114,6 +181,7 @@ export class WritingService {
                 body: JSON.stringify({
                     description,
                     level,
+                    language,
                 }),
             });
 
@@ -123,49 +191,66 @@ export class WritingService {
 
             const data = await response.json();
 
+            // Tính toán word count và time limit dựa trên level
+            const wordCountMin =
+                level === "beginner"
+                    ? 100
+                    : level === "intermediate"
+                    ? 200
+                    : 300;
+
+            const wordCountMax =
+                level === "beginner"
+                    ? 200
+                    : level === "intermediate"
+                    ? 350
+                    : 500;
+
+            const timeLimit =
+                level === "beginner" ? 15 : level === "intermediate" ? 30 : 45;
+
             return {
                 id: uuidv4(),
-                title: `Chủ đề tùy chỉnh: ${description.slice(0, 30)}${
-                    description.length > 30 ? "..." : ""
-                }`,
+                title:
+                    language === "en"
+                        ? `Custom Topic: ${description.slice(0, 30)}${
+                              description.length > 30 ? "..." : ""
+                          }`
+                        : `Chủ đề tùy chỉnh: ${description.slice(0, 30)}${
+                              description.length > 30 ? "..." : ""
+                          }`,
                 description: description,
                 level: level,
-                category: "Tùy chỉnh",
+                category: language === "en" ? "Custom" : "Tùy chỉnh",
                 prompt: data.prompt,
                 wordCount: {
-                    min:
-                        level === "beginner"
-                            ? 100
-                            : level === "intermediate"
-                            ? 200
-                            : 300,
-                    max:
-                        level === "beginner"
-                            ? 200
-                            : level === "intermediate"
-                            ? 350
-                            : 500,
+                    min: wordCountMin,
+                    max: wordCountMax,
                 },
-                timeLimit:
-                    level === "beginner"
-                        ? 15
-                        : level === "intermediate"
-                        ? 25
-                        : 40,
+                timeLimit: timeLimit,
+                language: language,
             };
         } catch (error) {
             console.error("Error creating custom topic:", error);
 
-            // Fallback: Tạo chủ đề cơ bản nếu API không hoạt động
+            // Fallback khi API không hoạt động
             return {
                 id: uuidv4(),
-                title: `Chủ đề tùy chỉnh: ${description.slice(0, 30)}${
-                    description.length > 30 ? "..." : ""
-                }`,
+                title:
+                    language === "en"
+                        ? `Custom Topic: ${description.slice(0, 30)}${
+                              description.length > 30 ? "..." : ""
+                          }`
+                        : `Chủ đề tùy chỉnh: ${description.slice(0, 30)}${
+                              description.length > 30 ? "..." : ""
+                          }`,
                 description: description,
                 level: level,
-                category: "Tùy chỉnh",
-                prompt: `Hãy viết một bài văn về chủ đề: ${description}. Bạn nên trình bày ý kiến của mình một cách rõ ràng và mạch lạc.`,
+                category: language === "en" ? "Custom" : "Tùy chỉnh",
+                prompt:
+                    language === "en"
+                        ? `Write an essay about: ${description}. Present your ideas clearly and coherently.`
+                        : `Hãy viết một bài văn về chủ đề: ${description}. Trình bày ý kiến của bạn một cách mạch lạc và rõ ràng.`,
                 wordCount: {
                     min:
                         level === "beginner"
@@ -184,64 +269,92 @@ export class WritingService {
                     level === "beginner"
                         ? 15
                         : level === "intermediate"
-                        ? 25
-                        : 40,
+                        ? 30
+                        : 45,
+                language: language,
             };
         }
     }
 
     /**
-     * Lưu bài viết của người dùng
+     * Lưu bài viết người dùng vào localStorage
      */
     public saveWritingResponse(
         content: string,
-        originalPrompt: string
+        topicId: string,
+        originalPrompt: string,
+        language: string = "en"
     ): WritingResponse {
         const writingResponse: WritingResponse = {
             id: uuidv4(),
             content,
             originalPrompt,
             timestamp: new Date().toISOString(),
+            topicId,
+            language,
+            wordCount: content.trim().split(/\s+/).length,
         };
 
+        const savedResponses = this.getSavedWritingResponses();
+        savedResponses.push(writingResponse);
+
         // Lưu vào localStorage
-        try {
-            const savedResponses = this.getSavedWritingResponses();
-            savedResponses.push(writingResponse);
+        if (typeof window !== "undefined") {
             localStorage.setItem(
-                "writingResponses",
+                this.STORAGE_KEY,
                 JSON.stringify(savedResponses)
             );
-        } catch (error) {
-            console.error("Error saving writing response:", error);
         }
 
         return writingResponse;
     }
 
     /**
-     * Lấy các bài viết đã lưu
+     * Lấy tất cả bài viết đã lưu
      */
     public getSavedWritingResponses(): WritingResponse[] {
-        try {
-            const savedResponses = localStorage.getItem("writingResponses");
-            return savedResponses ? JSON.parse(savedResponses) : [];
-        } catch (error) {
-            console.error("Error getting saved writing responses:", error);
-            return [];
-        }
+        if (typeof window === "undefined") return [];
+
+        const savedData = localStorage.getItem(this.STORAGE_KEY);
+        return savedData ? JSON.parse(savedData) : [];
     }
 
     /**
-     * Đánh giá bài viết
+     * Lấy bài viết dựa trên ID
+     */
+    public getWritingResponseById(id: string): WritingResponse | null {
+        const savedResponses = this.getSavedWritingResponses();
+        return savedResponses.find((response) => response.id === id) || null;
+    }
+
+    /**
+     * Lấy feedback của bài viết đã lưu
+     */
+    public getSavedFeedback(writingId: string): WritingFeedback | null {
+        if (typeof window === "undefined") return null;
+
+        const savedFeedbacks = localStorage.getItem(this.FEEDBACK_KEY);
+        const feedbacks: WritingFeedback[] = savedFeedbacks
+            ? JSON.parse(savedFeedbacks)
+            : [];
+
+        return (
+            feedbacks.find((feedback) => feedback.writingId === writingId) ||
+            null
+        );
+    }
+
+    /**
+     * Đánh giá bài viết sử dụng Grok API
      */
     public async evaluateWriting(
         content: string,
         originalPrompt: string,
-        language: string = "vi-VN"
+        writingId: string,
+        language: string = "en"
     ): Promise<WritingFeedback> {
         try {
-            // Gọi API để đánh giá bài viết
+            // Gọi API đánh giá bài viết
             const response = await fetch("/api/writing/evaluate", {
                 method: "POST",
                 headers: {
@@ -258,234 +371,386 @@ export class WritingService {
                 throw new Error("Failed to evaluate writing");
             }
 
-            const data = await response.json();
-            return data.feedback;
+            const feedbackData = await response.json();
+
+            // Chuyển đổi dữ liệu từ API thành đối tượng WritingFeedback
+            const feedback: WritingFeedback = {
+                writingId,
+                overallScore: feedbackData.overallScore || 0,
+                grammar: feedbackData.grammar || {
+                    score: 0,
+                    comments: [],
+                    errors: [],
+                },
+                vocabulary: feedbackData.vocabulary || {
+                    score: 0,
+                    comments: [],
+                    suggestions: [],
+                },
+                structure: feedbackData.structure || {
+                    score: 0,
+                    comments: [],
+                },
+                coherence: feedbackData.coherence || {
+                    score: 0,
+                    comments: [],
+                },
+                improvements: feedbackData.improvements || [],
+                improvedVersion: feedbackData.improvedVersion || "",
+                timestamp: new Date().toISOString(),
+            };
+
+            // Lưu feedback vào localStorage
+            this.saveFeedback(feedback);
+
+            return feedback;
         } catch (error) {
             console.error("Error evaluating writing:", error);
 
-            // Trả về đánh giá mẫu nếu API không hoạt động
-            return this.generateMockFeedback(content, originalPrompt);
+            // Fallback khi API không hoạt động: tạo feedback giả
+            return this.generateMockFeedback(
+                content,
+                originalPrompt,
+                writingId
+            );
         }
     }
 
     /**
-     * Tạo đánh giá mẫu (sử dụng khi API không hoạt động)
+     * Lưu feedback vào localStorage
+     */
+    private saveFeedback(feedback: WritingFeedback): void {
+        if (typeof window === "undefined") return;
+
+        const savedFeedbacks = localStorage.getItem(this.FEEDBACK_KEY);
+        const feedbacks: WritingFeedback[] = savedFeedbacks
+            ? JSON.parse(savedFeedbacks)
+            : [];
+
+        // Thêm feedback mới hoặc cập nhật nếu đã tồn tại
+        const existingIndex = feedbacks.findIndex(
+            (f) => f.writingId === feedback.writingId
+        );
+
+        if (existingIndex >= 0) {
+            feedbacks[existingIndex] = feedback;
+        } else {
+            feedbacks.push(feedback);
+        }
+
+        localStorage.setItem(this.FEEDBACK_KEY, JSON.stringify(feedbacks));
+    }
+
+    /**
+     * Tạo feedback demo khi API không hoạt động
      */
     private generateMockFeedback(
         content: string,
-        originalPrompt: string
+        originalPrompt: string,
+        writingId: string
     ): WritingFeedback {
-        const wordCount = content.split(/\s+/).length;
-        const sentenceCount = content.split(/[.!?]+/).length;
+        const wordCount = content.trim().split(/\s+/).length;
+        const sentences = content
+            .split(/[.!?]+/)
+            .filter((s) => s.trim().length > 0);
 
-        // Điểm số tương đối dựa trên độ dài
-        const baseScore = Math.min(80, Math.max(60, 65 + wordCount / 50));
+        // Tính toán điểm ngẫu nhiên cho mỗi thành phần
+        const grammarScore = Math.floor(Math.random() * 3) + 6; // 6-8
+        const vocabScore = Math.floor(Math.random() * 3) + 7; // 7-9
+        const structureScore = Math.floor(Math.random() * 3) + 6; // 6-8
+        const coherenceScore = Math.floor(Math.random() * 3) + 7; // 7-9
+
+        // Tính điểm tổng thể
+        const overallScore = Math.floor(
+            (grammarScore + vocabScore + structureScore + coherenceScore) / 4
+        );
 
         return {
-            overallScore: Math.round(baseScore),
+            writingId,
+            overallScore,
             grammar: {
-                score: Math.round(baseScore + Math.random() * 10 - 5),
+                score: grammarScore,
                 comments: [
-                    "Bài viết của bạn có một số lỗi ngữ pháp cần cải thiện.",
-                    "Hãy chú ý đến việc sử dụng đúng thì và thể trong câu.",
+                    "Your grammar is generally good, but there are some errors that need correction.",
+                    "Pay attention to subject-verb agreement and tense consistency.",
                 ],
-                examples: [
+                errors: [
                     {
-                        original:
-                            "Một đoạn văn mẫu từ bài viết của bạn có thể cần cải thiện.",
-                        correction:
-                            "Một đoạn văn mẫu từ bài viết của bạn có thể cần được cải thiện.",
+                        original: "They was going",
+                        correction: "They were going",
+                        explanation: "Use 'were' with plural subjects.",
+                    },
+                    {
+                        original: "If I would have known",
+                        correction: "If I had known",
                         explanation:
-                            'Thêm "được" để câu văn được tự nhiên hơn trong tiếng Việt.',
+                            "Use past perfect tense in conditional clauses.",
                     },
                 ],
             },
             vocabulary: {
-                score: Math.round(baseScore + Math.random() * 10 - 5),
+                score: vocabScore,
                 comments: [
-                    "Bạn sử dụng từ vựng khá tốt nhưng đôi khi còn lặp lại.",
-                    "Cố gắng đa dạng hóa từ vựng để làm phong phú bài viết.",
+                    "You use a good range of vocabulary, though some word choices could be more precise.",
+                    "Consider using more academic vocabulary for formal writing.",
                 ],
                 suggestions: [
                     {
-                        word: "tốt",
+                        word: "good",
                         alternatives: [
-                            "xuất sắc",
-                            "tuyệt vời",
-                            "hiệu quả",
-                            "lý tưởng",
+                            "excellent",
+                            "outstanding",
+                            "exceptional",
                         ],
-                        context: "Cách diễn đạt này rất tốt.",
+                        context: "The results were good.",
+                    },
+                    {
+                        word: "bad",
+                        alternatives: ["poor", "inadequate", "substandard"],
+                        context: "This is a bad solution.",
                     },
                 ],
             },
             structure: {
-                score: Math.round(baseScore + Math.random() * 10 - 5),
+                score: structureScore,
                 comments: [
-                    "Cấu trúc bài viết khá rõ ràng nhưng có thể cải thiện.",
-                    "Nên có phần mở bài, thân bài và kết luận rõ ràng hơn.",
+                    "Your essay has a clear introduction, body, and conclusion.",
+                    "Consider adding more transitional phrases between paragraphs for better flow.",
                 ],
             },
             coherence: {
-                score: Math.round(baseScore + Math.random() * 10 - 5),
+                score: coherenceScore,
                 comments: [
-                    "Các ý trong bài viết khá mạch lạc nhưng đôi khi thiếu sự liên kết.",
-                    "Sử dụng các từ nối để liên kết các ý tưởng tốt hơn.",
+                    "Your ideas connect well, but some parts could be more logically organized.",
+                    "The main argument is clear throughout the essay.",
                 ],
             },
             improvements: [
-                "Cải thiện việc sử dụng từ nối để kết nối các ý tưởng.",
-                "Đa dạng hóa cấu trúc câu để bài viết thêm phong phú.",
-                "Phát triển ý tưởng chính kỹ hơn với các ví dụ cụ thể.",
-                "Chú ý đến việc sử dụng dấu câu đúng cách.",
+                "Strengthen your thesis statement in the introduction.",
+                "Add more specific examples to support your arguments.",
+                "Conclude with a stronger call to action or summary of main points.",
             ],
-            improvedVersion: `${content}\n\n[Phiên bản cải thiện sẽ được cung cấp bởi AI khi kết nối tới API.]`,
+            improvedVersion: content,
+            timestamp: new Date().toISOString(),
         };
     }
 
     /**
-     * Danh sách chủ đề mẫu
+     * Lấy các chủ đề mặc định
      */
     private getDefaultTopics(): WritingTopic[] {
         return [
             {
-                id: "w1",
-                title: "Môi trường và biến đổi khí hậu",
-                description:
-                    "Viết về tác động của biến đổi khí hậu và các biện pháp bảo vệ môi trường.",
+                id: "environment-en-1",
+                title: "Environmental Protection",
+                description: "Discuss environmental challenges and solutions",
                 level: "intermediate",
-                category: "Xã hội",
-                prompt: "Biến đổi khí hậu đang là một trong những thách thức lớn nhất của nhân loại. Hãy trình bày về tác động của biến đổi khí hậu đối với đời sống con người và đề xuất các giải pháp để giảm thiểu vấn đề này. Bạn có thể đưa ra các ví dụ cụ thể và ý kiến cá nhân.",
+                category: "Environment",
+                prompt: "Write an essay discussing the most pressing environmental challenges facing our planet today and propose some potential solutions. Include examples of successful environmental initiatives from around the world.",
                 wordCount: {
-                    min: 200,
-                    max: 350,
-                },
-                timeLimit: 25,
-            },
-            {
-                id: "w2",
-                title: "Công nghệ và cuộc sống",
-                description:
-                    "Bàn luận về ảnh hưởng của công nghệ đối với cuộc sống hiện đại.",
-                level: "intermediate",
-                category: "Công nghệ",
-                prompt: "Công nghệ đang ngày càng đóng vai trò quan trọng trong cuộc sống hiện đại. Hãy thảo luận về những ảnh hưởng tích cực và tiêu cực của công nghệ đối với con người, xã hội và môi trường. Bạn có đồng ý rằng lợi ích của công nghệ lớn hơn tác hại? Giải thích quan điểm của bạn với các lập luận và ví dụ cụ thể.",
-                wordCount: {
-                    min: 200,
-                    max: 350,
-                },
-                timeLimit: 25,
-            },
-            {
-                id: "w3",
-                title: "Giá trị của việc học ngoại ngữ",
-                description:
-                    "Viết về tầm quan trọng và lợi ích của việc học ngoại ngữ.",
-                level: "beginner",
-                category: "Giáo dục",
-                prompt: "Học ngoại ngữ là một kỹ năng quan trọng trong thế giới hiện đại. Hãy viết một bài luận ngắn về lợi ích của việc học ngoại ngữ đối với cuộc sống cá nhân và sự nghiệp. Bạn đã từng học ngoại ngữ nào? Việc học đó đã giúp ích cho bạn như thế nào?",
-                wordCount: {
-                    min: 100,
-                    max: 200,
-                },
-                timeLimit: 15,
-            },
-            {
-                id: "w4",
-                title: "Du lịch và trải nghiệm văn hóa",
-                description:
-                    "Chia sẻ về trải nghiệm du lịch và tìm hiểu văn hóa mới.",
-                level: "beginner",
-                category: "Du lịch",
-                prompt: "Du lịch không chỉ là việc tham quan các địa điểm mới mà còn là cơ hội để trải nghiệm các nền văn hóa khác nhau. Hãy viết về một chuyến du lịch đáng nhớ của bạn hoặc một nơi bạn muốn đến thăm. Bạn đã học được gì từ việc khám phá văn hóa mới? Nếu bạn chưa có cơ hội du lịch, hãy viết về một địa điểm bạn mơ ước được đến và lý do tại sao.",
-                wordCount: {
-                    min: 150,
-                    max: 250,
-                },
-                timeLimit: 20,
-            },
-            {
-                id: "w5",
-                title: "Sức khỏe và lối sống",
-                description: "Viết về tầm quan trọng của lối sống lành mạnh.",
-                level: "beginner",
-                category: "Sức khỏe",
-                prompt: "Sức khỏe là tài sản quý giá nhất của con người. Hãy viết về tầm quan trọng của lối sống lành mạnh và các hoạt động bạn thực hiện để duy trì sức khỏe tốt. Bạn có thể đề cập đến chế độ ăn uống, tập thể dục, giấc ngủ và sức khỏe tinh thần.",
-                wordCount: {
-                    min: 100,
-                    max: 200,
-                },
-                timeLimit: 15,
-            },
-            {
-                id: "w6",
-                title: "Giáo dục trong thế kỷ 21",
-                description:
-                    "Phân tích xu hướng và thách thức của giáo dục hiện đại.",
-                level: "advanced",
-                category: "Giáo dục",
-                prompt: "Giáo dục đang trải qua những thay đổi lớn trong thế kỷ 21 với sự phát triển của công nghệ và thay đổi trong nhu cầu xã hội. Hãy phân tích các xu hướng chính trong giáo dục hiện đại, thách thức mà hệ thống giáo dục đang đối mặt, và đề xuất các giải pháp để cải thiện chất lượng giáo dục. Bạn có thể so sánh hệ thống giáo dục truyền thống với các phương pháp giáo dục mới, và thảo luận về vai trò của công nghệ trong việc học tập.",
-                wordCount: {
-                    min: 300,
-                    max: 500,
-                },
-                timeLimit: 40,
-            },
-            {
-                id: "w7",
-                title: "Nghệ thuật và văn hóa đại chúng",
-                description:
-                    "Thảo luận về mối quan hệ giữa nghệ thuật và xã hội.",
-                level: "intermediate",
-                category: "Nghệ thuật",
-                prompt: "Nghệ thuật và văn hóa đại chúng có ảnh hưởng lớn đến xã hội và ngược lại. Hãy thảo luận về vai trò của nghệ thuật trong xã hội hiện đại, cách nó phản ánh và định hình giá trị xã hội. Bạn có thể đề cập đến bất kỳ hình thức nghệ thuật nào (âm nhạc, điện ảnh, văn học, hội họa...) và phân tích tác động của nó đối với cá nhân và cộng đồng.",
-                wordCount: {
-                    min: 200,
-                    max: 350,
+                    min: 250,
+                    max: 400,
                 },
                 timeLimit: 30,
+                language: "en",
             },
             {
-                id: "w8",
-                title: "Vai trò của thanh niên trong phát triển cộng đồng",
-                description:
-                    "Viết về đóng góp và trách nhiệm của giới trẻ đối với xã hội.",
+                id: "tech-en-1",
+                title: "Technology Impact",
+                description: "Analyze how technology has changed society",
                 level: "intermediate",
-                category: "Xã hội",
-                prompt: "Thanh niên đóng vai trò quan trọng trong việc phát triển cộng đồng và xã hội. Hãy thảo luận về trách nhiệm và cơ hội của thanh niên trong việc giải quyết các vấn đề xã hội, và đóng góp vào sự phát triển bền vững. Bạn có thể chia sẻ về các hoạt động tình nguyện, các dự án cộng đồng mà bạn hoặc bạn bè đã tham gia, và tác động của những hoạt động này.",
+                category: "Technology",
+                prompt: "Analyze how technology has transformed daily life in the past decade. Discuss both positive and negative impacts, and consider what these changes might mean for future generations.",
                 wordCount: {
-                    min: 200,
-                    max: 350,
+                    min: 250,
+                    max: 400,
                 },
-                timeLimit: 25,
+                timeLimit: 30,
+                language: "en",
             },
             {
-                id: "w9",
-                title: "Thách thức của quá trình toàn cầu hóa",
-                description:
-                    "Phân tích ảnh hưởng của toàn cầu hóa đối với kinh tế và văn hóa.",
+                id: "education-en-1",
+                title: "Modern Education",
+                description: "Discuss the changing landscape of education",
+                level: "intermediate",
+                category: "Education",
+                prompt: "How should education systems evolve to better prepare students for the challenges of the 21st century? Discuss key changes that would improve learning outcomes and better equip young people for the future.",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "en",
+            },
+            {
+                id: "society-en-1",
+                title: "Social Media Effects",
+                description: "Examine the impacts of social media",
+                level: "intermediate",
+                category: "Society",
+                prompt: "Examine how social media has affected interpersonal relationships and communication. What are the benefits and drawbacks of these platforms? Has social media ultimately brought people closer together or driven them further apart?",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "en",
+            },
+            {
+                id: "culture-en-1",
+                title: "Cultural Identity",
+                description: "Explore aspects of cultural identity",
                 level: "advanced",
-                category: "Kinh tế",
-                prompt: "Toàn cầu hóa đã tạo ra nhiều cơ hội và thách thức cho các quốc gia trên thế giới. Hãy phân tích tác động của toàn cầu hóa đối với kinh tế, văn hóa và chính trị toàn cầu. Thảo luận về những lợi ích và bất lợi của quá trình này, đặc biệt là đối với các nước đang phát triển. Bạn có thể đưa ra các ví dụ cụ thể và đề xuất cách để tối ưu hóa lợi ích của toàn cầu hóa trong khi giảm thiểu tác động tiêu cực.",
+                category: "Culture",
+                prompt: "In an increasingly globalized world, how important is it to maintain distinct cultural identities? Discuss the tensions between cultural preservation and global integration, using specific examples.",
                 wordCount: {
                     min: 300,
                     max: 500,
                 },
                 timeLimit: 40,
+                language: "en",
             },
             {
-                id: "w10",
-                title: "Mạng xã hội và mối quan hệ cá nhân",
+                id: "health-en-1",
+                title: "Mental Health Awareness",
+                description: "Discuss the importance of mental health",
+                level: "intermediate",
+                category: "Health",
+                prompt: "Discuss the growing awareness of mental health issues in society. What factors have contributed to this increased awareness, and what more can be done to support mental wellbeing?",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "en",
+            },
+            {
+                id: "business-en-1",
+                title: "Business Ethics",
+                description: "Explore ethical considerations in business",
+                level: "advanced",
+                category: "Business",
+                prompt: "To what extent should businesses prioritize ethical considerations over profit? Discuss using specific examples of companies that have succeeded or failed in balancing ethics and profitability.",
+                wordCount: {
+                    min: 300,
+                    max: 500,
+                },
+                timeLimit: 40,
+                language: "en",
+            },
+            {
+                id: "travel-en-1",
+                title: "Sustainable Tourism",
+                description: "Examine sustainable tourism practices",
+                level: "intermediate",
+                category: "Travel",
+                prompt: "Discuss the concept of sustainable tourism and its importance in today's world. How can travelers and tourism industries balance the desire for exploration with environmental and cultural preservation?",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "en",
+            },
+            {
+                id: "science-en-1",
+                title: "Scientific Discovery",
                 description:
-                    "Thảo luận về tác động của mạng xã hội đối với giao tiếp và mối quan hệ.",
+                    "Reflect on the impact of scientific breakthroughs",
+                level: "advanced",
+                category: "Science",
+                prompt: "Choose a major scientific discovery or technological innovation from the past century and analyze its impact on society. How has it changed our understanding of the world or daily life?",
+                wordCount: {
+                    min: 300,
+                    max: 500,
+                },
+                timeLimit: 40,
+                language: "en",
+            },
+            {
+                id: "personal-en-1",
+                title: "Personal Growth",
+                description: "Reflect on personal development",
                 level: "beginner",
-                category: "Công nghệ",
-                prompt: "Mạng xã hội đã thay đổi cách con người giao tiếp và xây dựng mối quan hệ. Hãy viết về những ảnh hưởng tích cực và tiêu cực của mạng xã hội đối với các mối quan hệ cá nhân và xã hội. Bạn sử dụng mạng xã hội như thế nào? Nó đã ảnh hưởng đến cuộc sống của bạn ra sao?",
+                category: "Personal",
+                prompt: "Describe a challenging experience that contributed significantly to your personal growth. What did you learn from this experience, and how has it changed your perspective?",
                 wordCount: {
                     min: 150,
                     max: 250,
                 },
                 timeLimit: 20,
+                language: "en",
+            },
+            // Danh sách bài viết Tiếng Việt
+            {
+                id: "environment-vi-1",
+                title: "Bảo vệ môi trường",
+                description: "Thảo luận về thách thức và giải pháp môi trường",
+                level: "intermediate",
+                category: "Môi trường",
+                prompt: "Viết một bài luận thảo luận về những thách thức môi trường cấp bách nhất mà hành tinh chúng ta đang phải đối mặt và đề xuất một số giải pháp tiềm năng. Đưa ra ví dụ về các sáng kiến môi trường thành công từ khắp nơi trên thế giới.",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "vi",
+            },
+            {
+                id: "tech-vi-1",
+                title: "Tác động của công nghệ",
+                description: "Phân tích ảnh hưởng của công nghệ đối với xã hội",
+                level: "intermediate",
+                category: "Công nghệ",
+                prompt: "Phân tích cách công nghệ đã biến đổi cuộc sống hàng ngày trong thập kỷ qua. Thảo luận về cả tác động tích cực và tiêu cực, và xem xét những thay đổi này có thể có ý nghĩa gì đối với các thế hệ tương lai.",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "vi",
+            },
+            {
+                id: "education-vi-1",
+                title: "Giáo dục hiện đại",
+                description: "Thảo luận về bối cảnh giáo dục đang thay đổi",
+                level: "intermediate",
+                category: "Giáo dục",
+                prompt: "Hệ thống giáo dục nên phát triển như thế nào để chuẩn bị tốt hơn cho học sinh đối mặt với những thách thức của thế kỷ 21? Thảo luận về những thay đổi quan trọng sẽ cải thiện kết quả học tập và trang bị tốt hơn cho người trẻ trong tương lai.",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "vi",
+            },
+            {
+                id: "society-vi-1",
+                title: "Ảnh hưởng của mạng xã hội",
+                description: "Xem xét tác động của mạng xã hội",
+                level: "intermediate",
+                category: "Xã hội",
+                prompt: "Xem xét mạng xã hội đã ảnh hưởng như thế nào đến các mối quan hệ và giao tiếp giữa mọi người. Lợi ích và hạn chế của các nền tảng này là gì? Mạng xã hội cuối cùng đã kéo mọi người lại gần nhau hơn hay đẩy họ xa nhau?",
+                wordCount: {
+                    min: 250,
+                    max: 400,
+                },
+                timeLimit: 30,
+                language: "vi",
+            },
+            {
+                id: "culture-vi-1",
+                title: "Bản sắc văn hóa",
+                description: "Khám phá các khía cạnh của bản sắc văn hóa",
+                level: "advanced",
+                category: "Văn hóa",
+                prompt: "Trong một thế giới ngày càng toàn cầu hóa, việc duy trì bản sắc văn hóa riêng biệt quan trọng như thế nào? Thảo luận về những căng thẳng giữa bảo tồn văn hóa và hội nhập toàn cầu, sử dụng các ví dụ cụ thể.",
+                wordCount: {
+                    min: 300,
+                    max: 500,
+                },
+                timeLimit: 40,
+                language: "vi",
             },
         ];
     }

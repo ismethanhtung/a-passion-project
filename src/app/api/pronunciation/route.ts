@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assessPronunciationWithGroq } from "@/lib/groq-service";
-import { transcribeAudioWithAssemblyAI } from "@/lib/assembly-ai-service";
-import { transcribeAudioWithAzure } from "@/lib/azure-speech-service";
 
 // Định nghĩa kiểu dữ liệu cho phản hồi
 type PronunciationFeedback = {
@@ -13,10 +11,11 @@ type PronunciationFeedback = {
         feedback?: string;
         confidence: number;
     }>;
-    // Thêm các trường mới từ Groq
+    // Thêm các trường mới
     detailedFeedback?: string;
     improvementSuggestions?: string[];
     commonErrors?: string[];
+    recordedText?: string; // Thêm trường này để trả về văn bản đã nhận dạng
 };
 
 // Xử lý lỗi API
@@ -36,8 +35,10 @@ const validateInputData = (
 ) => {
     const errors: string[] = [];
 
-    if (!recordedText || typeof recordedText !== "string") {
-        errors.push("recordedText is required and must be a string");
+    if (!recordedText && recordedText !== "") {
+        errors.push("recordedText is required (can be empty string)");
+    } else if (typeof recordedText !== "string") {
+        errors.push("recordedText must be a string");
     }
 
     if (!originalText || typeof originalText !== "string") {
@@ -53,86 +54,51 @@ const validateInputData = (
 
 export async function POST(request: NextRequest) {
     try {
+        console.log("API pronunciation: Nhận yêu cầu mới");
         let recordedText: string = "";
         let originalText: string = "";
         let language: string = "";
 
         // Kiểm tra kiểu yêu cầu
         const contentType = request.headers.get("content-type") || "";
+        console.log("Content-Type:", contentType);
 
         if (contentType.includes("multipart/form-data")) {
             // Xử lý FormData (file âm thanh)
             try {
+                console.log(
+                    "Đang xử lý yêu cầu multipart/form-data với file âm thanh"
+                );
                 const formData = await request.formData();
+
+                // Log tất cả các keys trong formData
+                console.log("FormData keys:", Array.from(formData.keys()));
+
+                // Lấy dữ liệu từ FormData
                 const audioFile = formData.get("audio") as File;
                 originalText = formData.get("text") as string;
                 language = formData.get("language") as string;
+                // recordedText có thể được gửi trực tiếp từ client để tránh phải xử lý âm thanh trên server
+                recordedText = (formData.get("recordedText") as string) || "";
 
-                if (!audioFile || !originalText || !language) {
-                    return NextResponse.json(
-                        {
-                            error: "Missing required parameters",
-                            fields: {
-                                audioFile: !!audioFile,
-                                originalText: !!originalText,
-                                language: !!language,
-                            },
-                        },
-                        { status: 400 }
-                    );
-                }
+                console.log("Thông tin từ form:", {
+                    hasAudioFile: !!audioFile,
+                    audioFileSize: audioFile ? audioFile.size : 0,
+                    audioFileType: audioFile ? audioFile.type : "unknown",
+                    originalText: originalText,
+                    language: language,
+                    recordedText: recordedText || "không có",
+                });
 
-                // Sử dụng dịch vụ speech-to-text thực tế để chuyển đổi âm thanh thành văn bản
-                try {
+                // Chi tiết hơn về recordedText
+                if (recordedText) {
                     console.log(
-                        "Attempting to use AssemblyAI for speech-to-text..."
+                        `recordedText được nhận từ client: "${recordedText}"`
                     );
-                    recordedText = await transcribeAudioWithAssemblyAI(
-                        audioFile,
-                        language
-                    );
-                    console.log(
-                        "AssemblyAI transcription successful:",
-                        recordedText
-                    );
-                } catch (assemblyError) {
-                    console.warn(
-                        "AssemblyAI transcription failed, trying Azure:",
-                        assemblyError
-                    );
-
-                    // Nếu AssemblyAI thất bại, thử sử dụng Azure
-                    try {
-                        recordedText = await transcribeAudioWithAzure(
-                            audioFile,
-                            language
-                        );
-                        console.log(
-                            "Azure transcription successful:",
-                            recordedText
-                        );
-                    } catch (azureError) {
-                        console.warn("Azure transcription failed:", azureError);
-
-                        // Nếu cả hai dịch vụ đều thất bại, sử dụng phương pháp mô phỏng
-                        console.log("Falling back to simulation method");
-                        recordedText = await simulateAudioTranscription(
-                            audioFile,
-                            originalText,
-                            language
-                        );
-                    }
+                    console.log("Độ dài recordedText:", recordedText.length);
+                } else {
+                    console.log("Không nhận được recordedText từ client");
                 }
-            } catch (error) {
-                return handleApiError(error, "Error processing form data");
-            }
-        } else {
-            // Xử lý JSON
-            try {
-                const body = await request.json();
-                recordedText = body.recordedText;
-                originalText = body.originalText;
-                language = body.language;
 
                 // Xác thực dữ liệu đầu vào
                 const validationErrors = validateInputData(
@@ -142,6 +108,79 @@ export async function POST(request: NextRequest) {
                 );
 
                 if (validationErrors.length > 0) {
+                    console.error(
+                        "Lỗi xác thực dữ liệu đầu vào:",
+                        validationErrors
+                    );
+                    return NextResponse.json(
+                        {
+                            error: "Validation failed",
+                            details: validationErrors,
+                        },
+                        { status: 400 }
+                    );
+                }
+
+                // Nếu không có văn bản được ghi nhận, trả về kết quả với điểm thấp
+                if (!recordedText || recordedText.trim() === "") {
+                    console.log(
+                        "Không có văn bản được ghi nhận, trả về kết quả mặc định với điểm thấp"
+                    );
+                    const defaultResult: PronunciationFeedback = {
+                        overallScore: 10,
+                        feedback: [
+                            "Không thể nhận dạng được giọng nói của bạn",
+                            "Vui lòng thử nói to và rõ ràng hơn",
+                        ],
+                        wordAnalysis: originalText.split(/\s+/).map((word) => ({
+                            word,
+                            isCorrect: false,
+                            feedback: "Không thể nhận dạng",
+                            confidence: 0,
+                        })),
+                        detailedFeedback:
+                            "Hệ thống không thể nhận dạng được giọng nói của bạn. Vui lòng đảm bảo bạn đang nói vào microphone, tăng âm lượng và nói rõ ràng hơn.",
+                        improvementSuggestions: [
+                            "Nói chậm và rõ ràng hơn",
+                            "Đảm bảo microphone hoạt động tốt",
+                            "Giảm tiếng ồn xung quanh",
+                        ],
+                        commonErrors: ["Không phát hiện được lời nói"],
+                        recordedText: "",
+                    };
+                    return NextResponse.json(defaultResult);
+                }
+            } catch (error) {
+                console.error("Lỗi khi xử lý FormData:", error);
+                return handleApiError(error, "Error processing form data");
+            }
+        } else {
+            // Xử lý JSON
+            try {
+                console.log("Đang xử lý yêu cầu JSON");
+                const body = await request.json();
+                recordedText = body.recordedText;
+                originalText = body.originalText;
+                language = body.language;
+
+                console.log("Dữ liệu từ request JSON:", {
+                    recordedText: recordedText,
+                    originalText: originalText,
+                    language: language,
+                });
+
+                // Xác thực dữ liệu đầu vào
+                const validationErrors = validateInputData(
+                    recordedText,
+                    originalText,
+                    language
+                );
+
+                if (validationErrors.length > 0) {
+                    console.error(
+                        "Lỗi xác thực dữ liệu đầu vào:",
+                        validationErrors
+                    );
                     return NextResponse.json(
                         {
                             error: "Validation failed",
@@ -151,18 +190,25 @@ export async function POST(request: NextRequest) {
                     );
                 }
             } catch (error) {
+                console.error("Lỗi khi phân tích JSON:", error);
                 return handleApiError(error, "Error parsing request JSON");
             }
         }
 
         // Thực hiện phân tích phát âm sử dụng Groq LLM
         try {
+            console.log("Đang phân tích phát âm với Groq LLM...");
+            console.log(`Text gốc: "${originalText}"`);
+            console.log(`Text đã ghi: "${recordedText}"`);
+
             // Sử dụng Groq API để phân tích phát âm
+            console.log("Đang gọi Groq API để phân tích phát âm...");
             const groqAssessment = await assessPronunciationWithGroq(
                 recordedText,
                 originalText,
                 language
             );
+            console.log("Kết quả từ Groq API:", groqAssessment);
 
             // Xây dựng phản hồi dựa trên kết quả từ Groq
             const wordAnalysis = analyzeWords(recordedText, originalText);
@@ -175,13 +221,15 @@ export async function POST(request: NextRequest) {
                 detailedFeedback: groqAssessment.detailedFeedback,
                 improvementSuggestions: groqAssessment.improvementSuggestions,
                 commonErrors: groqAssessment.commonErrors,
+                recordedText: recordedText, // Trả về văn bản đã nhận dạng
             };
 
+            console.log("Phân tích phát âm hoàn tất, trả về kết quả");
             return NextResponse.json(combinedAnalysis);
         } catch (error) {
             // Sử dụng phân tích fallback nếu có lỗi với Groq
             console.error(
-                "Error using Groq, falling back to basic analysis:",
+                "Lỗi khi sử dụng Groq, đang sử dụng phân tích cơ bản:",
                 error
             );
             const analysis = analyzePronunciation(
@@ -189,47 +237,56 @@ export async function POST(request: NextRequest) {
                 originalText,
                 language
             );
+
+            // Thêm văn bản đã ghi vào kết quả
+            analysis.recordedText = recordedText;
+            console.log("Đã hoàn thành phân tích cơ bản, trả về kết quả");
+
             return NextResponse.json(analysis);
         }
     } catch (error) {
+        console.error("Lỗi nội bộ của server:", error);
         return handleApiError(error, "Internal server error");
     }
 }
 
-// Mô phỏng chuyển đổi âm thanh thành văn bản
-async function simulateAudioTranscription(
-    audioFile: File,
-    originalText: string,
-    language: string
-): Promise<string> {
-    // Mô phỏng kết quả với một số lỗi ngẫu nhiên
-    const words = originalText.split(" ");
-    const simulatedWords = words.map((word) => {
-        // 70% cơ hội giữ nguyên từ, 30% cơ hội thay đổi
-        if (Math.random() > 0.3) {
-            return word;
+// Mô phỏng chuyển đổi âm thanh thành văn bản thông minh
+function simulateTranscription(originalText: string): string {
+    console.log("Tạo mô phỏng nhận dạng giọng nói từ:", originalText);
+
+    const words = originalText.split(/\s+/);
+    let simulatedText = "";
+
+    // Mô phỏng việc nhận dạng với một số lỗi ngẫu nhiên
+    for (const word of words) {
+        // Tạo xác suất nhận dạng đúng (70-100%)
+        const accuracy = Math.random() * 0.3 + 0.7;
+
+        if (accuracy > 0.9) {
+            // Nhận dạng chính xác
+            simulatedText += word + " ";
+        } else if (accuracy > 0.8) {
+            // Nhận dạng với lỗi nhỏ
+            if (word.length > 3) {
+                // Thay đổi một ký tự
+                const pos = Math.floor(Math.random() * word.length);
+                const chars = word.split("");
+                chars[pos] = String.fromCharCode(chars[pos].charCodeAt(0) + 1);
+                simulatedText += chars.join("") + " ";
+            } else {
+                simulatedText += word + " ";
+            }
+        } else if (accuracy > 0.75) {
+            // Bỏ qua từ (mô phỏng người dùng không nói từ này)
+            continue;
+        } else {
+            // Nhận dạng với lỗi nghiêm trọng hơn
+            simulatedText +=
+                word.substring(0, Math.ceil(word.length * 0.7)) + " ";
         }
+    }
 
-        // Mô phỏng các lỗi phát âm phổ biến
-        if (word.length <= 2) return word;
-
-        const errors = [
-            // Thay thế nguyên âm
-            word.replace(/[aeiou]/i, "a"),
-            // Bỏ phụ âm cuối
-            word.replace(/[bcdfghjklmnpqrstvwxyz]$/i, ""),
-            // Thêm một phụ âm ở cuối
-            word + "s",
-            // Đảo nguyên âm
-            word.replace(/([aeiou])([aeiou])/i, "$2$1"),
-            // Hoặc giữ nguyên từ
-            word,
-        ];
-
-        return errors[Math.floor(Math.random() * errors.length)];
-    });
-
-    return simulatedWords.join(" ");
+    return simulatedText.trim();
 }
 
 // Phân tích từng từ để tạo thông tin trực quan
@@ -237,11 +294,11 @@ function analyzeWords(recordedText: string, originalText: string) {
     const words = originalText
         .toLowerCase()
         .replace(/[.,?!]/g, "")
-        .split(" ");
+        .split(/\s+/);
     const recordedWords = recordedText
         .toLowerCase()
         .replace(/[.,?!]/g, "")
-        .split(" ");
+        .split(/\s+/);
 
     // Tạo dữ liệu phân tích cho từng từ
     return words.map((word, index) => {
@@ -249,93 +306,192 @@ function analyzeWords(recordedText: string, originalText: string) {
         const similarity = calculateSimilarity(word, recorded);
         const isCorrect = similarity > 0.7;
 
+        let feedback = "";
+        if (similarity > 0.9) {
+            feedback = "Phát âm tốt";
+        } else if (similarity > 0.7) {
+            feedback = "Phát âm khá tốt";
+        } else if (similarity > 0.5) {
+            feedback = "Phát âm cần cải thiện";
+        } else if (similarity > 0.3) {
+            feedback = "Phát âm có nhiều lỗi";
+        } else {
+            feedback = "Không phát hiện hoặc phát âm sai";
+        }
+
         return {
             word,
             isCorrect,
-            confidence: similarity,
-            feedback: isCorrect
-                ? undefined
-                : `Try focusing on this word: "${word}"`,
+            feedback,
+            confidence: Math.round(similarity * 100),
         };
     });
 }
 
-// Hàm phân tích phát âm mô phỏng (fallback khi Groq không hoạt động)
 function analyzePronunciation(
     recordedText: string,
     originalText: string,
     language: string
 ): PronunciationFeedback {
-    const wordAnalysis = analyzeWords(recordedText, originalText);
+    // Tách thành các từ riêng biệt
+    const originalWords = originalText.toLowerCase().split(/\s+/);
+    const recordedWords = recordedText.toLowerCase().split(/\s+/);
 
-    const overallScore = Math.floor(
-        (wordAnalysis.reduce((sum, w) => sum + (w.isCorrect ? 1 : 0), 0) /
-            wordAnalysis.length) *
-            100
-    );
+    // Tính số từ đúng và phân tích từng từ
+    let correctWordsCount = 0;
+    const wordAnalysis = originalWords.map((originalWord, index) => {
+        const recordedWord =
+            index < recordedWords.length ? recordedWords[index] : "";
 
-    // Tạo phản hồi tổng quan
-    const generalFeedback = [
-        overallScore > 80
-            ? "Excellent pronunciation!"
-            : "Good effort, keep practicing!",
-        overallScore > 70
-            ? "Your rhythm is natural"
-            : "Try to maintain a more natural rhythm",
-        overallScore > 60
-            ? "Stress patterns are good"
-            : "Work on word stress patterns",
+        // Tính độ tương đồng
+        const similarity = calculateSimilarity(originalWord, recordedWord);
+        const isCorrect = similarity > 0.7;
+
+        if (isCorrect) {
+            correctWordsCount++;
+        }
+
+        // Phản hồi cụ thể cho từng từ
+        let feedback = "";
+        if (similarity > 0.9) {
+            feedback = "Phát âm tốt";
+        } else if (similarity > 0.7) {
+            feedback = "Phát âm khá tốt";
+        } else if (similarity > 0.5) {
+            feedback = "Phát âm cần cải thiện";
+        } else if (similarity > 0.3) {
+            feedback = "Phát âm có nhiều lỗi";
+        } else {
+            feedback = "Không phát hiện hoặc phát âm sai";
+        }
+
+        return {
+            word: originalWord,
+            isCorrect,
+            feedback,
+            confidence: Math.round(similarity * 100),
+        };
+    });
+
+    // Tính điểm tổng thể
+    const overallScore =
+        originalWords.length > 0
+            ? Math.round((correctWordsCount / originalWords.length) * 100)
+            : 0;
+
+    // Tạo phản hồi dựa trên điểm số
+    const feedback: string[] = [];
+    if (overallScore >= 90) {
+        feedback.push("Phát âm xuất sắc!");
+        feedback.push("Bạn đã phát âm hầu hết các từ chính xác.");
+    } else if (overallScore >= 70) {
+        feedback.push("Phát âm tốt!");
+        feedback.push(
+            "Bạn đã phát âm đúng nhiều từ, nhưng vẫn còn một số lỗi nhỏ."
+        );
+    } else if (overallScore >= 50) {
+        feedback.push("Phát âm cần cải thiện.");
+        feedback.push(
+            "Bạn đã phát âm đúng một nửa số từ. Hãy tiếp tục luyện tập."
+        );
+    } else {
+        feedback.push("Phát âm cần nhiều luyện tập.");
+        feedback.push(
+            "Bạn đang gặp khó khăn với phát âm. Hãy tập trung vào từng từ một."
+        );
+    }
+
+    // Phân tích chi tiết
+    const detailedFeedback = `Bạn đã phát âm đúng ${correctWordsCount}/${
+        originalWords.length
+    } từ (${overallScore}%). ${
+        overallScore >= 70
+            ? "Phát âm của bạn khá tự nhiên và rõ ràng."
+            : "Hãy tập trung vào việc phát âm từng từ một cách chậm rãi và rõ ràng hơn."
+    }`;
+
+    // Gợi ý cải thiện
+    const incorrectWords = wordAnalysis.filter((w) => !w.isCorrect);
+    const improvementSuggestions: string[] = [
+        "Luyện tập phát âm từng từ một cách chậm rãi.",
+        "Nghe và bắt chước người bản xứ phát âm.",
+        incorrectWords.length > 0
+            ? `Tập trung vào các từ: ${incorrectWords
+                  .slice(0, 3)
+                  .map((w) => w.word)
+                  .join(", ")}${incorrectWords.length > 3 ? "..." : ""}`
+            : "Tiếp tục luyện tập để phát âm tự nhiên hơn.",
     ];
+
+    // Xác định lỗi phổ biến
+    const commonErrors: string[] = [];
+
+    // Nhiều từ bị bỏ qua
+    if (recordedWords.length < originalWords.length * 0.8) {
+        commonErrors.push("Bạn bỏ qua một số từ khi phát âm.");
+    }
+
+    // Nhiều từ phát âm sai
+    if (incorrectWords.length > originalWords.length * 0.3) {
+        commonErrors.push("Bạn phát âm không chính xác nhiều từ.");
+    }
+
+    // Phát âm quá nhanh hoặc không rõ ràng
+    if (overallScore < 60) {
+        commonErrors.push("Phát âm quá nhanh hoặc không rõ ràng.");
+    }
 
     return {
         overallScore,
-        feedback: generalFeedback,
+        feedback,
         wordAnalysis,
+        detailedFeedback,
+        improvementSuggestions,
+        commonErrors,
     };
 }
 
-// Tính độ tương đồng giữa hai chuỗi (mô phỏng)
+// Tính toán độ tương đồng giữa hai chuỗi
 function calculateSimilarity(original: string, recorded: string): number {
     if (!recorded) return 0;
 
-    // Tính Levenshtein distance đơn giản
-    function levenshteinDistance(a: string, b: string) {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
-
-        const matrix: number[][] = [];
-
-        // Khởi tạo ma trận
-        for (let i = 0; i <= b.length; i++) {
-            matrix[i] = [i];
-        }
-
-        for (let i = 0; i <= a.length; i++) {
-            matrix[0][i] = i;
-        }
-
-        // Điền ma trận
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1, // Thay thế
-                        matrix[i][j - 1] + 1, // Chèn
-                        matrix[i - 1][j] + 1 // Xóa
-                    );
-                }
-            }
-        }
-
-        return matrix[b.length][a.length];
-    }
-
     const distance = levenshteinDistance(original, recorded);
     const maxLength = Math.max(original.length, recorded.length);
-    const similarity = 1 - distance / maxLength;
 
-    // Thêm một chút ngẫu nhiên để có kết quả đa dạng hơn
-    return Math.min(1, Math.max(0.4, similarity * 0.7 + Math.random() * 0.3));
+    // Tính toán điểm tương đồng theo phần trăm
+    return maxLength > 0 ? Math.max(0, 1 - distance / maxLength) : 1;
+}
+
+// Thuật toán Levenshtein Distance để tính khoảng cách giữa hai chuỗi
+function levenshteinDistance(a: string, b: string): number {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix: number[][] = [];
+
+    // Khởi tạo ma trận
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+    }
+
+    // Tính toán khoảng cách
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, // Thay thế
+                    matrix[i][j - 1] + 1, // Chèn
+                    matrix[i - 1][j] + 1 // Xóa
+                );
+            }
+        }
+    }
+
+    return matrix[b.length][a.length];
 }

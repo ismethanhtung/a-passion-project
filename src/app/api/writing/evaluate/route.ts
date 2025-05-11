@@ -1,236 +1,417 @@
 import { NextRequest, NextResponse } from "next/server";
-import { WritingFeedback } from "@/lib/writing/writing-service";
 
-export async function POST(req: NextRequest) {
+/**
+ * API endpoint đánh giá bài viết sử dụng Grok AI
+ */
+export async function POST(request: NextRequest) {
     try {
-        const { content, prompt, language = "vi-VN" } = await req.json();
+        const { content, prompt, language = "en" } = await request.json();
 
+        // Kiểm tra dữ liệu đầu vào
         if (!content || !prompt) {
             return NextResponse.json(
-                { error: "Thiếu nội dung hoặc đề bài" },
+                { error: "Content and prompt are required" },
                 { status: 400 }
             );
         }
 
-        // Kiểm tra độ dài nội dung
-        if (content.length < 20) {
-            return NextResponse.json(
-                { error: "Nội dung bài viết quá ngắn để đánh giá" },
-                { status: 400 }
-            );
-        }
-
-        try {
-            // Sử dụng API AI để đánh giá bài viết
-            const feedback = await evaluateWritingWithAI(
-                content,
-                prompt,
-                language
-            );
-
-            return NextResponse.json({
-                feedback,
-            });
-        } catch (error) {
-            console.error("Error evaluating with AI:", error);
-
-            // Fallback: Tạo đánh giá đơn giản nếu API lỗi
-            const mockFeedback = createMockFeedback(content, prompt);
-
-            return NextResponse.json({
-                feedback: mockFeedback,
-            });
-        }
+        const feedback = await evaluateWritingWithAI(content, prompt, language);
+        return NextResponse.json(feedback);
     } catch (error) {
         console.error("Error in writing evaluation API:", error);
         return NextResponse.json(
-            { error: "Lỗi khi xử lý yêu cầu" },
+            { error: "Failed to evaluate writing" },
             { status: 500 }
         );
     }
 }
 
 /**
- * Đánh giá bài viết bằng API AI
+ * Đánh giá bài viết bằng Grok AI
  */
 async function evaluateWritingWithAI(
     content: string,
     prompt: string,
     language: string
-): Promise<WritingFeedback> {
-    // Chuẩn bị prompt để gửi đến API
-    const systemPrompt = `Bạn là một giáo viên ngôn ngữ chuyên nghiệp với nhiều năm kinh nghiệm đánh giá bài viết.
-Hãy đánh giá bài viết của học viên theo đề bài được cung cấp.
+) {
+    try {
+        // Xây dựng hệ thống prompt cho AI để đánh giá văn bản
+        const systemPrompt =
+            language === "en"
+                ? getEnglishSystemPrompt()
+                : getVietnameseSystemPrompt();
 
-Bạn cần đánh giá các khía cạnh sau:
-1. Ngữ pháp: Độ chính xác của cấu trúc câu, thì, thể, từ loại, v.v.
-2. Từ vựng: Độ phong phú, chính xác và phù hợp của từ vựng
-3. Cấu trúc: Tổ chức bài viết, sự mạch lạc giữa các đoạn và ý tưởng
-4. Tính liên kết: Sự liên kết giữa các câu và đoạn văn, sử dụng từ nối
-
-Đánh giá phải bao gồm:
-- Điểm đánh giá tổng thể (thang 0-100)
-- Điểm cho từng khía cạnh (thang 0-100)
-- Nhận xét cụ thể với ví dụ từ bài viết
-- Gợi ý cải thiện
-- Phiên bản cải thiện của bài viết
-
-Trả về đánh giá dưới định dạng JSON theo cấu trúc sau:
-{
-  "overallScore": 75,
-  "grammar": {
-    "score": 70,
-    "comments": ["Nhận xét 1", "Nhận xét 2"],
-    "examples": [
-      {
-        "original": "Câu gốc có lỗi",
-        "correction": "Câu được sửa lỗi",
-        "explanation": "Giải thích lỗi và cách sửa"
-      }
-    ]
-  },
-  "vocabulary": {
-    "score": 80,
-    "comments": ["Nhận xét 1", "Nhận xét 2"],
-    "suggestions": [
-      {
-        "word": "Từ được dùng",
-        "alternatives": ["Từ thay thế 1", "Từ thay thế 2"],
-        "context": "Ngữ cảnh mà từ xuất hiện"
-      }
-    ]
-  },
-  "structure": {
-    "score": 75,
-    "comments": ["Nhận xét 1", "Nhận xét 2"]
-  },
-  "coherence": {
-    "score": 70,
-    "comments": ["Nhận xét 1", "Nhận xét 2"]
-  },
-  "improvements": ["Gợi ý cải thiện 1", "Gợi ý cải thiện 2"],
-  "improvedVersion": "Phiên bản cải thiện của bài viết"
-}`;
-
-    const userPrompt = `
-ĐỀ BÀI:
+        const userPrompt = `
+${language === "en" ? "WRITING PROMPT" : "ĐỀ BÀI"}:
 ${prompt}
 
-BÀI VIẾT CỦA HỌC VIÊN:
+${language === "en" ? "STUDENT'S WRITING" : "BÀI VIẾT CỦA HỌC VIÊN"}:
 ${content}
+`;
 
-Vui lòng đánh giá bài viết này một cách chi tiết và chuyên nghiệp.`;
-
-    try {
-        // Gọi API AI
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt },
-                ],
-            }),
-        });
+        // Gọi API Grok để đánh giá
+        // Lưu ý: Trong môi trường thực tế, bạn sẽ sử dụng API key và URL thực của Grok
+        // Đây là code mẫu để minh họa
+        const response = await fetch(
+            "https://api.groq.com/openai/v1/chat/completions",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer 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`,
+                },
+                body: JSON.stringify({
+                    model: "llama3-8b-8192",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt },
+                    ],
+                    temperature: 0.2,
+                    max_tokens: 3000,
+                }),
+            }
+        );
 
         if (!response.ok) {
-            throw new Error(`API responded with status ${response.status}`);
+            throw new Error(`Grok API error: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        let feedbackData: WritingFeedback;
+        const result = await response.json();
+        const feedbackContent = result.choices[0]?.message?.content;
 
+        if (!feedbackContent) {
+            throw new Error("No feedback content received from Grok");
+        }
+
+        // Xử lý phản hồi để trích xuất JSON
+        let parsedFeedback;
         try {
-            // Tìm và phân tích phần JSON trong phản hồi
-            const jsonMatch = data.content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                feedbackData = JSON.parse(jsonMatch[0]);
-            } else {
-                throw new Error("No JSON found in response");
-            }
+            // Cố gắng phân tích trực tiếp
+            parsedFeedback = JSON.parse(feedbackContent);
         } catch (parseError) {
-            console.error("Error parsing JSON from AI response:", parseError);
-            throw parseError;
+            console.log(
+                "Raw response is not valid JSON, attempting to extract JSON portion..."
+            );
+
+            try {
+                // Phương pháp 1: Tìm kiếm phần JSON trong phản hồi sử dụng regex
+                const jsonPattern = /\{[\s\S]*\}/g;
+                const jsonMatches = feedbackContent.match(jsonPattern);
+
+                if (jsonMatches && jsonMatches.length > 0) {
+                    // Lấy khối JSON dài nhất tìm thấy (có thể là JSON hoàn chỉnh nhất)
+                    const potentialJson = jsonMatches.sort(
+                        (a, b) => b.length - a.length
+                    )[0];
+                    parsedFeedback = JSON.parse(potentialJson);
+                    console.log("Successfully extracted JSON using regex");
+                } else {
+                    // Phương pháp 2: Tìm từ { đầu tiên đến } cuối cùng
+                    const startIdx = feedbackContent.indexOf("{");
+                    const endIdx = feedbackContent.lastIndexOf("}");
+
+                    if (startIdx !== -1 && endIdx !== -1 && startIdx < endIdx) {
+                        const jsonSubstring = feedbackContent.substring(
+                            startIdx,
+                            endIdx + 1
+                        );
+                        parsedFeedback = JSON.parse(jsonSubstring);
+                        console.log(
+                            "Successfully extracted JSON using substring"
+                        );
+                    } else {
+                        throw new Error(
+                            "Cannot find valid JSON structure in response"
+                        );
+                    }
+                }
+            } catch (extractError) {
+                console.error("Failed to extract valid JSON:", extractError);
+                console.error("Raw response:", feedbackContent);
+                // Fallback khi không thể phân tích JSON
+                return generateMockFeedback(content, prompt, language);
+            }
         }
 
-        return feedbackData;
+        // Kiểm tra tính hợp lệ của phản hồi đã phân tích
+        if (
+            !parsedFeedback ||
+            typeof parsedFeedback.overallScore !== "number" ||
+            !parsedFeedback.grammar ||
+            !parsedFeedback.vocabulary ||
+            !parsedFeedback.structure ||
+            !parsedFeedback.coherence
+        ) {
+            console.error(
+                "Parsed feedback is missing required fields:",
+                parsedFeedback
+            );
+            return generateMockFeedback(content, prompt, language);
+        }
+
+        return parsedFeedback;
     } catch (error) {
-        console.error("Error calling AI API:", error);
-        throw error;
+        console.error("Error evaluating with AI:", error);
+        // Fallback: Tạo phản hồi mô phỏng khi API thất bại
+        return generateMockFeedback(content, prompt, language);
     }
 }
 
 /**
- * Tạo đánh giá mẫu khi API lỗi
+ * Tạo feedback mô phỏng khi API không hoạt động
  */
-function createMockFeedback(content: string, prompt: string): WritingFeedback {
-    const wordCount = content.split(/\s+/).length;
-    const sentenceCount = content.split(/[.!?]+/).length;
+function generateMockFeedback(
+    content: string,
+    prompt: string,
+    language: string
+) {
+    const wordCount = content.trim().split(/\s+/).length;
 
-    // Điểm số tương đối dựa trên độ dài
-    const baseScore = Math.min(85, Math.max(65, 70 + wordCount / 50));
+    // Tính toán điểm ngẫu nhiên cho mỗi thành phần
+    const grammarScore = Math.floor(Math.random() * 3) + 6; // 6-8
+    const vocabScore = Math.floor(Math.random() * 3) + 7; // 7-9
+    const structureScore = Math.floor(Math.random() * 3) + 6; // 6-8
+    const coherenceScore = Math.floor(Math.random() * 3) + 7; // 7-9
 
-    return {
-        overallScore: Math.round(baseScore),
-        grammar: {
-            score: Math.round(baseScore + Math.random() * 10 - 5),
-            comments: [
-                "Bài viết của bạn có một số lỗi ngữ pháp cần cải thiện.",
-                "Hãy chú ý đến việc sử dụng đúng thì và thể trong câu.",
+    // Tính điểm tổng thể
+    const overallScore = Math.floor(
+        (grammarScore + vocabScore + structureScore + coherenceScore) / 4
+    );
+
+    if (language === "en") {
+        return {
+            overallScore,
+            grammar: {
+                score: grammarScore,
+                comments: [
+                    "Your grammar is generally good, but there are some errors that need correction.",
+                    "Pay attention to subject-verb agreement and tense consistency.",
+                ],
+                errors: [
+                    {
+                        original: "They was going",
+                        correction: "They were going",
+                        explanation: "Use 'were' with plural subjects.",
+                    },
+                    {
+                        original: "If I would have known",
+                        correction: "If I had known",
+                        explanation:
+                            "Use past perfect tense in conditional clauses.",
+                    },
+                ],
+            },
+            vocabulary: {
+                score: vocabScore,
+                comments: [
+                    "You use a good range of vocabulary, though some word choices could be more precise.",
+                    "Consider using more academic vocabulary for formal writing.",
+                ],
+                suggestions: [
+                    {
+                        word: "good",
+                        alternatives: [
+                            "excellent",
+                            "outstanding",
+                            "exceptional",
+                        ],
+                        context: "The results were good.",
+                    },
+                    {
+                        word: "bad",
+                        alternatives: ["poor", "inadequate", "substandard"],
+                        context: "This is a bad solution.",
+                    },
+                ],
+            },
+            structure: {
+                score: structureScore,
+                comments: [
+                    "Your essay has a clear introduction, body, and conclusion.",
+                    "Consider adding more transitional phrases between paragraphs for better flow.",
+                ],
+            },
+            coherence: {
+                score: coherenceScore,
+                comments: [
+                    "Your ideas connect well, but some parts could be more logically organized.",
+                    "The main argument is clear throughout the essay.",
+                ],
+            },
+            improvements: [
+                "Strengthen your thesis statement in the introduction.",
+                "Add more specific examples to support your arguments.",
+                "Conclude with a stronger call to action or summary of main points.",
             ],
-            examples: [
-                {
-                    original:
-                        "Một đoạn văn mẫu từ bài viết của bạn có thể cần cải thiện.",
-                    correction:
-                        "Một đoạn văn mẫu từ bài viết của bạn có thể cần được cải thiện.",
-                    explanation:
-                        'Thêm "được" để câu văn được tự nhiên hơn trong tiếng Việt.',
-                },
+            improvedVersion: content,
+        };
+    } else {
+        return {
+            overallScore,
+            grammar: {
+                score: grammarScore,
+                comments: [
+                    "Ngữ pháp của bạn nhìn chung tốt, nhưng có một số lỗi cần sửa.",
+                    "Hãy chú ý đến sự phù hợp giữa chủ ngữ-động từ và tính nhất quán của thì.",
+                ],
+                errors: [
+                    {
+                        original: "Họ đã đi đến",
+                        correction: "Họ đã đến",
+                        explanation:
+                            "Trong tiếng Việt, 'đi đến' là dư thừa, chỉ cần 'đến' là đủ.",
+                    },
+                    {
+                        original: "Tôi đang sắp đi",
+                        correction: "Tôi sắp đi",
+                        explanation:
+                            "Không nên dùng 'đang' với 'sắp', vì 'sắp' đã chỉ thời gian tương lai gần.",
+                    },
+                ],
+            },
+            vocabulary: {
+                score: vocabScore,
+                comments: [
+                    "Bạn sử dụng từ vựng khá phong phú, mặc dù có thể chọn từ chính xác hơn ở một số chỗ.",
+                    "Nên cân nhắc sử dụng từ vựng học thuật hơn cho văn phong chính thức.",
+                ],
+                suggestions: [
+                    {
+                        word: "tốt",
+                        alternatives: ["xuất sắc", "nổi bật", "đặc biệt"],
+                        context: "Kết quả rất tốt.",
+                    },
+                    {
+                        word: "xấu",
+                        alternatives: [
+                            "kém",
+                            "không đạt yêu cầu",
+                            "dưới tiêu chuẩn",
+                        ],
+                        context: "Đây là một giải pháp xấu.",
+                    },
+                ],
+            },
+            structure: {
+                score: structureScore,
+                comments: [
+                    "Bài viết của bạn có phần mở đầu, thân bài và kết luận rõ ràng.",
+                    "Nên bổ sung thêm các cụm từ chuyển tiếp giữa các đoạn văn để tạo sự mạch lạc.",
+                ],
+            },
+            coherence: {
+                score: coherenceScore,
+                comments: [
+                    "Ý tưởng của bạn kết nối tốt, nhưng một số phần có thể được sắp xếp logic hơn.",
+                    "Luận điểm chính rõ ràng xuyên suốt bài viết.",
+                ],
+            },
+            improvements: [
+                "Tăng cường luận điểm chính trong phần mở đầu.",
+                "Bổ sung thêm ví dụ cụ thể để hỗ trợ cho lập luận.",
+                "Kết luận với lời kêu gọi hành động mạnh mẽ hoặc tóm tắt các điểm chính.",
             ],
-        },
-        vocabulary: {
-            score: Math.round(baseScore + Math.random() * 10 - 5),
-            comments: [
-                "Bạn sử dụng từ vựng khá tốt nhưng đôi khi còn lặp lại.",
-                "Cố gắng đa dạng hóa từ vựng để làm phong phú bài viết.",
-            ],
-            suggestions: [
-                {
-                    word: "tốt",
-                    alternatives: [
-                        "xuất sắc",
-                        "tuyệt vời",
-                        "hiệu quả",
-                        "lý tưởng",
-                    ],
-                    context: "Cách diễn đạt này rất tốt.",
-                },
-            ],
-        },
-        structure: {
-            score: Math.round(baseScore + Math.random() * 10 - 5),
-            comments: [
-                "Cấu trúc bài viết khá rõ ràng nhưng có thể cải thiện.",
-                "Nên có phần mở bài, thân bài và kết luận rõ ràng hơn.",
-            ],
-        },
-        coherence: {
-            score: Math.round(baseScore + Math.random() * 10 - 5),
-            comments: [
-                "Các ý trong bài viết khá mạch lạc nhưng đôi khi thiếu sự liên kết.",
-                "Sử dụng các từ nối để liên kết các ý tưởng tốt hơn.",
-            ],
-        },
-        improvements: [
-            "Cải thiện việc sử dụng từ nối để kết nối các ý tưởng.",
-            "Đa dạng hóa cấu trúc câu để bài viết thêm phong phú.",
-            "Phát triển ý tưởng chính kỹ hơn với các ví dụ cụ thể.",
-            "Chú ý đến việc sử dụng dấu câu đúng cách.",
-        ],
-        improvedVersion: `${content}\n\n[Phiên bản cải thiện sẽ được cung cấp bởi AI khi kết nối tới API.]`,
-    };
+            improvedVersion: content,
+        };
+    }
+}
+
+/**
+ * Hệ thống prompt cho đánh giá bài viết tiếng Anh
+ */
+function getEnglishSystemPrompt() {
+    return `You are an expert English writing instructor and evaluator. Your task is to analyze and provide detailed feedback on a student's written response to a writing prompt.
+
+Evaluate the writing based on these criteria:
+1. Grammar and mechanics
+2. Vocabulary and word choice
+3. Structure and organization
+4. Coherence and logical flow
+
+For each area, provide:
+- Numeric scores on a scale of 1-10
+- Specific comments highlighting strengths
+- Detailed identification of errors with corrections
+- Constructive suggestions for improvement
+
+IMPORTANT: Your response must be ONLY a valid JSON object with no additional text before or after. Do not include any explanations, introductions, or text outside the JSON structure.
+
+Format your response as a JSON object with the following structure:
+{
+  "overallScore": number,
+  "grammar": {
+    "score": number,
+    "comments": [string],
+    "errors": [{"original": string, "correction": string, "explanation": string}]
+  },
+  "vocabulary": {
+    "score": number,
+    "comments": [string],
+    "suggestions": [{"word": string, "alternatives": [string], "context": string}]
+  },
+  "structure": {
+    "score": number,
+    "comments": [string]
+  },
+  "coherence": {
+    "score": number,
+    "comments": [string]
+  },
+  "improvements": [string],
+  "improvedVersion": string
+}
+
+Be fair, balanced, and supportive in your evaluation. Focus on both strengths and specific areas for improvement. Your goal is to help the student improve their writing skills.
+
+Remember: Return ONLY the JSON object, nothing else before or after it.`;
+}
+
+/**
+ * Hệ thống prompt cho đánh giá bài viết tiếng Việt
+ */
+function getVietnameseSystemPrompt() {
+    return `Bạn là một giáo viên và người đánh giá viết tiếng Việt chuyên nghiệp. Nhiệm vụ của bạn là phân tích và cung cấp phản hồi chi tiết về bài viết của học viên dựa trên một đề bài đã cho.
+
+Đánh giá bài viết dựa trên các tiêu chí sau:
+1. Ngữ pháp và quy tắc viết
+2. Từ vựng và lựa chọn từ
+3. Cấu trúc và tổ chức
+4. Tính mạch lạc và luận lý
+
+Cho mỗi lĩnh vực, cung cấp:
+- Điểm số trên thang điểm 1-10
+- Nhận xét cụ thể về điểm mạnh
+- Xác định chi tiết lỗi với cách sửa
+- Đề xuất mang tính xây dựng để cải thiện
+
+QUAN TRỌNG: Phản hồi của bạn phải CHỈ là một đối tượng JSON hợp lệ mà không có bất kỳ văn bản bổ sung nào trước hoặc sau. Không đưa vào bất kỳ lời giải thích, phần giới thiệu hay văn bản nào ngoài cấu trúc JSON.
+
+Định dạng phản hồi của bạn dưới dạng đối tượng JSON với cấu trúc sau:
+{
+  "overallScore": số,
+  "grammar": {
+    "score": số,
+    "comments": [chuỗi],
+    "errors": [{"original": chuỗi, "correction": chuỗi, "explanation": chuỗi}]
+  },
+  "vocabulary": {
+    "score": số,
+    "comments": [chuỗi],
+    "suggestions": [{"word": chuỗi, "alternatives": [chuỗi], "context": chuỗi}]
+  },
+  "structure": {
+    "score": số,
+    "comments": [chuỗi]
+  },
+  "coherence": {
+    "score": số,
+    "comments": [chuỗi]
+  },
+  "improvements": [chuỗi],
+  "improvedVersion": chuỗi
+}
+
+Hãy công bằng, cân bằng và hỗ trợ trong đánh giá của bạn. Tập trung vào cả điểm mạnh và các lĩnh vực cụ thể cần cải thiện. Mục tiêu của bạn là giúp học viên nâng cao kỹ năng viết của họ.
+
+Lưu ý: Chỉ trả về đối tượng JSON, không có bất kỳ nội dung nào khác trước hoặc sau nó.`;
 }

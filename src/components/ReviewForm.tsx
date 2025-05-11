@@ -42,7 +42,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
                     key={starValue}
                     onClick={() => setRating(starValue)}
                     className={`cursor-pointer ${
-                        rating !== null && starValue <= rating ? "text-yellow-500" : "text-gray-400"
+                        rating !== null && starValue <= rating
+                            ? "text-yellow-500"
+                            : "text-gray-400"
                     }`}
                 >
                     ★
@@ -56,7 +58,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, onReviewAdded }) => {
             <div>
                 <div className="flex space-x-1 py-3">{renderStars()}</div>
                 <p className="text-sm text-gray-500">
-                    {rating === null ? "No rating selected." : `Rating: ${rating}/5`}
+                    {rating === null
+                        ? "No rating selected."
+                        : `Rating: ${rating}/5`}
                 </p>
             </div>
             <div className="py-3">

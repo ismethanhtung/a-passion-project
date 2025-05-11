@@ -56,14 +56,30 @@ export async function assessPronunciationWithGroq(
     originalText: string,
     language: string
 ): Promise<PronunciationAssessment> {
-    // Nếu GROQ_API_KEY không tồn tại, trả về đánh giá mặc định
-    if (!process.env.GROQ_API_KEY) {
-        console.warn("GROQ_API_KEY not found, returning mock assessment");
+    console.log("Bắt đầu đánh giá phát âm với Groq LLM...");
+
+    // Kiểm tra GROQ_API_KEY
+    const groqApiKey =
+        process.env.GROQ_API_KEY ||
+        "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";
+
+    if (!groqApiKey) {
+        console.warn("GROQ_API_KEY không tìm thấy, sử dụng đánh giá mặc định");
         return createMockAssessment(recordedText, originalText);
     }
 
     try {
+        console.log("Tạo prompt cho Groq API...");
         const prompt = createPrompt(recordedText, originalText, language);
+        console.log("Độ dài prompt:", prompt.length, "ký tự");
+
+        console.log("Gửi yêu cầu đến Groq API...");
+        console.log("Thông tin yêu cầu:", {
+            model: "llama3-8b-8192",
+            recordedTextLength: recordedText.length,
+            originalTextLength: originalText.length,
+            language,
+        });
 
         const response = await axios.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -86,30 +102,53 @@ export async function assessPronunciationWithGroq(
             {
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    Authorization: `Bearer ${groqApiKey}`,
                 },
             }
         );
 
+        console.log("Đã nhận phản hồi từ Groq API:", {
+            status: response.status,
+            hasChoices: !!response.data.choices,
+            choicesLength: response.data.choices?.length,
+        });
+
         // Phân tích phản hồi từ LLM
         const content = response.data.choices[0]?.message?.content;
         if (!content) {
+            console.error("Không có nội dung trong phản hồi từ Groq API");
             throw new Error("No content in Groq API response");
         }
+
+        console.log(
+            "Nội dung phản hồi từ Groq (một phần):",
+            content.substring(0, 100) + "..."
+        );
 
         // Trích xuất JSON từ phản hồi
         try {
             // Làm sạch phản hồi (loại bỏ các ký tự không phải JSON nếu có)
             const jsonString = content.replace(/```json|```/g, "").trim();
+            console.log(
+                "Chuỗi JSON (một phần):",
+                jsonString.substring(0, 100) + "..."
+            );
+
             const assessment = JSON.parse(jsonString);
+            console.log("Đã phân tích thành công JSON từ phản hồi Groq");
+            console.log("Điểm đánh giá:", assessment.overallScore);
+            console.log("Số lượng phản hồi:", assessment.feedback?.length || 0);
+
             return assessment;
         } catch (parseError) {
-            console.error("Error parsing Groq response:", parseError);
-            console.log("Raw response:", content);
+            console.error("Lỗi khi phân tích phản hồi từ Groq:", parseError);
+            console.log("Nội dung phản hồi gốc:", content);
             throw new Error("Failed to parse Groq response as JSON");
         }
     } catch (error) {
-        console.error("Error calling Groq API:", error);
+        console.error("Lỗi khi gọi Groq API:", error);
+        console.log("Đang chuyển sang đánh giá mặc định...");
+
         // Trả về đánh giá mặc định nếu có lỗi
         return createMockAssessment(recordedText, originalText);
     }

@@ -159,9 +159,9 @@ export default function Navbar() {
             path: "/learning",
             icon: <BookOpen className="mr-2 h-4 w-4" />,
             children: [
-                { title: "Learning Paths", path: "/learning/paths" },
+                { title: "Learning Paths", path: "/learning-paths" },
                 { title: "Learning Programs", path: "/learning/programs" },
-                { title: "Flashcards", path: "/flashcards" },
+                { title: "Flashcards", path: "/flashcard" },
             ],
         },
         {
@@ -169,10 +169,11 @@ export default function Navbar() {
             path: "/resources",
             icon: <FileText className="mr-2 h-4 w-4" />,
             children: [
-                { title: "Blog", path: "/blog" },
+                { title: "Blog", path: "/blogs" },
                 { title: "Documentation", path: "/docs" },
                 { title: "Forum", path: "/forum" },
                 { title: "Pronunciation Coach", path: "/pronunciation" },
+                { title: "Writing", path: "/writing-practice" },
             ],
         },
     ];
@@ -512,6 +513,14 @@ export default function Navbar() {
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         Profile
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a
+                                                        href="/cart"
+                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    >
+                                                        Cart
                                                     </a>
                                                 </li>
                                                 <li>

@@ -1,18 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     WritingService,
     WritingResponse,
     WritingFeedback,
 } from "@/lib/writing/writing-service";
 import Button from "@/components/ui/button";
-import Link from "next/link";
 
 export default function FeedbackPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const writingId = searchParams.get("id");
+
     const [loading, setLoading] = useState(true);
-    const [writingResponse, setWritingResponse] =
-        useState<WritingResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [writing, setWriting] = useState<WritingResponse | null>(null);
     const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
     const [activeTab, setActiveTab] = useState<
         "overview" | "grammar" | "vocabulary" | "structure" | "improvement"
@@ -20,75 +26,117 @@ export default function FeedbackPage() {
 
     const writingService = WritingService.getInstance();
 
+    // Lấy dữ liệu bài viết và feedback
     useEffect(() => {
-        // Lấy bài viết mới nhất từ localStorage
-        const savedResponses = writingService.getSavedWritingResponses();
-        if (savedResponses.length > 0) {
-            const latestResponse = savedResponses[savedResponses.length - 1];
-            setWritingResponse(latestResponse);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                if (!writingId) {
+                    setError("No writing ID provided");
+                    setLoading(false);
+                    return;
+                }
 
-            // Lấy đánh giá cho bài viết
-            getFeedback(latestResponse);
-        } else {
-            setLoading(false);
-        }
-    }, []);
+                // Lấy thông tin bài viết từ localStorage
+                const writingData =
+                    writingService.getWritingResponseById(writingId);
+                if (!writingData) {
+                    setError("Writing not found");
+                    setLoading(false);
+                    return;
+                }
+                setWriting(writingData);
 
-    const getFeedback = async (response: WritingResponse) => {
-        setLoading(true);
-        try {
-            const feedbackResult = await writingService.evaluateWriting(
-                response.content,
-                response.originalPrompt
-            );
-            setFeedback(feedbackResult);
-        } catch (error) {
-            console.error("Error getting feedback:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+                // Kiểm tra xem feedback đã tồn tại chưa
+                let feedbackData = writingService.getSavedFeedback(writingId);
 
+                // Nếu chưa có feedback, gọi API để đánh giá
+                if (!feedbackData) {
+                    feedbackData = await writingService.evaluateWriting(
+                        writingData.content,
+                        writingData.originalPrompt,
+                        writingData.id,
+                        writingData.language
+                    );
+                }
+
+                setFeedback(feedbackData);
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                setError("Failed to load feedback");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [writingId]);
+
+    // Xử lý trạng thái đang tải
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col items-center justify-center">
-                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-700">
-                    Đang phân tích bài viết của bạn...
+                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-lg font-medium text-gray-700">
+                    {writing?.language === "vi"
+                        ? "Đang phân tích bài viết của bạn..."
+                        : "Analyzing your writing..."}
                 </p>
             </div>
         );
     }
 
-    if (!writingResponse || !feedback) {
+    // Xử lý trạng thái lỗi
+    if (error || !writing || !feedback) {
         return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                    <h1 className="text-2xl font-bold mb-4">
-                        Không tìm thấy bài viết
+                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <h1 className="text-2xl font-bold mb-4 text-red-600">
+                        {writing?.language === "vi"
+                            ? "Có lỗi xảy ra"
+                            : "An error occurred"}
                     </h1>
                     <p className="text-gray-700 mb-6">
-                        Không có bài viết nào để đánh giá. Hãy hoàn thành một
-                        bài viết trước khi xem đánh giá.
+                        {error ||
+                            (writing?.language === "vi"
+                                ? "Không thể tải phản hồi bài viết"
+                                : "Could not load writing feedback")}
                     </p>
                     <Link href="/writing-practice/practice">
-                        <Button>Bắt đầu luyện tập</Button>
+                        <Button variant="primary">
+                            {writing?.language === "vi"
+                                ? "Quay lại luyện tập"
+                                : "Back to practice"}
+                        </Button>
                     </Link>
                 </div>
             </div>
         );
     }
 
+    // Xác định ngôn ngữ hiển thị
+    const language = writing.language || "en";
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Đánh giá bài viết</h1>
+                <h1 className="text-3xl font-bold">
+                    {language === "vi"
+                        ? "Đánh giá bài viết"
+                        : "Writing Feedback"}
+                </h1>
                 <div className="flex space-x-4">
                     <Link href="/writing-practice/practice">
-                        <Button variant="outline">Viết bài mới</Button>
+                        <Button variant="outline">
+                            {language === "vi" ? "Viết bài mới" : "Write New"}
+                        </Button>
                     </Link>
                     <Link href="/writing-practice/my-writings">
-                        <Button variant="outline">Bài viết của tôi</Button>
+                        <Button variant="outline">
+                            {language === "vi"
+                                ? "Bài viết của tôi"
+                                : "My Writings"}
+                        </Button>
                     </Link>
                 </div>
             </div>
@@ -98,482 +146,306 @@ export default function FeedbackPage() {
                 <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-lg p-6 mb-6 sticky top-6">
                         <h2 className="text-xl font-semibold mb-4">
-                            Bài viết của bạn
+                            {language === "vi"
+                                ? "Bài viết của bạn"
+                                : "Your Writing"}
                         </h2>
                         <div className="prose max-w-none">
-                            <div className="bg-gray-50 p-4 rounded-md mb-4 text-sm italic">
-                                <p>{writingResponse.originalPrompt}</p>
+                            <div className="bg-gray-50 p-4 rounded-md mb-4 text-sm italic border-l-4 border-blue-500">
+                                <p className="whitespace-pre-line">
+                                    {writing.originalPrompt}
+                                </p>
                             </div>
                             <div className="whitespace-pre-wrap">
-                                {writingResponse.content}
+                                {writing.content}
                             </div>
                         </div>
-                        <div className="mt-4 text-sm text-gray-500">
-                            Đã nộp:{" "}
-                            {new Date(
-                                writingResponse.timestamp
-                            ).toLocaleString()}
+                        <div className="mt-4 text-sm text-gray-500 flex justify-between">
+                            <span>
+                                {language === "vi" ? "Đã nộp" : "Submitted"}:{" "}
+                                {new Date(writing.timestamp).toLocaleString()}
+                            </span>
+                            <span>
+                                {language === "vi" ? "Số từ" : "Words"}:{" "}
+                                {writing.wordCount || 0}
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Cột bên phải - Đánh giá */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                        <div className="flex items-center mb-6">
-                            <div className="mr-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-lg shadow-lg p-6 mb-6"
+                    >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+                            <div className="mb-4 sm:mb-0">
                                 <div className="text-3xl font-bold">
                                     {feedback.overallScore}/10
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    Điểm tổng thể
+                                    {language === "vi"
+                                        ? "Điểm tổng thể"
+                                        : "Overall Score"}
                                 </div>
                             </div>
-                            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 <ScoreCard
-                                    title="Ngữ pháp"
+                                    title={
+                                        language === "vi"
+                                            ? "Ngữ pháp"
+                                            : "Grammar"
+                                    }
                                     score={feedback.grammar.score}
                                 />
                                 <ScoreCard
-                                    title="Từ vựng"
+                                    title={
+                                        language === "vi"
+                                            ? "Từ vựng"
+                                            : "Vocabulary"
+                                    }
                                     score={feedback.vocabulary.score}
                                 />
                                 <ScoreCard
-                                    title="Cấu trúc"
+                                    title={
+                                        language === "vi"
+                                            ? "Cấu trúc"
+                                            : "Structure"
+                                    }
                                     score={feedback.structure.score}
                                 />
                                 <ScoreCard
-                                    title="Mạch lạc"
+                                    title={
+                                        language === "vi"
+                                            ? "Mạch lạc"
+                                            : "Coherence"
+                                    }
                                     score={feedback.coherence.score}
                                 />
                             </div>
                         </div>
 
                         <div className="border-b mb-6">
-                            <div className="flex space-x-1 md:space-x-4">
+                            <div className="flex flex-wrap gap-2">
                                 <TabButton
                                     active={activeTab === "overview"}
                                     onClick={() => setActiveTab("overview")}
                                 >
-                                    Tổng quan
+                                    {language === "vi"
+                                        ? "Tổng quan"
+                                        : "Overview"}
                                 </TabButton>
                                 <TabButton
                                     active={activeTab === "grammar"}
                                     onClick={() => setActiveTab("grammar")}
                                 >
-                                    Ngữ pháp
+                                    {language === "vi" ? "Ngữ pháp" : "Grammar"}
                                 </TabButton>
                                 <TabButton
                                     active={activeTab === "vocabulary"}
                                     onClick={() => setActiveTab("vocabulary")}
                                 >
-                                    Từ vựng
+                                    {language === "vi"
+                                        ? "Từ vựng"
+                                        : "Vocabulary"}
                                 </TabButton>
                                 <TabButton
                                     active={activeTab === "structure"}
                                     onClick={() => setActiveTab("structure")}
                                 >
-                                    Cấu trúc
+                                    {language === "vi"
+                                        ? "Cấu trúc"
+                                        : "Structure"}
                                 </TabButton>
                                 <TabButton
                                     active={activeTab === "improvement"}
                                     onClick={() => setActiveTab("improvement")}
                                 >
-                                    Cải thiện
+                                    {language === "vi"
+                                        ? "Cải thiện"
+                                        : "Improvement"}
                                 </TabButton>
                             </div>
                         </div>
 
-                        {activeTab === "overview" && (
-                            <div>
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Nhận xét tổng quát
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {feedback.grammar.comments
-                                            .slice(0, 1)
-                                            .map((comment, index) => (
-                                                <div
-                                                    key={`g-${index}`}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-blue-100 text-blue-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            ))}
-                                        {feedback.vocabulary.comments
-                                            .slice(0, 1)
-                                            .map((comment, index) => (
-                                                <div
-                                                    key={`v-${index}`}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-green-100 text-green-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            ))}
-                                        {feedback.structure.comments
-                                            .slice(0, 1)
-                                            .map((comment, index) => (
-                                                <div
-                                                    key={`s-${index}`}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-purple-100 text-purple-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            ))}
-                                        {feedback.coherence.comments
-                                            .slice(0, 1)
-                                            .map((comment, index) => (
-                                                <div
-                                                    key={`c-${index}`}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-yellow-100 text-yellow-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                {activeTab === "overview" && (
+                                    <OverviewTab
+                                        feedback={feedback}
+                                        language={language}
+                                    />
+                                )}
+                                {activeTab === "grammar" && (
+                                    <GrammarTab
+                                        feedback={feedback}
+                                        language={language}
+                                    />
+                                )}
+                                {activeTab === "vocabulary" && (
+                                    <VocabularyTab
+                                        feedback={feedback}
+                                        language={language}
+                                    />
+                                )}
+                                {activeTab === "structure" && (
+                                    <StructureTab
+                                        feedback={feedback}
+                                        language={language}
+                                    />
+                                )}
+                                {activeTab === "improvement" && (
+                                    <ImprovementTab
+                                        feedback={feedback}
+                                        language={language}
+                                    />
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </motion.div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
-                        {activeTab === "grammar" && (
-                            <div>
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Nhận xét về ngữ pháp
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {feedback.grammar.comments.map(
-                                            (comment, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-blue-100 text-blue-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
+// Component hiển thị điểm đánh giá
+function ScoreCard({ title, score }) {
+    const getScoreColor = (score: number) => {
+        if (score >= 9) return "bg-green-100 text-green-800";
+        if (score >= 7) return "bg-blue-100 text-blue-800";
+        if (score >= 5) return "bg-yellow-100 text-yellow-800";
+        return "bg-red-100 text-red-800";
+    };
 
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Ví dụ về lỗi ngữ pháp
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {feedback.grammar.examples.map(
-                                            (example, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="bg-gray-50 rounded-md p-4"
-                                                >
-                                                    <div className="flex items-start">
-                                                        <div className="text-red-500 font-medium mr-2">
-                                                            ✗
-                                                        </div>
-                                                        <div>
-                                                            <div className="mb-1">
-                                                                {
-                                                                    example.original
-                                                                }
-                                                            </div>
-                                                            <div className="text-sm text-gray-500">
-                                                                {
-                                                                    example.explanation
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-start mt-2">
-                                                        <div className="text-green-500 font-medium mr-2">
-                                                            ✓
-                                                        </div>
-                                                        <div>
-                                                            {example.correction}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+    return (
+        <div className="text-center p-2 rounded-lg bg-gray-50">
+            <div className="text-sm mb-1">{title}</div>
+            <div
+                className={`text-xl font-bold rounded-full inline-block w-8 h-8 flex items-center justify-center ${getScoreColor(
+                    score
+                )}`}
+            >
+                {score}
+            </div>
+        </div>
+    );
+}
 
-                        {activeTab === "vocabulary" && (
-                            <div>
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Nhận xét về từ vựng
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {feedback.vocabulary.comments.map(
-                                            (comment, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-green-100 text-green-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
+// Component nút tab
+function TabButton({ children, active, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                active
+                    ? "bg-blue-50 text-blue-800 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            }`}
+        >
+            {children}
+        </button>
+    );
+}
 
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Gợi ý cải thiện từ vựng
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {feedback.vocabulary.suggestions.map(
-                                            (suggestion, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="bg-gray-50 rounded-md p-4"
-                                                >
-                                                    <div className="flex flex-wrap items-center mb-2">
-                                                        <span className="font-medium mr-2">
-                                                            {suggestion.word}:
-                                                        </span>
-                                                        {suggestion.alternatives.map(
-                                                            (alt, i) => (
-                                                                <span
-                                                                    key={i}
-                                                                    className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm mr-2 mb-2"
-                                                                >
-                                                                    {alt}
-                                                                </span>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">
-                                                        <span className="italic">
-                                                            Trong ngữ cảnh:
-                                                        </span>{" "}
-                                                        "{suggestion.context}"
-                                                    </div>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+// Tab tổng quan
+function OverviewTab({ feedback, language }) {
+    return (
+        <div>
+            <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">
+                    {language === "vi"
+                        ? "Đánh giá tổng quát"
+                        : "General Assessment"}
+                </h3>
+                <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-md">
+                        <h4 className="font-medium text-blue-800 mb-2">
+                            {language === "vi" ? "Ngữ pháp" : "Grammar"}
+                        </h4>
+                        <p className="text-gray-700">
+                            {feedback.grammar.comments[0]}
+                        </p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-md">
+                        <h4 className="font-medium text-purple-800 mb-2">
+                            {language === "vi" ? "Từ vựng" : "Vocabulary"}
+                        </h4>
+                        <p className="text-gray-700">
+                            {feedback.vocabulary.comments[0]}
+                        </p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-md">
+                        <h4 className="font-medium text-green-800 mb-2">
+                            {language === "vi" ? "Cấu trúc" : "Structure"}
+                        </h4>
+                        <p className="text-gray-700">
+                            {feedback.structure.comments[0]}
+                        </p>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-md">
+                        <h4 className="font-medium text-yellow-800 mb-2">
+                            {language === "vi" ? "Mạch lạc" : "Coherence"}
+                        </h4>
+                        <p className="text-gray-700">
+                            {feedback.coherence.comments[0]}
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-                        {activeTab === "structure" && (
-                            <div>
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Nhận xét về cấu trúc bài viết
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {feedback.structure.comments.map(
-                                            (comment, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-purple-100 text-purple-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Nhận xét về tính mạch lạc và liên kết
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {feedback.coherence.comments.map(
-                                            (comment, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-yellow-100 text-yellow-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{comment}</p>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === "improvement" && (
-                            <div>
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Gợi ý cải thiện
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {feedback.improvements.map(
-                                            (improvement, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start"
-                                                >
-                                                    <div className="bg-indigo-100 text-indigo-800 rounded-full p-1 mr-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <p>{improvement}</p>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Phiên bản được cải thiện
-                                    </h3>
-                                    <div className="bg-gray-50 p-4 rounded-md whitespace-pre-wrap">
-                                        {feedback.improvedVersion}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+            <div>
+                <h3 className="text-lg font-semibold mb-3">
+                    {language === "vi"
+                        ? "Điểm mạnh và điểm yếu"
+                        : "Strengths & Weaknesses"}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-green-50 p-4 rounded-md">
+                        <h4 className="font-medium text-green-800 mb-2 flex items-center">
+                            <span className="mr-2">✓</span>
+                            {language === "vi" ? "Điểm mạnh" : "Strengths"}
+                        </h4>
+                        <ul className="space-y-2 text-gray-700 list-disc list-inside">
+                            {feedback.grammar.comments
+                                .slice(0, 1)
+                                .map((comment, i) => (
+                                    <li key={`str-g-${i}`}>{comment}</li>
+                                ))}
+                            {feedback.vocabulary.comments
+                                .slice(0, 1)
+                                .map((comment, i) => (
+                                    <li key={`str-v-${i}`}>{comment}</li>
+                                ))}
+                            {feedback.structure.comments
+                                .slice(0, 1)
+                                .map((comment, i) => (
+                                    <li key={`str-s-${i}`}>{comment}</li>
+                                ))}
+                        </ul>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-md">
+                        <h4 className="font-medium text-red-800 mb-2 flex items-center">
+                            <span className="mr-2">⚠</span>
+                            {language === "vi"
+                                ? "Điểm cần cải thiện"
+                                : "Areas to Improve"}
+                        </h4>
+                        <ul className="space-y-2 text-gray-700 list-disc list-inside">
+                            {feedback.improvements
+                                .slice(0, 3)
+                                .map((improvement, i) => (
+                                    <li key={`imp-${i}`}>{improvement}</li>
+                                ))}
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -581,26 +453,263 @@ export default function FeedbackPage() {
     );
 }
 
-function ScoreCard({ title, score }) {
+// Tab ngữ pháp
+function GrammarTab({ feedback, language }) {
     return (
-        <div className="rounded-lg border p-3 text-center">
-            <div className="text-xl font-semibold">{score}/10</div>
-            <div className="text-sm text-gray-600">{title}</div>
+        <div>
+            <h3 className="text-lg font-semibold mb-4">
+                {language === "vi" ? "Đánh giá ngữ pháp" : "Grammar Assessment"}
+            </h3>
+            <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi" ? "Nhận xét" : "Comments"}
+                </h4>
+                <ul className="space-y-2 bg-blue-50 p-4 rounded-md">
+                    {feedback.grammar.comments.map((comment, i) => (
+                        <li key={`comment-${i}`} className="text-gray-700">
+                            {comment}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div>
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi" ? "Lỗi cụ thể" : "Specific Errors"}
+                </h4>
+                <div className="space-y-4">
+                    {feedback.grammar.errors &&
+                        feedback.grammar.errors.map((error, i) => (
+                            <div
+                                key={`error-${i}`}
+                                className="border border-gray-200 rounded-md overflow-hidden"
+                            >
+                                <div className="bg-red-50 p-3 border-b border-gray-200">
+                                    <div className="font-medium text-red-800">
+                                        {language === "vi" ? "Lỗi" : "Error"}:
+                                    </div>
+                                    <div className="text-gray-700">
+                                        {error.original}
+                                    </div>
+                                </div>
+                                <div className="bg-green-50 p-3 border-b border-gray-200">
+                                    <div className="font-medium text-green-800">
+                                        {language === "vi"
+                                            ? "Sửa thành"
+                                            : "Correction"}
+                                        :
+                                    </div>
+                                    <div className="text-gray-700">
+                                        {error.correction}
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 p-3">
+                                    <div className="font-medium text-gray-800">
+                                        {language === "vi"
+                                            ? "Giải thích"
+                                            : "Explanation"}
+                                        :
+                                    </div>
+                                    <div className="text-gray-700">
+                                        {error.explanation}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
         </div>
     );
 }
 
-function TabButton({ children, active, onClick }) {
+// Tab từ vựng
+function VocabularyTab({ feedback, language }) {
     return (
-        <button
-            className={`py-2 px-1 md:px-4 text-sm font-medium border-b-2 transition-colors ${
-                active
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-            onClick={onClick}
-        >
-            {children}
-        </button>
+        <div>
+            <h3 className="text-lg font-semibold mb-4">
+                {language === "vi"
+                    ? "Đánh giá từ vựng"
+                    : "Vocabulary Assessment"}
+            </h3>
+            <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi" ? "Nhận xét" : "Comments"}
+                </h4>
+                <ul className="space-y-2 bg-purple-50 p-4 rounded-md">
+                    {feedback.vocabulary.comments.map((comment, i) => (
+                        <li key={`v-comment-${i}`} className="text-gray-700">
+                            {comment}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div>
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi"
+                        ? "Gợi ý từ vựng"
+                        : "Vocabulary Suggestions"}
+                </h4>
+                <div className="space-y-4">
+                    {feedback.vocabulary.suggestions &&
+                        feedback.vocabulary.suggestions.map((suggestion, i) => (
+                            <div
+                                key={`sug-${i}`}
+                                className="border border-gray-200 rounded-md overflow-hidden"
+                            >
+                                <div className="bg-yellow-50 p-3 border-b border-gray-200">
+                                    <div className="font-medium text-yellow-800">
+                                        {language === "vi"
+                                            ? "Từ hiện tại"
+                                            : "Current Word"}
+                                        :
+                                    </div>
+                                    <div className="text-gray-700 font-bold">
+                                        {suggestion.word}
+                                    </div>
+                                    <div className="text-gray-600 mt-1 text-sm italic">
+                                        {language === "vi"
+                                            ? "Ngữ cảnh"
+                                            : "Context"}
+                                        : {suggestion.context}
+                                    </div>
+                                </div>
+                                <div className="bg-green-50 p-3">
+                                    <div className="font-medium text-green-800">
+                                        {language === "vi"
+                                            ? "Từ thay thế"
+                                            : "Alternatives"}
+                                        :
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {suggestion.alternatives.map(
+                                            (alt, j) => (
+                                                <span
+                                                    key={`alt-${j}`}
+                                                    className="bg-white px-2 py-1 rounded-full text-sm border border-green-200"
+                                                >
+                                                    {alt}
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Tab cấu trúc
+function StructureTab({ feedback, language }) {
+    return (
+        <div>
+            <h3 className="text-lg font-semibold mb-4">
+                {language === "vi"
+                    ? "Đánh giá cấu trúc và mạch lạc"
+                    : "Structure & Coherence Assessment"}
+            </h3>
+
+            <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi" ? "Cấu trúc bài viết" : "Structure"}
+                </h4>
+                <ul className="space-y-2 bg-green-50 p-4 rounded-md">
+                    {feedback.structure.comments.map((comment, i) => (
+                        <li key={`s-comment-${i}`} className="text-gray-700">
+                            {comment}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div>
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi" ? "Tính mạch lạc" : "Coherence"}
+                </h4>
+                <ul className="space-y-2 bg-yellow-50 p-4 rounded-md">
+                    {feedback.coherence.comments.map((comment, i) => (
+                        <li key={`c-comment-${i}`} className="text-gray-700">
+                            {comment}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 rounded-md">
+                <h4 className="font-medium text-blue-800 mb-3">
+                    {language === "vi" ? "Lời khuyên" : "Tips for Improvement"}
+                </h4>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                    {feedback.improvements.slice(0, 3).map((tip, i) => (
+                        <li key={`tip-${i}`}>{tip}</li>
+                    ))}
+                </ol>
+            </div>
+        </div>
+    );
+}
+
+// Tab cải thiện
+function ImprovementTab({ feedback, language }) {
+    return (
+        <div>
+            <h3 className="text-lg font-semibold mb-4">
+                {language === "vi"
+                    ? "Gợi ý cải thiện"
+                    : "Improvement Suggestions"}
+            </h3>
+
+            <div className="mb-6">
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi"
+                        ? "Điểm cần cải thiện"
+                        : "Areas to Improve"}
+                </h4>
+                <ul className="space-y-2 bg-orange-50 p-4 rounded-md list-disc list-inside">
+                    {feedback.improvements.map((improvement, i) => (
+                        <li key={`imp-full-${i}`} className="text-gray-700">
+                            {improvement}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div>
+                <h4 className="font-medium text-gray-700 mb-3">
+                    {language === "vi"
+                        ? "Phiên bản cải thiện"
+                        : "Improved Version"}
+                </h4>
+                <div className="bg-green-50 p-4 rounded-md border-l-4 border-green-500">
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                        {feedback.improvedVersion}
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+                <div>
+                    <Link href="/writing-practice/practice">
+                        <Button>
+                            {language === "vi"
+                                ? "Viết bài mới"
+                                : "Write New Essay"}
+                        </Button>
+                    </Link>
+                </div>
+                <div>
+                    <Link href="/writing-practice/my-writings">
+                        <Button variant="outline">
+                            {language === "vi"
+                                ? "Bài viết của tôi"
+                                : "My Writings"}
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        </div>
     );
 }

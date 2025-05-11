@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Pagination from "./Pagination";
+import CourseContextMenu from "./CourseContextMenu";
 
 interface TableProps<T> {
     data: T[];
@@ -8,6 +9,7 @@ interface TableProps<T> {
     onUpdate?: (updatedRow: T) => void;
     onDelete?: (id: number) => void;
     onCreate?: (newRow: Partial<T>) => void;
+    onEditInForm?: (row: T) => void;
 }
 
 function DBTable<T extends { [key: string]: any }>({
@@ -17,6 +19,7 @@ function DBTable<T extends { [key: string]: any }>({
     onUpdate,
     onDelete,
     onCreate,
+    onEditInForm,
 }: TableProps<T>) {
     const [editingRow, setEditingRow] = useState<T | null>(null);
     const [newRow, setNewRow] = useState<Partial<T>>({});
@@ -82,7 +85,10 @@ function DBTable<T extends { [key: string]: any }>({
                     <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                         <tr>
                             {columns.map((col) => (
-                                <th key={col.key as string} className="px-6 py-4">
+                                <th
+                                    key={col.key as string}
+                                    className="px-6 py-4"
+                                >
                                     {String(col.key)}
                                 </th>
                             ))}
@@ -94,12 +100,18 @@ function DBTable<T extends { [key: string]: any }>({
                     <tbody>
                         <tr>
                             {columns.map((col) => (
-                                <td key={col.key as string} className="px-6 py-2">
+                                <td
+                                    key={col.key as string}
+                                    className="px-6 py-2"
+                                >
                                     <input
                                         className="border w-full py-1 text-gray-700"
                                         value={newRow[col.key] || ""}
                                         onChange={(e) =>
-                                            handleInputChangeNewRow(col.key, e.target.value)
+                                            handleInputChangeNewRow(
+                                                col.key,
+                                                e.target.value
+                                            )
                                         }
                                     />
                                 </td>
@@ -114,15 +126,25 @@ function DBTable<T extends { [key: string]: any }>({
                             </td>
                         </tr>
                         {paginatedData.map((row, index) => (
-                            <tr key={index} className="bg-white hover:bg-gray-50">
+                            <tr
+                                key={index}
+                                className="bg-white hover:bg-gray-50"
+                            >
                                 {columns.map((col) => (
-                                    <td key={col.key as string} className="px-6 py-4 text-gray-700">
-                                        {editingRow && editingRow.id === row.id ? (
+                                    <td
+                                        key={col.key as string}
+                                        className="px-6 py-4 text-gray-700"
+                                    >
+                                        {editingRow &&
+                                        editingRow.id === row.id ? (
                                             <input
                                                 className="border w-full py-1 text-gray-700"
                                                 value={editingRow[col.key]}
                                                 onChange={(e) =>
-                                                    handleInputChange(col.key, e.target.value)
+                                                    handleInputChange(
+                                                        col.key,
+                                                        e.target.value
+                                                    )
                                                 }
                                             />
                                         ) : (
@@ -139,12 +161,65 @@ function DBTable<T extends { [key: string]: any }>({
                                             Xác nhận
                                         </button>
                                     ) : (
-                                        <button
-                                            onClick={() => handleEditClick(row)}
-                                            className="text-blue-600 hover:underline"
-                                        >
-                                            Sửa
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() =>
+                                                    handleEditClick(row)
+                                                }
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                Sửa nhanh
+                                            </button>
+                                            {onEditInForm && (
+                                                <button
+                                                    onClick={() =>
+                                                        onEditInForm(row)
+                                                    }
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    Sửa đầy đủ
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => {
+                                                    const jsonStr =
+                                                        JSON.stringify(
+                                                            row,
+                                                            null,
+                                                            2
+                                                        );
+                                                    const blob = new Blob(
+                                                        [jsonStr],
+                                                        {
+                                                            type: "application/json",
+                                                        }
+                                                    );
+                                                    const url =
+                                                        URL.createObjectURL(
+                                                            blob
+                                                        );
+                                                    const a =
+                                                        document.createElement(
+                                                            "a"
+                                                        );
+                                                    a.href = url;
+                                                    a.download = `${
+                                                        row.id || "data"
+                                                    }.json`;
+                                                    document.body.appendChild(
+                                                        a
+                                                    );
+                                                    a.click();
+                                                    document.body.removeChild(
+                                                        a
+                                                    );
+                                                    URL.revokeObjectURL(url);
+                                                }}
+                                                className="text-green-600 hover:underline"
+                                            >
+                                                Xuất JSON
+                                            </button>
+                                        </>
                                     )}
                                     <button
                                         onClick={() => onDelete?.(row.id)}

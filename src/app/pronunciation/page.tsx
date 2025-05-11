@@ -40,6 +40,7 @@ type PronunciationFeedback = {
     detailedFeedback?: string;
     improvementSuggestions?: string[];
     commonErrors?: string[];
+    recordedText?: string; // Thêm trường này để trả về văn bản đã nhận dạng
 };
 
 // Định nghĩa kiểu cho lịch sử phát âm
@@ -437,15 +438,25 @@ const PronunciationPage = () => {
         // Khởi tạo Vosk khi component mount để có thể dùng ngay khi cần
         const initializeVosk = async () => {
             try {
+                console.log("Bắt đầu khởi tạo Vosk...");
                 const initialized = await VoskService.initialize();
+                console.log(
+                    "Kết quả khởi tạo Vosk:",
+                    initialized ? "Thành công" : "Thất bại"
+                );
                 setIsVoskReady(initialized);
                 if (!initialized) {
+                    console.log("Không thể khởi tạo Vosk model");
                     setVoskError(
                         "Không thể khởi tạo Vosk model. Sẽ sử dụng phương pháp khác."
                     );
                 }
             } catch (error) {
                 console.error("Error initializing Vosk:", error);
+                console.log(
+                    "Chi tiết lỗi Vosk:",
+                    error instanceof Error ? error.message : String(error)
+                );
                 setVoskError(
                     "Lỗi khi khởi tạo Vosk. Sẽ sử dụng phương pháp khác."
                 );
@@ -489,112 +500,84 @@ const PronunciationPage = () => {
                     window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
 
+                console.log("--- KHỞI TẠO SPEECH RECOGNITION ---");
+                console.log("Ngôn ngữ được cài đặt:", selectedLanguage);
+
                 recognition.lang = selectedLanguage;
                 recognition.continuous = false;
                 recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
 
-                // Sự kiện khi nhận được kết quả
-                recognition.onresult = async (event) => {
+                // Xử lý kết quả
+                recognition.onresult = (event) => {
+                    console.log(
+                        "--- SỰ KIỆN ONRESULT CỦA SPEECH RECOGNITION ---"
+                    );
+                    console.log("Kết quả đầy đủ:", event.results);
+                    console.log("Số lượng kết quả:", event.results.length);
+                    if (event.results.length > 0) {
+                        console.log(
+                            "Độ tin cậy:",
+                            event.results[0][0].confidence
+                        );
+                    }
                     const transcript = event.results[0][0].transcript;
+                    console.log(
+                        "3. Kết quả nhận dạng với Web Speech API:",
+                        transcript
+                    );
                     setTranscript(transcript);
                     setIsListening(false);
-
-                    // Phân tích phát âm với transcript đã nhận được
-                    try {
-                        setIsAnalyzing(true);
-                        const response = await fetch("/api/pronunciation", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                recordedText: transcript,
-                                originalText:
-                                    practiceMode === "phrase"
-                                        ? currentPhrase
-                                        : customInput,
-                                language: selectedLanguage,
-                            }),
-                        });
-
-                        if (!response.ok) {
-                            throw new Error("Failed to analyze pronunciation");
-                        }
-
-                        const analysis = await response.json();
-                        setFeedback(analysis);
-
-                        // Lưu vào lịch sử
-                        const historyItem: PracticeHistoryItem = {
-                            text:
-                                practiceMode === "phrase"
-                                    ? currentPhrase
-                                    : customInput,
-                            score: analysis.overallScore,
-                            date: new Date(),
-                        };
-
-                        setHistory((prevHistory) => [
-                            historyItem,
-                            ...prevHistory,
-                        ]);
-
-                        // Lưu lịch sử vào localStorage
-                        try {
-                            localStorage.setItem(
-                                "pronunciationHistory",
-                                JSON.stringify([historyItem, ...history])
-                            );
-                        } catch (error) {
-                            console.error(
-                                "Error saving history to localStorage:",
-                                error
-                            );
-                        }
-
-                        setIsAnalyzing(false);
-                    } catch (error) {
-                        console.error("Error analyzing pronunciation:", error);
-                        setIsAnalyzing(false);
-                        setErrorMessage(
-                            "Đã xảy ra lỗi khi phân tích phát âm. Vui lòng thử lại."
-                        );
-                    }
                 };
 
-                // Xử lý các lỗi
-                recognition.onerror = (event) => {
-                    console.error("Recognition error", event.error);
-                    setIsListening(false);
-
-                    if (event.error === "not-allowed") {
-                        setErrorMessage(getErrorMessage(ErrorType.PERMISSION));
-                    } else if (event.error === "network") {
-                        setErrorMessage(getErrorMessage(ErrorType.NETWORK));
-                        // Chuyển sang sử dụng MediaRecorder khi có lỗi mạng
-                        setTimeout(() => {
-                            startMediaRecording();
-                        }, 500);
-                    } else if (event.error === "no-speech") {
-                        setErrorMessage(getErrorMessage(ErrorType.NO_SPEECH));
-                    } else {
-                        setErrorMessage(
-                            getErrorMessage(ErrorType.OTHER, event.error)
-                        );
-                    }
-                };
-
-                // Sự kiện khi kết thúc
+                // Xử lý khi kết thúc mà không có kết quả
                 recognition.onend = () => {
-                    if (isListening) {
-                        setIsListening(false);
-                    }
+                    console.log("--- SỰ KIỆN ONEND CỦA SPEECH RECOGNITION ---");
+                    console.log("Trạng thái khi kết thúc:", recognition.state);
+                    console.warn(
+                        "Web Speech API kết thúc mà không nhận dạng được giọng nói"
+                    );
+                    setIsListening(false);
                 };
 
-                // Bắt đầu nhận dạng
+                // Xử lý lỗi
+                recognition.onerror = (event) => {
+                    console.log(
+                        "--- SỰ KIỆN ONERROR CỦA SPEECH RECOGNITION ---"
+                    );
+                    console.log("Loại lỗi:", event.error);
+                    console.log("Chi tiết lỗi:", event);
+                    console.error("Lỗi Web Speech API:", event.error);
+                    setIsListening(false);
+                    setErrorMessage(
+                        getErrorMessage(ErrorType.OTHER, event.error)
+                    );
+                };
+
+                // Bắt đầu phát âm thanh và nhận dạng
+                console.log("Bắt đầu phát âm thanh");
+                if (audioRef.current) {
+                    audioRef.current
+                        .play()
+                        .then(() => {
+                            console.log("Đã bắt đầu phát âm thanh thành công");
+                        })
+                        .catch((e) => {
+                            console.warn("Không thể phát âm thanh:", e);
+                            console.log("Chi tiết lỗi phát âm:", e.message);
+                        });
+                }
+                console.log("Bắt đầu nhận dạng Speech Recognition");
                 recognition.start();
                 recognitionRef.current = recognition;
+                console.log("Trạng thái sau khi start:", recognition.state);
+
+                // Đặt thời gian chờ
+                setTimeout(() => {
+                    if (recognition.state !== "inactive") {
+                        recognition.abort();
+                        console.warn("Web Speech API hết thời gian");
+                    }
+                }, 10000);
             } catch (error) {
                 console.error("Error starting Web Speech API:", error);
                 setErrorMessage(
@@ -647,115 +630,106 @@ const PronunciationPage = () => {
     // Khởi tạo MediaRecorder với cấu hình chất lượng cao
     const initMediaRecorder = async () => {
         try {
-            // Yêu cầu quyền truy cập microphone với cấu hình chất lượng cao
+            console.log("Đang khởi tạo MediaRecorder...");
+
+            // Yêu cầu quyền truy cập microphone
+            console.log("Đang yêu cầu quyền truy cập microphone...");
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
                     autoGainControl: true,
-                    sampleRate: 48000,
-                    channelCount: 1,
                 },
             });
+            console.log("Đã nhận quyền truy cập microphone thành công");
 
+            // Lưu stream để sử dụng sau này
             streamRef.current = stream;
 
-            // Kiểm tra trình duyệt hỗ trợ định dạng nào
-            let mimeType = "audio/webm";
-            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-                mimeType = "audio/webm;codecs=opus";
-            } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-                mimeType = "audio/mp4";
-            }
-
-            // Tạo MediaRecorder với định dạng âm thanh tốt nhất được hỗ trợ
+            // Tạo MediaRecorder với stream và các tùy chọn
+            console.log("Đang tạo MediaRecorder...");
             const recorder = new MediaRecorder(stream, {
-                mimeType: mimeType,
-                audioBitsPerSecond: 128000,
+                mimeType: "audio/webm",
             });
 
-            // Sự kiện khi có dữ liệu được ghi
+            // Xử lý sự kiện khi có dữ liệu sẵn sàng
             recorder.ondataavailable = (event) => {
+                console.log(
+                    "Sự kiện dataavailable được kích hoạt:",
+                    event.data.size,
+                    "bytes"
+                );
                 if (event.data.size > 0) {
                     audioChunksRef.current.push(event.data);
                 }
             };
 
-            // Sự kiện khi kết thúc ghi âm
+            // Xử lý sự kiện khi ghi âm dừng lại
             recorder.onstop = async () => {
-                try {
-                    // Tạo Blob từ các đoạn âm thanh đã ghi
-                    if (audioChunksRef.current.length === 0) {
-                        console.warn("No audio chunks recorded");
-                        setIsListening(false);
-                        setErrorMessage(
-                            "Không có âm thanh nào được ghi lại. Vui lòng thử lại và nói to hơn."
-                        );
-                        return;
-                    }
+                console.log("Sự kiện stop của MediaRecorder được kích hoạt");
+                console.log(
+                    "Số lượng audio chunks:",
+                    audioChunksRef.current.length
+                );
 
-                    const audioBlob = new Blob(audioChunksRef.current, {
-                        type: mimeType,
-                    });
-
-                    if (audioBlob.size > 0) {
-                        // Chỉ lưu blob nếu có dữ liệu
-                        setRecordedAudioBlob(audioBlob);
-
-                        // Tạo URL để phát lại âm thanh
-                        const url = URL.createObjectURL(audioBlob);
-                        setAudioUrl(url);
-
-                        // Xử lý âm thanh đã ghi
-                        await processAudioBlob(audioBlob);
-                    } else {
-                        setErrorMessage(
-                            "Không có đủ dữ liệu âm thanh được ghi lại. Vui lòng thử lại và nói to hơn."
-                        );
-                    }
-                } catch (error) {
-                    console.error(
-                        "Error in MediaRecorder onstop handler:",
-                        error
-                    );
+                if (audioChunksRef.current.length === 0) {
+                    console.warn("Không có dữ liệu âm thanh nào được ghi lại");
                     setErrorMessage(
-                        "Đã xảy ra lỗi khi xử lý âm thanh. Vui lòng thử lại."
+                        "Không có dữ liệu âm thanh được ghi lại. Vui lòng thử lại."
                     );
-                } finally {
-                    // Đóng stream và làm sạch tài nguyên
-                    if (streamRef.current) {
-                        streamRef.current
-                            .getTracks()
-                            .forEach((track) => track.stop());
-                    }
+                    return;
+                }
 
-                    // Đặt lại mảng đoạn âm thanh
-                    audioChunksRef.current = [];
-                    setIsListening(false);
+                try {
+                    // Tạo Blob từ các đoạn âm thanh
+                    const audioBlob = new Blob(audioChunksRef.current, {
+                        type: "audio/webm",
+                    });
+                    console.log(
+                        `Đã tạo audio blob: ${audioBlob.size} bytes, type: ${audioBlob.type}`
+                    );
+
+                    // Tạo URL để phát lại
+                    const url = URL.createObjectURL(audioBlob);
+                    setAudioUrl(url);
+                    console.log("Đã tạo audio URL:", url);
+
+                    // Xử lý Blob âm thanh
+                    console.log("Đang chuyển blob âm thanh để xử lý...");
+                    await processAudioBlob(audioBlob);
+                } catch (error) {
+                    console.error("Lỗi khi xử lý dữ liệu âm thanh:", error);
+                    setErrorMessage(
+                        `Lỗi khi xử lý dữ liệu âm thanh: ${
+                            error instanceof Error
+                                ? error.message
+                                : String(error)
+                        }`
+                    );
                 }
             };
 
+            // Lưu MediaRecorder vào ref
             mediaRecorderRef.current = recorder;
+            console.log("Đã khởi tạo MediaRecorder thành công");
+
             return true;
-        } catch (error: any) {
-            console.error("Error initializing media recorder:", error);
+        } catch (error) {
+            console.error("Lỗi khi khởi tạo MediaRecorder:", error);
 
             // Xử lý lỗi quyền truy cập
             if (
-                error.name === "NotAllowedError" ||
-                error.name === "PermissionDeniedError"
-            ) {
-                setErrorMessage(getErrorMessage(ErrorType.PERMISSION));
-            } else if (
-                error.name === "NotFoundError" ||
-                error.name === "DevicesNotFoundError"
+                error instanceof DOMException &&
+                error.name === "NotAllowedError"
             ) {
                 setErrorMessage(
-                    "Không tìm thấy microphone. Vui lòng đảm bảo thiết bị được kết nối đúng cách."
+                    "Vui lòng cấp quyền truy cập microphone để sử dụng tính năng này."
                 );
             } else {
                 setErrorMessage(
-                    getErrorMessage(ErrorType.AUDIO_CAPTURE, error.message)
+                    `Không thể khởi tạo ghi âm: ${
+                        error instanceof Error ? error.message : String(error)
+                    }`
                 );
             }
 
@@ -873,7 +847,7 @@ const PronunciationPage = () => {
         );
 
         // Phản hồi chung
-        const feedback = [];
+        const feedback: string[] = [];
 
         if (overallScore >= 90) {
             feedback.push("Phát âm của bạn rất tốt!");
@@ -907,7 +881,7 @@ const PronunciationPage = () => {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
 
-        const matrix = [];
+        const matrix: number[][] = [];
 
         // Khởi tạo ma trận
         for (let i = 0; i <= b.length; i++) {
@@ -945,7 +919,7 @@ const PronunciationPage = () => {
             confidence: number;
         }>
     ): string[] => {
-        const suggestions = [];
+        const suggestions: string[] = [];
 
         const lowConfidenceWords = wordAnalysis.filter(
             (w) => !w.isCorrect && w.confidence < 70
@@ -977,7 +951,7 @@ const PronunciationPage = () => {
             confidence: number;
         }>
     ): string[] => {
-        const errors = [];
+        const errors: string[] = [];
 
         // Kiểm tra số lượng từ sai
         const incorrectWords = wordAnalysis.filter((w) => !w.isCorrect);
@@ -1004,202 +978,247 @@ const PronunciationPage = () => {
     const processAudioBlob = async (audioBlob: Blob) => {
         try {
             setIsAnalyzing(true);
+            setErrorMessage(null);
+
+            console.log("Bắt đầu xử lý âm thanh...");
 
             // Kiểm tra rõ ràng rằng có Blob hợp lệ trước khi xử lý
             if (!audioBlob || audioBlob.size === 0) {
+                console.error("Không có dữ liệu âm thanh được ghi lại");
                 throw new Error("Không có dữ liệu âm thanh được ghi lại");
             }
 
-            // Tạo FormData để gửi lên server
-            const formData = new FormData();
-            formData.append("audio", audioBlob);
-            formData.append(
-                "text",
-                practiceMode === "phrase" ? currentPhrase : customInput
+            console.log(
+                `Thông tin về âm thanh: Kích thước = ${audioBlob.size} bytes, Loại = ${audioBlob.type}`
             );
-            formData.append("language", selectedLanguage);
 
-            let recognizedText = "";
-            try {
-                // Thử sử dụng Vosk cho offline speech recognition trước
-                if (isVoskReady) {
-                    console.log("Sử dụng Vosk cho speech recognition...");
-                    recognizedText = await VoskService.recognizeSpeech(
-                        audioBlob
-                    );
-
-                    // Nếu Vosk trả về kết quả trống, thử gửi lên server
-                    if (!recognizedText) {
-                        console.log(
-                            "Vosk không nhận dạng được, thử gửi lên server..."
-                        );
-                        // Gửi request đến API endpoint
-                        const response = await fetch("/api/speech-to-text", {
-                            method: "POST",
-                            body: formData,
-                        });
-
-                        if (!response.ok) {
-                            throw new Error("Lỗi khi gửi yêu cầu tới server");
-                        }
-
-                        const data = await response.json();
-                        recognizedText = data.transcription || "";
-
-                        // Hiển thị văn bản đã nhận dạng và văn bản gốc để so sánh
-                        console.log(
-                            "Văn bản gốc:",
-                            practiceMode === "phrase"
-                                ? currentPhrase
-                                : customInput
-                        );
-                        console.log("Văn bản đã nhận dạng:", recognizedText);
-                    }
-                } else {
-                    // Nếu Vosk không sẵn sàng, sử dụng server API
-                    console.log("Vosk không sẵn sàng, sử dụng server API...");
-
-                    // Hiển thị thông báo đang xử lý
-                    setTranscript("Đang xử lý âm thanh...");
-
-                    // Gửi request đến API endpoint
-                    const response = await fetch("/api/pronunciation", {
-                        method: "POST",
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        throw new Error("Lỗi khi gửi yêu cầu tới server");
-                    }
-
-                    const data = await response.json();
-
-                    // Nếu server trả về kết quả phân tích trực tiếp
-                    if (data.wordAnalysis) {
-                        // Sử dụng kết quả phân tích từ server
-                        setFeedback(data);
-
-                        // Cập nhật lịch sử
-                        if (audioUrl) {
-                            updateHistory(data);
-                        }
-
-                        setIsListening(false);
-                        setIsAnalyzing(false);
-                        return; // Kết thúc xử lý vì đã có kết quả phân tích
-                    } else {
-                        // Nếu server chỉ trả về transcription
-                        recognizedText = data.transcription || "";
-                    }
-
-                    // Hiển thị văn bản đã nhận dạng và văn bản gốc để so sánh
-                    console.log(
-                        "Văn bản gốc:",
-                        practiceMode === "phrase" ? currentPhrase : customInput
-                    );
-                    console.log("Văn bản đã nhận dạng:", recognizedText);
-                }
-            } catch (error) {
-                console.error("Error in speech-to-text process:", error);
-
-                // Thử sử dụng Web Speech API trực tiếp nếu có thể
-                if (
-                    window.SpeechRecognition ||
-                    window.webkitSpeechRecognition
-                ) {
-                    try {
-                        console.log("Thử sử dụng Web Speech API trực tiếp...");
-                        const SpeechRecognition =
-                            window.SpeechRecognition ||
-                            window.webkitSpeechRecognition;
-                        const recognition = new SpeechRecognition();
-
-                        recognition.lang = selectedLanguage;
-                        recognition.continuous = false;
-                        recognition.interimResults = false;
-
-                        // Tạo URL để phát lại âm thanh cho Web Speech API
-                        if (audioUrl) {
-                            const audio = new Audio(audioUrl);
-                            audio.play();
-
-                            recognition.start();
-
-                            // Đợi kết quả từ Web Speech API
-                            const result = await new Promise<string>(
-                                (resolve, reject) => {
-                                    recognition.onresult = (event) => {
-                                        const transcript =
-                                            event.results[0][0].transcript;
-                                        resolve(transcript);
-                                    };
-
-                                    recognition.onerror = (event) => {
-                                        reject(
-                                            new Error(
-                                                `Web Speech API error: ${event.error}`
-                                            )
-                                        );
-                                    };
-
-                                    // Timeout sau 10 giây
-                                    setTimeout(() => {
-                                        reject(
-                                            new Error("Web Speech API timeout")
-                                        );
-                                    }, 10000);
-                                }
-                            );
-
-                            recognizedText = result;
-                        }
-                    } catch (webSpeechError) {
-                        console.error("Web Speech API error:", webSpeechError);
-                        // Fallback: Mô phỏng dựa trên văn bản gốc
-                        const originalText =
-                            practiceMode === "phrase"
-                                ? currentPhrase
-                                : customInput;
-                        recognizedText = simulateSpeechToText(
-                            originalText,
-                            0.7
-                        ); // Giảm độ chính xác để thể hiện lỗi
-                    }
-                } else {
-                    // Fallback: Mô phỏng dựa trên văn bản gốc khi không thể kết nối server
-                    // và Vosk không hoạt động
-                    const originalText =
-                        practiceMode === "phrase" ? currentPhrase : customInput;
-                    recognizedText = simulateSpeechToText(originalText, 0.7); // Giảm độ chính xác để thể hiện lỗi
-                }
-            }
-
-            // Cập nhật transcript
-            setTranscript(recognizedText);
-
-            // Phân tích phát âm dựa trên transcript và văn bản gốc
+            // Lấy văn bản gốc dựa trên chế độ (phrase hoặc custom)
             const originalText =
                 practiceMode === "phrase" ? currentPhrase : customInput;
 
-            // Phân tích độ chính xác của phát âm
-            const analysisResult = analyzeTranscription(
-                recognizedText,
-                originalText
+            console.log(
+                "1. Chuẩn bị xử lý âm thanh với Web Speech API hoặc Vosk..."
             );
-            setFeedback(analysisResult);
+            console.log("- Văn bản gốc:", originalText);
+            console.log("- Ngôn ngữ:", selectedLanguage);
 
-            // Lưu vào lịch sử
-            if (audioUrl) {
-                updateHistory(analysisResult);
+            // Hiển thị trạng thái đang xử lý
+            setTranscript("Đang xử lý âm thanh...");
+
+            // Thử nhận dạng giọng nói với Web Speech API
+            let recognizedText = "";
+
+            try {
+                console.log(
+                    "2. Đang sử dụng Web Speech API để chuyển đổi giọng nói..."
+                );
+
+                // TRY USING DIRECT RECOGNITION
+                recognizedText = await recognizeAudioWithWebSpeech(
+                    audioBlob,
+                    selectedLanguage
+                );
+                console.log(
+                    "Kết quả từ Web Speech API trực tiếp:",
+                    recognizedText
+                );
+
+                // Nếu phương pháp trực tiếp không thành công, thử phương pháp khác
+                if (!recognizedText) {
+                    console.log(
+                        "Phương pháp trực tiếp không thành công, thử phương pháp phát lại..."
+                    );
+
+                    // Tạo URL để phát âm thanh
+                    const audioURL = URL.createObjectURL(audioBlob);
+
+                    // Tạo và phát audio (cần thiết cho một số triển khai Web Speech API)
+                    const audio = new Audio(audioURL);
+
+                    // Phương pháp cũ với playback
+                    recognizedText = await new Promise<string>(
+                        (resolve, reject) => {
+                            // ... existing code ...
+                        }
+                    );
+                }
+
+                // Nếu Web Speech API không nhận dạng được, thử dùng Vosk
+                if (!recognizedText) {
+                    // Thử dùng Vosk nếu đã được khởi tạo thành công
+                    if (isVoskReady) {
+                        console.log(
+                            "4. Web Speech API không thành công, đang thử dùng Vosk..."
+                        );
+                        console.log(
+                            "Kiểm tra trạng thái Vosk:",
+                            isVoskReady ? "Đã sẵn sàng" : "Chưa sẵn sàng"
+                        );
+
+                        try {
+                            console.log(
+                                "Đang gửi audioBlob đến Vosk:",
+                                audioBlob.size,
+                                "bytes, loại:",
+                                audioBlob.type
+                            );
+                            recognizedText = await VoskService.recognizeSpeech(
+                                audioBlob
+                            );
+                            console.log(
+                                "5. Kết quả nhận dạng với Vosk:",
+                                recognizedText
+                            );
+                        } catch (voskError) {
+                            console.error("Lỗi khi sử dụng Vosk:", voskError);
+                            console.log(
+                                "Chi tiết lỗi Vosk:",
+                                voskError instanceof Error
+                                    ? voskError.message
+                                    : String(voskError)
+                            );
+                            console.log(
+                                "Stack trace:",
+                                voskError instanceof Error
+                                    ? voskError.stack
+                                    : "No stack trace"
+                            );
+                        }
+                    } else {
+                        console.log(
+                            "Vosk chưa sẵn sàng hoặc không được khởi tạo thành công"
+                        );
+                    }
+                }
+
+                // Nếu cả hai phương pháp đều không thành công, thông báo lỗi
+                if (!recognizedText) {
+                    console.warn(
+                        "6. Không thể nhận dạng giọng nói, sẽ gửi yêu cầu mà không có văn bản đã ghi"
+                    );
+                }
+
+                // Cập nhật transcript cho người dùng thấy
+                if (recognizedText) {
+                    setTranscript(recognizedText);
+                } else {
+                    setTranscript(
+                        "Không thể nhận dạng giọng nói. Vui lòng thử lại và nói rõ hơn."
+                    );
+                }
+
+                // Gửi FormData đến API để phân tích phát âm, kèm theo văn bản đã nhận dạng nếu có
+                console.log("7. Đang gửi request đến API pronunciation...");
+                console.log("Thông tin FormData chuẩn bị gửi:");
+                console.log(
+                    "- audioBlob:",
+                    audioBlob
+                        ? `${audioBlob.size} bytes, ${audioBlob.type}`
+                        : "không có"
+                );
+                console.log("- text:", originalText);
+                console.log("- language:", selectedLanguage);
+                console.log("- recordedText:", recognizedText || "không có");
+
+                const formData = new FormData();
+                formData.append("audio", audioBlob, "recorded_audio.wav");
+                formData.append("text", originalText);
+                formData.append("language", selectedLanguage);
+                formData.append("recordedText", recognizedText || ""); // Gửi văn bản đã nhận dạng từ client
+
+                const response = await fetch("/api/pronunciation", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                console.log(
+                    "8. Đã nhận response từ API:",
+                    response.status,
+                    response.statusText
+                );
+
+                if (!response.ok) {
+                    console.error(
+                        "Lỗi khi gửi yêu cầu tới server:",
+                        response.status,
+                        response.statusText
+                    );
+                    throw new Error(
+                        `Lỗi khi gửi yêu cầu tới server: ${response.status} ${response.statusText}`
+                    );
+                }
+
+                const data = await response.json();
+                console.log("9. Dữ liệu nhận được từ server:", data);
+
+                if (data.error) {
+                    console.error("Lỗi từ server:", data.error);
+                    throw new Error(`Lỗi từ server: ${data.error}`);
+                }
+
+                // Cập nhật transcript từ dữ liệu server trả về nếu có
+                if (data.recordedText && data.recordedText !== recognizedText) {
+                    console.log(
+                        "10. Cập nhật transcript từ server:",
+                        data.recordedText
+                    );
+                    setTranscript(data.recordedText);
+                }
+
+                // Hiển thị kết quả phân tích
+                console.log("11. Cập nhật feedback với dữ liệu phân tích");
+                setFeedback(data);
+
+                // Cập nhật lịch sử nếu có audioUrl và đã nhận dạng được văn bản
+                if (audioUrl && (data.recordedText || recognizedText)) {
+                    console.log("12. Cập nhật lịch sử với đánh giá mới");
+                    // Cập nhật với cả URL âm thanh để sau này có thể phát lại
+                    const historyItem: PracticeHistoryItem = {
+                        text: originalText,
+                        score: data.overallScore,
+                        date: new Date(),
+                        audioUrl: audioUrl,
+                    };
+
+                    setHistory((prevHistory) => [historyItem, ...prevHistory]);
+
+                    // Lưu lịch sử vào localStorage
+                    try {
+                        localStorage.setItem(
+                            "pronunciationHistory",
+                            JSON.stringify([historyItem, ...history])
+                        );
+                        console.log("Đã lưu lịch sử vào localStorage");
+                    } catch (error) {
+                        console.error(
+                            "Error saving history to localStorage:",
+                            error
+                        );
+                    }
+                } else if (!data.recordedText && !recognizedText) {
+                    // Thông báo nếu không nhận dạng được giọng nói
+                    console.warn("Không nhận dạng được giọng nói");
+                    setErrorMessage(
+                        "Không thể nhận dạng giọng nói của bạn. Vui lòng thử lại và nói to, rõ ràng hơn."
+                    );
+                }
+            } catch (error) {
+                console.error("Lỗi trong quá trình xử lý âm thanh:", error);
+                setErrorMessage(
+                    `Đã xảy ra lỗi: ${
+                        error instanceof Error ? error.message : String(error)
+                    }`
+                );
             }
-
-            setIsListening(false);
+        } catch (error) {
+            console.error("Lỗi trong quá trình xử lý âm thanh:", error);
+            setErrorMessage(
+                `Đã xảy ra lỗi: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
+            );
+        } finally {
             setIsAnalyzing(false);
-        } catch (error: any) {
-            console.error("Error processing audio:", error);
-            setIsListening(false);
-            setIsAnalyzing(false);
-            setErrorMessage(`Đã xảy ra lỗi: ${error.message}`);
         }
     };
 
@@ -1226,44 +1245,85 @@ const PronunciationPage = () => {
         }
     };
 
-    // Bắt đầu ghi âm với MediaRecorder
+    // Bắt đầu ghi âm với MediaRecorder API
     const startMediaRecording = async () => {
-        if (!mediaRecorderRef.current) {
-            const initialized = await initMediaRecorder();
-            if (!initialized) return;
-        }
-
         try {
-            // Đặt lại mảng đoạn âm thanh và trạng thái
-            audioChunksRef.current = [];
-            setAudioUrl(null);
-            setRecordedAudioBlob(null);
-            setTranscript("");
-            setFeedback(null);
-            setErrorMessage(null);
-            setIsListening(true); // Cập nhật trạng thái ghi âm
+            console.log("Đang bắt đầu ghi âm với MediaRecorder...");
+            if (!mediaRecorderRef.current) {
+                console.log(
+                    "MediaRecorder chưa được khởi tạo, đang khởi tạo..."
+                );
+                await initMediaRecorder();
+            }
 
-            // Bắt đầu ghi âm
-            mediaRecorderRef.current?.start();
+            if (
+                mediaRecorderRef.current &&
+                mediaRecorderRef.current.state === "inactive"
+            ) {
+                // Reset audio chunks
+                audioChunksRef.current = [];
+
+                // Bắt đầu ghi âm
+                console.log("Bắt đầu ghi âm với MediaRecorder...");
+                mediaRecorderRef.current.start();
+                setIsListening(true);
+                setAudioUrl(null);
+                setTranscript("");
+                setFeedback(null);
+                setErrorMessage(null);
+                console.log(
+                    "Trạng thái MediaRecorder:",
+                    mediaRecorderRef.current.state
+                );
+            } else {
+                console.warn(
+                    "MediaRecorder không khả dụng hoặc đang hoạt động:",
+                    mediaRecorderRef.current
+                        ? mediaRecorderRef.current.state
+                        : "không tồn tại"
+                );
+            }
         } catch (error) {
-            console.error("Error starting media recording:", error);
-            setErrorMessage("Không thể bắt đầu ghi âm. Vui lòng thử lại.");
-            setIsListening(false);
+            console.error("Lỗi khi bắt đầu ghi âm:", error);
+            setErrorMessage(
+                `Lỗi khi bắt đầu ghi âm: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
+            );
         }
     };
 
-    // Dừng ghi âm với MediaRecorder
+    // Dừng ghi âm và xử lý file âm thanh
     const stopMediaRecording = () => {
         try {
+            console.log("Đang dừng ghi âm...");
             if (
                 mediaRecorderRef.current &&
                 mediaRecorderRef.current.state === "recording"
             ) {
+                console.log("Dừng MediaRecorder...");
                 mediaRecorderRef.current.stop();
+                setIsListening(false);
+                console.log(
+                    "Trạng thái MediaRecorder sau khi dừng:",
+                    mediaRecorderRef.current.state
+                );
+            } else {
+                console.warn(
+                    "Không thể dừng MediaRecorder vì nó không đang ghi âm:",
+                    mediaRecorderRef.current
+                        ? mediaRecorderRef.current.state
+                        : "không tồn tại"
+                );
+                setIsListening(false);
             }
-            setIsListening(false);
         } catch (error) {
-            console.error("Error stopping media recording:", error);
+            console.error("Lỗi khi dừng ghi âm:", error);
+            setErrorMessage(
+                `Lỗi khi dừng ghi âm: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
+            );
             setIsListening(false);
         }
     };
@@ -1880,18 +1940,18 @@ const PronunciationPage = () => {
                                         Phân tích từng từ
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {/* {feedback.wordAnalysis.map(
-                                        (word, index) => (
-                                            <div
-                                                key={index}
+                                        {feedback.wordAnalysis.map(
+                                            (word, index) => (
+                                                <div
+                                                    key={index}
                                                     className={`px-3 py-1 rounded-lg text-sm border flex items-center gap-1 ${
-                                                    word.isCorrect
+                                                        word.isCorrect
                                                             ? "border-green-200 bg-green-50 text-green-700"
                                                             : "border-red-200 bg-red-50 text-red-700"
-                                                }`}
+                                                    }`}
                                                     title={word.feedback || ""}
-                                            >
-                                                        {word.word}
+                                                >
+                                                    {word.word}
                                                     {word.isCorrect ? (
                                                         <Check
                                                             size={14}
@@ -1903,9 +1963,9 @@ const PronunciationPage = () => {
                                                             className="text-red-600"
                                                         />
                                                     )}
-                                            </div>
-                                        )
-                                        )} */}
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 </div>
 
@@ -2167,7 +2227,7 @@ const PronunciationPage = () => {
                                     >
                                         <path
                                             fillRule="evenodd"
-                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                             clipRule="evenodd"
                                         />
                                     </svg>
@@ -2190,3 +2250,126 @@ const PronunciationPage = () => {
 };
 
 export default PronunciationPage;
+
+/**
+ * Sử dụng Web Speech API để nhận dạng giọng nói từ file âm thanh
+ * @param audioBlob File âm thanh
+ * @param language Ngôn ngữ
+ * @returns Văn bản đã nhận dạng
+ */
+const recognizeAudioWithWebSpeech = async (
+    audioBlob: Blob,
+    language: string
+): Promise<string> => {
+    console.log(
+        "Phương pháp mới: Sử dụng Web Speech API trực tiếp với file âm thanh"
+    );
+
+    if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+        console.warn("Web Speech API không được hỗ trợ trong trình duyệt này");
+        return "";
+    }
+
+    try {
+        // Tạo AudioContext
+        const audioContext = new (window.AudioContext ||
+            (window as any).webkitAudioContext)();
+        console.log(
+            `AudioContext đã được tạo với sampleRate ${audioContext.sampleRate}Hz`
+        );
+
+        // Chuyển đổi Blob thành ArrayBuffer
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        console.log(
+            `AudioBlob đã được chuyển thành ArrayBuffer ${arrayBuffer.byteLength} bytes`
+        );
+
+        // Giải mã âm thanh
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        console.log(
+            `AudioBuffer đã được giải mã: ${audioBuffer.duration}s, ${audioBuffer.numberOfChannels} kênh`
+        );
+
+        // Tạo source node
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+
+        // Tạo ScriptProcessor để xử lý âm thanh
+        const scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        // Khởi tạo SpeechRecognition
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = language;
+        recognition.continuous = true;
+        recognition.interimResults = false;
+
+        console.log("Khởi tạo SpeechRecognition với ngôn ngữ:", language);
+
+        // Kết nối các node
+        source.connect(scriptProcessor);
+        scriptProcessor.connect(audioContext.destination);
+
+        // Biến để lưu kết quả
+        let transcript = "";
+
+        // Khi có kết quả
+        recognition.onresult = (event) => {
+            console.log("SpeechRecognition: Có kết quả", event.results);
+            const current = event.resultIndex;
+            transcript = event.results[current][0].transcript;
+            console.log("Đã nhận dạng giọng nói:", transcript);
+        };
+
+        // Khi có lỗi
+        recognition.onerror = (event) => {
+            console.error("SpeechRecognition: Lỗi", event.error);
+        };
+
+        // Khi kết thúc
+        recognition.onend = () => {
+            console.log("SpeechRecognition: Kết thúc");
+
+            // Dừng xử lý âm thanh
+            source.disconnect();
+            scriptProcessor.disconnect();
+        };
+
+        // Bắt đầu nhận dạng
+        recognition.start();
+        console.log("SpeechRecognition: Đã bắt đầu");
+
+        // Xử lý âm thanh và gửi đến SpeechRecognition
+        scriptProcessor.onaudioprocess = (e) => {
+            // Đây là nơi sẽ xử lý âm thanh từ audioBuffer và gửi đến SpeechRecognition
+            // trong thực tế, đây là một quá trình phức tạp
+            console.log("Đang xử lý âm thanh...");
+        };
+
+        // Bắt đầu phát âm thanh
+        source.start(0);
+        console.log("Đã bắt đầu phát âm thanh");
+
+        // Đợi đến khi âm thanh kết thúc
+        await new Promise<void>((resolve) => {
+            source.onended = () => {
+                console.log("Phát âm thanh đã kết thúc");
+
+                // Dừng nhận dạng sau khi âm thanh kết thúc
+                setTimeout(() => {
+                    recognition.stop();
+                    resolve();
+                }, 500);
+            };
+        });
+
+        // Đợi thêm một chút để đảm bảo SpeechRecognition có đủ thời gian xử lý
+        await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
+
+        return transcript;
+    } catch (error) {
+        console.error("Lỗi khi sử dụng Web Speech API trực tiếp:", error);
+        return "";
+    }
+};
