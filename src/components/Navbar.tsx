@@ -136,6 +136,25 @@ export default function Navbar() {
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const handleClickOutsideNavDropdown = (event: MouseEvent) => {
+            if (
+                openDropdown !== null &&
+                !(event.target as HTMLElement).closest(
+                    ".nav-dropdown-container"
+                )
+            ) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutsideNavDropdown);
+        return () =>
+            document.removeEventListener(
+                "mousedown",
+                handleClickOutsideNavDropdown
+            );
+    }, [openDropdown]);
+
     // Navigation items with their routes and child items
     const NAV_ITEMS = [
         {
@@ -143,10 +162,10 @@ export default function Navbar() {
             path: "/courses",
             icon: <Book className="mr-2 h-4 w-4" />,
             children: [
+                { title: "All Courses", path: "/courses" },
                 { title: "Featured Courses", path: "/courses/featured" },
                 { title: "New Releases", path: "/courses/new" },
                 { title: "Popular Languages", path: "/courses/popular" },
-                { title: "All Courses", path: "/courses" },
             ],
         },
         {
@@ -193,7 +212,7 @@ export default function Navbar() {
         children,
     }: DropdownMenuProps) => {
         return (
-            <div className="relative">
+            <div className="relative nav-dropdown-container">
                 {trigger}
                 {isOpen && (
                     <div className="absolute top-full left-0 z-50 mt-1 w-56 rounded-md border border-gray-200 bg-white p-1 shadow-lg ring-1 ring-black ring-opacity-5">

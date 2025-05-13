@@ -4,32 +4,74 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
     Search,
+    Filter,
+    Badge,
     Clock,
     Users,
     MessageSquare,
-    Award,
-    BookOpen,
-    TrendingUp,
-    Star,
     ChevronRight,
-    Filter,
+    ArrowRight,
+    TrendingUp,
+    CheckCircle,
+    BookOpen,
+    Award,
+    Star,
+    BarChart,
+    ChevronDown,
+    Headphones,
+    Settings,
+    BookMarked,
+    PenTool,
+    FileText,
+    ArrowPath,
 } from "lucide-react";
 import Link from "next/link";
 
-const categories = [
-    "Tất cả",
-    "Economy",
-    "TOEIC",
-    "IELTS",
-    "Old Format",
-    "Placement Test",
+// Types định nghĩa cho bài thi
+type TestType = "TOEIC" | "IELTS" | "General" | "Placement";
+type TestDifficulty = "Beginner" | "Intermediate" | "Advanced" | "Expert";
+
+interface TestItem {
+    id: string | number;
+    title: string;
+    description: string;
+    duration: string;
+    questions: number;
+    participants: number;
+    testType: TestType;
+    tags: string[];
+    difficulty: TestDifficulty;
+    popularity: number;
+    isFeatured: boolean;
+    completionRate: number;
+    sections?: {
+        listening?: {
+            parts: number;
+            questions: number;
+        };
+        reading?: {
+            parts: number;
+            questions: number;
+        };
+    };
+    lastUpdated?: string;
+}
+
+const categories = ["All", "TOEIC", "IELTS", "Placement", "General"];
+const difficultyLevels: TestDifficulty[] = [
+    "Beginner",
+    "Intermediate",
+    "Advanced",
+    "Expert",
 ];
-const difficultyLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
 
 const Tests = () => {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedDifficulty, setSelectedDifficulty] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
+    const [selectedDifficulty, setSelectedDifficulty] = useState<
+        TestDifficulty | ""
+    >("");
     const [sortBy, setSortBy] = useState("popular");
     const [isLoading, setIsLoading] = useState(true);
 
@@ -41,212 +83,245 @@ const Tests = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const tests = [
+    const tests: TestItem[] = [
         {
-            id: "placement-test-1",
-            title: "Bài Kiểm Tra Đầu Vào",
-            description: "Đánh giá trình độ tiếng Anh trước khi học.",
+            id: "toeic-1",
+            title: "TOEIC Full Test - ETS 2023",
+            description:
+                "Bài thi TOEIC đầy đủ với cấu trúc và độ khó tương đương đề thi thật.",
             duration: "120 phút",
-            participants: 245,
-            comments: 18,
-            tags: ["Placement Test", "TOEIC", "Grammar", "Reading"],
-            difficulty: "Beginner",
-            popularity: 95,
+            questions: 200,
+            participants: 1245,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Full Test", "ETS Format"],
+            difficulty: "Intermediate",
+            popularity: 98,
             isFeatured: true,
             completionRate: 87,
-            image: "/images/test-cover-1.jpg",
+            sections: {
+                listening: {
+                    parts: 4,
+                    questions: 100,
+                },
+                reading: {
+                    parts: 3,
+                    questions: 100,
+                },
+            },
+            lastUpdated: "2023-11-15",
         },
         {
-            id: "placement-test-2",
-            title: "Bài Kiểm Tra Đầu Vào Từ Vựng",
-            description: "Đánh giá kiến thức từ vựng trước khi học.",
-            duration: "120 phút",
-            participants: 189,
-            comments: 12,
-            tags: ["Placement Test", "Vocabulary"],
-            difficulty: "Beginner",
-            popularity: 88,
-            isFeatured: true,
-            completionRate: 92,
-            image: "/images/test-cover-2.jpg",
-        },
-        {
-            id: 2,
-            title: "Economy (old format) TOEIC 4 Test 1",
-            description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-            duration: "120 phút",
-            participants: 156,
-            comments: 8,
-            tags: ["Part 5", "TOEIC"],
-            difficulty: "Intermediate",
-            popularity: 75,
-            isFeatured: false,
-            completionRate: 68,
-            image: "/images/test-cover-3.jpg",
-        },
-        {
-            id: 3,
-            title: "Longman TOEIC (old format) Test 2",
-            description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
-            duration: "120 phút",
-            participants: 132,
-            comments: 7,
-            tags: ["Part 5", "Reading", "TOEIC"],
-            difficulty: "Intermediate",
-            popularity: 72,
-            isFeatured: false,
-            completionRate: 65,
-            image: "/images/test-cover-4.jpg",
-        },
-        {
-            id: 4,
-            title: "Economy Y1 TOEIC Test 2",
-            description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
-            duration: "120 phút",
-            participants: 178,
-            comments: 14,
-            tags: ["Part 5", "Reading", "TOEIC", "Grammar"],
-            difficulty: "Intermediate",
-            popularity: 82,
-            isFeatured: true,
-            completionRate: 75,
-            image: "/images/test-cover-5.jpg",
-        },
-        {
-            id: 5,
-            title: "Economy (old format) TOEIC 4 Test 2",
-            description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-            duration: "120 phút",
-            participants: 98,
-            comments: 5,
-            tags: ["Part 5", "TOEIC"],
-            difficulty: "Advanced",
-            popularity: 65,
-            isFeatured: false,
-            completionRate: 58,
-            image: "/images/test-cover-6.jpg",
-        },
-        {
-            id: 6,
-            title: "Economy Longman TOEIC (old format) Test 3",
-            description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
-            duration: "120 phút",
-            participants: 112,
-            comments: 9,
-            tags: ["Part 5", "Reading", "TOEIC"],
-            difficulty: "Advanced",
-            popularity: 70,
-            isFeatured: false,
-            completionRate: 62,
-            image: "/images/test-cover-7.jpg",
-        },
-        {
-            id: 7,
-            title: "New Economy TOEIC(old format) Test 4",
-            description: "Kiểm tra kiến thức về ngữ pháp tiếng Anh.",
-            duration: "120 phút",
-            participants: 145,
-            comments: 11,
-            tags: ["Part 5", "TOEIC", "Grammar"],
-            difficulty: "Intermediate",
-            popularity: 78,
-            isFeatured: false,
-            completionRate: 70,
-            image: "/images/test-cover-8.jpg",
-        },
-        {
-            id: 8,
-            title: "Economy (old format) IELTS Simulation 4 Test 2",
-            description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-            duration: "120 phút",
-            participants: 87,
-            comments: 6,
-            tags: ["Part 5", "IELTS"],
-            difficulty: "Expert",
-            popularity: 60,
-            isFeatured: false,
-            completionRate: 45,
-            image: "/images/test-cover-9.jpg",
-        },
-        {
-            id: 9,
-            title: "Economy Y1 TOEIC(old format) Test 2",
-            description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
-            duration: "120 phút",
-            participants: 124,
-            comments: 8,
-            tags: ["Part 5", "Reading", "TOEIC"],
-            difficulty: "Intermediate",
-            popularity: 73,
-            isFeatured: false,
-            completionRate: 67,
-            image: "/images/test-cover-10.jpg",
-        },
-        {
-            id: 10,
-            title: "New Economy (old format) IELTS Simulation 4 Test 2",
-            description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-            duration: "120 phút",
-            participants: 76,
-            comments: 4,
-            tags: ["Part 5", "IELTS"],
-            difficulty: "Expert",
-            popularity: 55,
-            isFeatured: false,
-            completionRate: 40,
-            image: "/images/test-cover-11.jpg",
-        },
-        {
-            id: 11,
-            title: "New format Economy TOEIC Test 1",
+            id: "toeic-2",
+            title: "TOEIC Mini Test - Listening Focus",
             description:
-                "Kiểm tra kiến thức về ngữ pháp và đọc và hiểu văn bản tiếng Anh.",
-            duration: "120 phút",
-            participants: 167,
-            comments: 13,
-            tags: ["Part 5", "TOEIC", "Grammar"],
-            category: "Economy",
-            difficulty: "Advanced",
-            popularity: 80,
-            isFeatured: true,
-            completionRate: 72,
-            image: "/images/test-cover-12.jpg",
-        },
-        {
-            id: 12,
-            title: "Bài Kiểm Tra TOEIC New Format Economy",
-            description:
-                "Bài test giúp luyện tập và kiểm tra khả năng sử dụng ngữ pháp và đọc hiểu.",
-            duration: "120 phút",
-            participants: 198,
-            comments: 16,
-            tags: ["TOEIC", "Grammar", "Reading"],
-            category: "New Economy",
+                "Bài thi tập trung vào phần Listening với các câu hỏi phổ biến.",
+            duration: "60 phút",
+            questions: 100,
+            participants: 876,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Listening", "Practice"],
             difficulty: "Intermediate",
             popularity: 85,
             isFeatured: true,
-            completionRate: 78,
-            image: "/images/test-cover-1.jpg",
+            completionRate: 92,
+            sections: {
+                listening: {
+                    parts: 4,
+                    questions: 100,
+                },
+            },
+            lastUpdated: "2023-10-20",
         },
         {
-            id: 13,
-            title: "Bài Kiểm Tra IELTS New Economy",
+            id: "toeic-3",
+            title: "TOEIC Mini Test - Reading Focus",
             description:
-                "Bài test mô phỏng đề thi IELTS giúp kiểm tra khả năng đọc hiểu và sử dụng từ vựng",
-            duration: "120 phút",
-            participants: 154,
-            comments: 12,
-            tags: ["IELTS", "Reading", "Vocab"],
-            category: "New Economy",
+                "Luyện tập phần Reading với các dạng câu hỏi thường gặp.",
+            duration: "75 phút",
+            questions: 100,
+            participants: 735,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Reading", "Grammar", "Practice"],
+            difficulty: "Intermediate",
+            popularity: 82,
+            isFeatured: false,
+            completionRate: 78,
+            sections: {
+                reading: {
+                    parts: 3,
+                    questions: 100,
+                },
+            },
+            lastUpdated: "2023-09-05",
+        },
+        {
+            id: "ielts-1",
+            title: "IELTS Academic Test Simulation",
+            description:
+                "Bài thi mô phỏng IELTS Academic với đầy đủ 4 kỹ năng.",
+            duration: "165 phút",
+            questions: 120,
+            participants: 562,
+            testType: "IELTS",
+            tags: ["IELTS", "Academic", "Full Test"],
             difficulty: "Advanced",
-            popularity: 77,
+            popularity: 90,
+            isFeatured: true,
+            completionRate: 75,
+            lastUpdated: "2023-11-28",
+        },
+        {
+            id: "placement-1",
+            title: "English Placement Test",
+            description:
+                "Bài kiểm tra phân loại trình độ tiếng Anh từ A1 đến C2.",
+            duration: "45 phút",
+            questions: 60,
+            participants: 2145,
+            testType: "Placement",
+            tags: ["Placement", "CEFR", "All Levels"],
+            difficulty: "Beginner",
+            popularity: 95,
+            isFeatured: true,
+            completionRate: 96,
+            lastUpdated: "2023-12-01",
+        },
+        {
+            id: "toeic-4",
+            title: "TOEIC Part 5 & 6 Practice",
+            description:
+                "Tập trung luyện tập ngữ pháp và cấu trúc câu trong TOEIC.",
+            duration: "40 phút",
+            questions: 50,
+            participants: 895,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Grammar", "Part 5", "Part 6"],
+            difficulty: "Intermediate",
+            popularity: 88,
+            isFeatured: false,
+            completionRate: 90,
+            sections: {
+                reading: {
+                    parts: 2,
+                    questions: 50,
+                },
+            },
+            lastUpdated: "2023-08-15",
+        },
+        {
+            id: "toeic-5",
+            title: "TOEIC Part 7 Reading Comprehension",
+            description:
+                "Luyện đọc hiểu với các dạng bài đọc đa dạng trong TOEIC.",
+            duration: "55 phút",
+            questions: 54,
+            participants: 723,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Reading", "Part 7"],
+            difficulty: "Advanced",
+            popularity: 80,
+            isFeatured: false,
+            completionRate: 72,
+            sections: {
+                reading: {
+                    parts: 1,
+                    questions: 54,
+                },
+            },
+            lastUpdated: "2023-07-22",
+        },
+        {
+            id: "ielts-2",
+            title: "IELTS Reading Practice",
+            description: "Luyện đọc hiểu với các bài đọc theo format IELTS.",
+            duration: "60 phút",
+            questions: 40,
+            participants: 638,
+            testType: "IELTS",
+            tags: ["IELTS", "Reading", "Academic"],
+            difficulty: "Advanced",
+            popularity: 85,
+            isFeatured: false,
+            completionRate: 78,
+            lastUpdated: "2023-10-10",
+        },
+        {
+            id: "toeic-6",
+            title: "TOEIC Listening Parts 1-2",
+            description:
+                "Tập trung vào Photographs và Question-Response trong TOEIC.",
+            duration: "30 phút",
+            questions: 50,
+            participants: 912,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Listening", "Part 1", "Part 2"],
+            difficulty: "Beginner",
+            popularity: 87,
+            isFeatured: false,
+            completionRate: 94,
+            sections: {
+                listening: {
+                    parts: 2,
+                    questions: 50,
+                },
+            },
+            lastUpdated: "2023-09-18",
+        },
+        {
+            id: "toeic-7",
+            title: "TOEIC Listening Parts 3-4",
+            description: "Luyện nghe với Conversations và Talks trong TOEIC.",
+            duration: "45 phút",
+            questions: 50,
+            participants: 786,
+            testType: "TOEIC",
+            tags: ["TOEIC", "Listening", "Part 3", "Part 4"],
+            difficulty: "Intermediate",
+            popularity: 84,
+            isFeatured: false,
+            completionRate: 82,
+            sections: {
+                listening: {
+                    parts: 2,
+                    questions: 50,
+                },
+            },
+            lastUpdated: "2023-10-05",
+        },
+        {
+            id: "general-1",
+            title: "Business English Test",
+            description:
+                "Kiểm tra kỹ năng tiếng Anh trong môi trường doanh nghiệp.",
+            duration: "60 phút",
+            questions: 80,
+            participants: 456,
+            testType: "General",
+            tags: ["Business", "Professional", "Workplace"],
+            difficulty: "Advanced",
+            popularity: 75,
             isFeatured: false,
             completionRate: 68,
-            image: "/images/test-cover-2.jpg",
+            lastUpdated: "2023-08-30",
+        },
+        {
+            id: "general-2",
+            title: "CEFR B2 Level Test",
+            description: "Đánh giá trình độ theo khung tham chiếu châu Âu B2.",
+            duration: "90 phút",
+            questions: 100,
+            participants: 528,
+            testType: "General",
+            tags: ["CEFR", "B2", "European Framework"],
+            difficulty: "Intermediate",
+            popularity: 82,
+            isFeatured: false,
+            completionRate: 88,
+            lastUpdated: "2023-11-05",
         },
     ];
 
-    // Filter tests based on search term, difficulty, and sort
+    // Filter tests based on search term, category, difficulty, and sort
     const filteredTests = tests
         .filter(
             (test) =>
@@ -254,9 +329,15 @@ const Tests = () => {
                     test.title
                         .toLowerCase()
                         .includes(searchTerm.toLowerCase()) ||
+                    test.description
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
                     test.tags.some((tag) =>
                         tag.toLowerCase().includes(searchTerm.toLowerCase())
                     )) &&
+                (selectedCategory === "All" ||
+                    test.testType === selectedCategory ||
+                    test.tags.includes(selectedCategory)) &&
                 (selectedDifficulty === "" ||
                     test.difficulty === selectedDifficulty)
         )
@@ -265,9 +346,14 @@ const Tests = () => {
                 case "popular":
                     return b.popularity - a.popularity;
                 case "newest":
-                    return b.id > a.id ? 1 : -1;
+                    return (
+                        new Date(b.lastUpdated || "").getTime() -
+                        new Date(a.lastUpdated || "").getTime()
+                    );
                 case "completion":
                     return b.completionRate - a.completionRate;
+                case "questions":
+                    return b.questions - a.questions;
                 default:
                     return 0;
             }
@@ -277,14 +363,10 @@ const Tests = () => {
     const featuredTests = tests.filter((test) => test.isFeatured);
 
     const handleCategoryClick = (category: string) => {
-        if (category === "Tất cả") {
-            setSearchTerm("");
-        } else {
-            setSearchTerm(category.toLowerCase());
-        }
+        setSelectedCategory(category);
     };
 
-    const handleDifficultyChange = (difficulty: string) => {
+    const handleDifficultyChange = (difficulty: TestDifficulty) => {
         setSelectedDifficulty(
             difficulty === selectedDifficulty ? "" : difficulty
         );
@@ -294,82 +376,67 @@ const Tests = () => {
         setSortBy(sort);
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50">
-            {/* Hero Section */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-20">
-                    <svg
-                        className="absolute top-0 left-0 w-full h-full"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 100 100"
-                        preserveAspectRatio="none"
-                    >
-                        <defs>
-                            <radialGradient
-                                id="radialGradient"
-                                cx="50%"
-                                cy="50%"
-                                r="50%"
-                                fx="50%"
-                                fy="50%"
-                            >
-                                <stop
-                                    offset="0%"
-                                    stopColor="white"
-                                    stopOpacity="0.3"
-                                />
-                                <stop
-                                    offset="100%"
-                                    stopColor="white"
-                                    stopOpacity="0"
-                                />
-                            </radialGradient>
-                        </defs>
-                        <circle
-                            cx="0"
-                            cy="0"
-                            r="20"
-                            fill="url(#radialGradient)"
-                            className="animate-float"
-                        />
-                        <circle
-                            cx="100"
-                            cy="30"
-                            r="15"
-                            fill="url(#radialGradient)"
-                            className="animate-float-delay"
-                        />
-                        <circle
-                            cx="50"
-                            cy="70"
-                            r="10"
-                            fill="url(#radialGradient)"
-                            className="animate-bounce-subtle"
-                        />
-                    </svg>
-                </div>
+    const getTestTypeColor = (testType: TestType) => {
+        switch (testType) {
+            case "TOEIC":
+                return "bg-blue-100 text-blue-600";
+            case "IELTS":
+                return "bg-emerald-100 text-emerald-600";
+            case "Placement":
+                return "bg-amber-100 text-amber-600";
+            case "General":
+            default:
+                return "bg-purple-100 text-purple-600";
+        }
+    };
 
+    const getDifficultyColor = (difficulty: TestDifficulty) => {
+        switch (difficulty) {
+            case "Beginner":
+                return "bg-green-500 text-white";
+            case "Intermediate":
+                return "bg-blue-500 text-white";
+            case "Advanced":
+                return "bg-orange-500 text-white";
+            case "Expert":
+                return "bg-red-500 text-white";
+            default:
+                return "bg-gray-500 text-white";
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Hero Banner - Updated with cleaner design */}
+            <div className="bg-slate-900 text-white py-16 md:py-20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/40 to-indigo-900/40"></div>
                 <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-3xl mx-auto text-center fade-in-up">
+                    <div className="max-w-3xl mx-auto text-center">
+                        <div className="inline-flex items-center bg-blue-900/30 rounded-full px-4 py-2 mb-4 border border-blue-700/30">
+                            <BookOpen className="h-4 w-4 text-blue-300 mr-2" />
+                            <span className="text-sm font-medium">
+                                Online Tests
+                            </span>
+                        </div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-4">
                             Online Tests
                         </h1>
-                        <p className="text-lg md:text-xl opacity-90 mb-8">
-                            Improve your language skills with our comprehensive
-                            tests and assessments
+                        <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                            Evaluate and improve your language skills with
+                            international standard tests that provide detailed
+                            feedback and analysis.
                         </p>
                         <div className="relative max-w-2xl mx-auto">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-gray-400" />
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-slate-400" />
                             </div>
                             <input
                                 type="text"
-                                placeholder="Search for tests by name, tag, or category..."
+                                placeholder="Search tests by name, tags, or description..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-3 w-full rounded-lg bg-white/90 backdrop-blur-sm border-0 shadow-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                                className="pl-12 pr-4 py-3 w-full rounded-lg border-0 bg-white/10 backdrop-blur-sm 
+                                text-white placeholder-slate-300 focus:ring-2 focus:ring-blue-400 transition-all"
                             />
                         </div>
                     </div>
@@ -377,12 +444,12 @@ const Tests = () => {
             </div>
 
             <div className="container mx-auto px-4 py-12">
-                {/* Filter and Sort Controls */}
-                <div className="mb-8 bg-white rounded-xl shadow-md p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                {/* Filter and Sort Controls - Modernized */}
+                <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                            <Filter className="h-5 w-5 mr-2 text-purple-500" />
-                            Filters & Sorting
+                            <Filter className="h-5 w-5 mr-2 text-slate-500" />
+                            Filter and Sort
                         </h2>
                         <div className="flex flex-wrap gap-2">
                             <select
@@ -390,21 +457,25 @@ const Tests = () => {
                                 onChange={(e) =>
                                     handleSortChange(e.target.value)
                                 }
-                                className="px-4 py-2 rounded-lg bg-gray-100 border-0 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-purple-500"
+                                className="px-4 py-2 rounded-lg bg-slate-100 border-0 text-sm font-medium 
+                                text-slate-700 focus:ring-2 focus:ring-slate-400"
                             >
                                 <option value="popular">Most Popular</option>
                                 <option value="newest">Newest</option>
                                 <option value="completion">
-                                    Highest Completion
+                                    Highest Completion Rate
+                                </option>
+                                <option value="questions">
+                                    Most Questions
                                 </option>
                             </select>
                         </div>
                     </div>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-5">
                         <div>
-                            <h3 className="text-sm font-medium text-gray-700 mb-2">
-                                Categories
+                            <h3 className="text-sm font-medium text-slate-700 mb-2">
+                                Test Type
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {categories.map((category) => (
@@ -413,11 +484,10 @@ const Tests = () => {
                                         onClick={() =>
                                             handleCategoryClick(category)
                                         }
-                                        className={`px-4 py-2 text-sm rounded-full transition-all ${
-                                            searchTerm.toLowerCase() ===
-                                            category.toLowerCase()
-                                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                                            selectedCategory === category
+                                                ? "bg-slate-800 text-white shadow-sm"
+                                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                         }`}
                                     >
                                         {category}
@@ -427,8 +497,8 @@ const Tests = () => {
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-medium text-gray-700 mb-2">
-                                Difficulty Level
+                            <h3 className="text-sm font-medium text-slate-700 mb-2">
+                                Difficulty
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {difficultyLevels.map((difficulty) => (
@@ -437,10 +507,10 @@ const Tests = () => {
                                         onClick={() =>
                                             handleDifficultyChange(difficulty)
                                         }
-                                        className={`px-4 py-2 text-sm rounded-full transition-all ${
+                                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
                                             selectedDifficulty === difficulty
-                                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                ? "bg-slate-800 text-white shadow-sm"
+                                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                         }`}
                                     >
                                         {difficulty}
@@ -451,91 +521,154 @@ const Tests = () => {
                     </div>
                 </div>
 
-                {/* Featured Tests Section */}
+                {/* Featured Tests Section - Redesigned */}
                 {featuredTests.length > 0 &&
                     searchTerm === "" &&
-                    selectedDifficulty === "" && (
+                    selectedDifficulty === "" &&
+                    selectedCategory === "All" && (
                         <div className="mb-12">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                                <Star className="h-6 w-6 mr-2 text-yellow-500" />
+                                <Star className="h-6 w-6 mr-2 text-amber-500" />
                                 Featured Tests
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {featuredTests.slice(0, 3).map((test) => (
+
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                {featuredTests.slice(0, 4).map((test) => (
                                     <div
                                         key={test.id}
-                                        className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                        className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm 
+                                        hover:shadow-md transition-all duration-300 flex flex-col"
                                     >
-                                        <div className="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
-                                            Featured
-                                        </div>
-                                        <div className="h-40 bg-gradient-to-r from-indigo-500 to-purple-600 relative overflow-hidden">
-                                            <div className="absolute inset-0 bg-black opacity-20"></div>
-                                            <div className="absolute bottom-0 left-0 p-4 text-white">
-                                                <div className="text-xs font-semibold bg-indigo-600 inline-block px-2 py-1 rounded mb-2">
+                                        <div className="p-6 pb-4 border-b border-gray-100">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div
+                                                    className={`text-xs font-medium px-2.5 py-1 rounded 
+                                                    ${getTestTypeColor(
+                                                        test.testType
+                                                    )}`}
+                                                >
+                                                    {test.testType}
+                                                </div>
+
+                                                <div
+                                                    className={`text-xs font-medium px-2.5 py-1 rounded 
+                                                    ${getDifficultyColor(
+                                                        test.difficulty
+                                                    )}`}
+                                                >
                                                     {test.difficulty}
                                                 </div>
-                                                <h3 className="text-lg font-bold">
-                                                    {test.title}
-                                                </h3>
                                             </div>
-                                        </div>
-                                        <div className="p-5">
-                                            <p className="text-gray-600 text-sm mb-4">
+
+                                            <h3 className="text-lg font-bold text-gray-800 mb-2">
+                                                {test.title}
+                                            </h3>
+
+                                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                                                 {test.description}
                                             </p>
-                                            <div className="flex justify-between items-center mb-4">
-                                                <div className="flex items-center text-gray-500 text-xs">
-                                                    <Clock className="h-4 w-4 mr-1" />
+
+                                            <div className="grid grid-cols-2 gap-4 mb-2">
+                                                <div className="flex items-center text-gray-500 text-sm">
+                                                    <Clock className="h-4 w-4 mr-1.5 text-gray-400" />
                                                     <span>{test.duration}</span>
                                                 </div>
-                                                <div className="flex items-center text-gray-500 text-xs">
-                                                    <Users className="h-4 w-4 mr-1" />
+                                                <div className="flex items-center text-gray-500 text-sm">
+                                                    <Users className="h-4 w-4 mr-1.5 text-gray-400" />
                                                     <span>
-                                                        {test.participants}
+                                                        {test.participants.toLocaleString()}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center text-gray-500 text-xs">
-                                                    <MessageSquare className="h-4 w-4 mr-1" />
-                                                    <span>{test.comments}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1 mb-4">
-                                                {test.tags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="bg-indigo-100 text-indigo-600 text-xs font-medium px-2 py-1 rounded-full"
-                                                    >
-                                                        {tag}
+                                                <div className="flex items-center text-gray-500 text-sm">
+                                                    <FileText className="h-4 w-4 mr-1.5 text-gray-400" />
+                                                    <span>
+                                                        {test.questions}{" "}
+                                                        questions
                                                     </span>
-                                                ))}
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                                        <div
-                                                            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full"
-                                                            style={{
-                                                                width: `${test.completionRate}%`,
-                                                            }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className="text-xs text-gray-500 ml-2">
+                                                </div>
+                                                <div className="flex items-center text-gray-500 text-sm">
+                                                    <Award className="h-4 w-4 mr-1.5 text-gray-400" />
+                                                    <span>
                                                         {test.completionRate}%
+                                                        completed
                                                     </span>
                                                 </div>
-                                                <button
-                                                    onClick={() =>
-                                                        router.push(
-                                                            `/online-tests/${test.id}`
-                                                        )
-                                                    }
-                                                    className="flex items-center text-indigo-600 font-medium text-sm hover:text-indigo-800 transition-colors"
-                                                >
-                                                    Start Test{" "}
-                                                    <ChevronRight className="h-4 w-4 ml-1" />
-                                                </button>
                                             </div>
+                                        </div>
+
+                                        {test.sections && (
+                                            <div className="px-6 py-3 bg-slate-50">
+                                                <div className="flex justify-between text-sm text-slate-600">
+                                                    {test.sections
+                                                        .listening && (
+                                                        <div className="flex items-center">
+                                                            <Headphones className="h-4 w-4 mr-1.5 text-blue-500" />
+                                                            <span>
+                                                                Listening:{" "}
+                                                                {
+                                                                    test
+                                                                        .sections
+                                                                        .listening
+                                                                        .questions
+                                                                }{" "}
+                                                                câu
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {test.sections.reading && (
+                                                        <div className="flex items-center">
+                                                            <BookMarked className="h-4 w-4 mr-1.5 text-emerald-500" />
+                                                            <span>
+                                                                Reading:{" "}
+                                                                {
+                                                                    test
+                                                                        .sections
+                                                                        .reading
+                                                                        .questions
+                                                                }{" "}
+                                                                câu
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="p-5 mt-auto">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex gap-1.5 flex-wrap">
+                                                    {test.tags
+                                                        .slice(0, 2)
+                                                        .map((tag, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full"
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    {test.tags.length > 2 && (
+                                                        <span className="bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">
+                                                            +
+                                                            {test.tags.length -
+                                                                2}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/online-tests/${test.id}`
+                                                    )
+                                                }
+                                                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2.5 
+                                                rounded-lg transition-colors flex items-center justify-center"
+                                            >
+                                                Start Test{" "}
+                                                <ChevronRight className="h-4 w-4 ml-1" />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -543,11 +676,13 @@ const Tests = () => {
                         </div>
                     )}
 
-                {/* All Tests Section */}
+                {/* All Tests Section - Completely redesigned */}
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                        <BookOpen className="h-6 w-6 mr-2 text-indigo-500" />
-                        {searchTerm || selectedDifficulty
+                        <BookOpen className="h-6 w-6 mr-2 text-slate-700" />
+                        {searchTerm ||
+                        selectedDifficulty !== "" ||
+                        selectedCategory !== "All"
                             ? "Search Results"
                             : "All Tests"}
                         <span className="text-sm font-normal text-gray-500 ml-2">
@@ -556,123 +691,160 @@ const Tests = () => {
                     </h2>
 
                     {isLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <div
                                     key={i}
-                                    className="bg-white rounded-xl overflow-hidden shadow animate-pulse"
+                                    className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm animate-pulse"
                                 >
-                                    <div className="h-40 bg-gray-300"></div>
-                                    <div className="p-5 space-y-4">
-                                        <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                                        <div className="h-3 bg-gray-300 rounded w-full"></div>
-                                        <div className="h-3 bg-gray-300 rounded w-full"></div>
-                                        <div className="flex justify-between">
-                                            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-                                            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-                                            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+                                    <div className="p-6">
+                                        <div className="flex justify-between mb-4">
+                                            <div className="h-6 bg-slate-200 rounded w-24"></div>
+                                            <div className="h-6 bg-slate-200 rounded w-20"></div>
                                         </div>
-                                        <div className="flex gap-1">
-                                            <div className="h-6 bg-gray-300 rounded w-16"></div>
-                                            <div className="h-6 bg-gray-300 rounded w-16"></div>
+                                        <div className="h-6 bg-slate-200 rounded w-3/4 mb-2"></div>
+                                        <div className="h-4 bg-slate-200 rounded w-full mb-4"></div>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="h-4 bg-slate-200 rounded w-full"></div>
+                                            <div className="h-4 bg-slate-200 rounded w-full"></div>
+                                            <div className="h-4 bg-slate-200 rounded w-full"></div>
+                                            <div className="h-4 bg-slate-200 rounded w-full"></div>
                                         </div>
-                                        <div className="h-8 bg-gray-300 rounded w-full"></div>
+                                        <div className="h-8 bg-slate-200 rounded w-full mt-4"></div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : filteredTests.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {filteredTests.map((test) => (
                                 <div
                                     key={test.id}
-                                    className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                    className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm 
+                                    hover:shadow-md transition-all duration-300 flex flex-col"
                                 >
-                                    <div className="h-40 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-black opacity-20"></div>
-                                        <div className="absolute top-3 right-3">
+                                    <div className="p-6 pb-4 border-b border-gray-100">
+                                        <div className="flex justify-between items-start mb-4">
                                             <div
-                                                className={`text-xs font-semibold px-2 py-1 rounded ${
-                                                    test.difficulty ===
-                                                    "Beginner"
-                                                        ? "bg-green-500 text-white"
-                                                        : test.difficulty ===
-                                                          "Intermediate"
-                                                        ? "bg-blue-500 text-white"
-                                                        : test.difficulty ===
-                                                          "Advanced"
-                                                        ? "bg-orange-500 text-white"
-                                                        : "bg-red-500 text-white"
-                                                }`}
+                                                className={`text-xs font-medium px-2.5 py-1 rounded 
+                                                ${getTestTypeColor(
+                                                    test.testType
+                                                )}`}
+                                            >
+                                                {test.testType}
+                                            </div>
+
+                                            <div
+                                                className={`text-xs font-medium px-2.5 py-1 rounded 
+                                                ${getDifficultyColor(
+                                                    test.difficulty
+                                                )}`}
                                             >
                                                 {test.difficulty}
                                             </div>
                                         </div>
-                                        <div className="absolute bottom-0 left-0 p-4 text-white">
-                                            <h3 className="text-lg font-bold">
-                                                {test.title}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <div className="p-5">
+
+                                        <h3 className="text-lg font-bold text-gray-800 mb-2">
+                                            {test.title}
+                                        </h3>
+
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                                             {test.description}
                                         </p>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <div className="flex items-center text-gray-500 text-xs">
-                                                <Clock className="h-4 w-4 mr-1" />
+
+                                        <div className="grid grid-cols-2 gap-4 mb-2">
+                                            <div className="flex items-center text-gray-500 text-sm">
+                                                <Clock className="h-4 w-4 mr-1.5 text-gray-400" />
                                                 <span>{test.duration}</span>
                                             </div>
-                                            <div className="flex items-center text-gray-500 text-xs">
-                                                <Users className="h-4 w-4 mr-1" />
-                                                <span>{test.participants}</span>
-                                            </div>
-                                            <div className="flex items-center text-gray-500 text-xs">
-                                                <MessageSquare className="h-4 w-4 mr-1" />
-                                                <span>{test.comments}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1 mb-4">
-                                            {test.tags
-                                                .slice(0, 3)
-                                                .map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="bg-indigo-100 text-indigo-600 text-xs font-medium px-2 py-1 rounded-full"
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            {test.tags.length > 3 && (
-                                                <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded-full">
-                                                    +{test.tags.length - 3}
+                                            <div className="flex items-center text-gray-500 text-sm">
+                                                <Users className="h-4 w-4 mr-1.5 text-gray-400" />
+                                                <span>
+                                                    {test.participants.toLocaleString()}
                                                 </span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center w-full">
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                    <div
-                                                        className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full"
-                                                        style={{
-                                                            width: `${test.completionRate}%`,
-                                                        }}
-                                                    ></div>
-                                                </div>
-                                                <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                                            </div>
+                                            <div className="flex items-center text-gray-500 text-sm">
+                                                <FileText className="h-4 w-4 mr-1.5 text-gray-400" />
+                                                <span>
+                                                    {test.questions} questions
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center text-gray-500 text-sm">
+                                                <BarChart className="h-4 w-4 mr-1.5 text-gray-400" />
+                                                <span>
                                                     {test.completionRate}%
+                                                    completed
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {test.sections && (
+                                        <div className="px-6 py-3 bg-slate-50">
+                                            <div className="flex justify-between text-sm text-slate-600">
+                                                {test.sections.listening && (
+                                                    <div className="flex items-center">
+                                                        <Headphones className="h-4 w-4 mr-1.5 text-blue-500" />
+                                                        <span>
+                                                            Listening:{" "}
+                                                            {
+                                                                test.sections
+                                                                    .listening
+                                                                    .questions
+                                                            }{" "}
+                                                            questions
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {test.sections.reading && (
+                                                    <div className="flex items-center">
+                                                        <BookMarked className="h-4 w-4 mr-1.5 text-emerald-500" />
+                                                        <span>
+                                                            Reading:{" "}
+                                                            {
+                                                                test.sections
+                                                                    .reading
+                                                                    .questions
+                                                            }{" "}
+                                                            questions
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="p-5 mt-auto">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex gap-1.5 flex-wrap">
+                                                {test.tags
+                                                    .slice(0, 2)
+                                                    .map((tag, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full"
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                {test.tags.length > 2 && (
+                                                    <span className="bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">
+                                                        +{test.tags.length - 2}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <button
                                             onClick={() =>
                                                 router.push(
                                                     `/online-tests/${test.id}`
                                                 )
                                             }
-                                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center"
+                                            className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2.5 
+                                            rounded-lg transition-colors flex items-center justify-center"
                                         >
-                                            Làm bài{" "}
+                                            Start Test{" "}
                                             <ChevronRight className="h-4 w-4 ml-1" />
                                         </button>
                                     </div>
@@ -680,25 +852,25 @@ const Tests = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl p-8 text-center shadow-md">
-                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Search className="h-8 w-8 text-indigo-500" />
+                        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center shadow-sm">
+                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Search className="h-8 w-8 text-slate-400" />
                             </div>
                             <h3 className="text-xl font-bold text-gray-800 mb-2">
                                 No tests found
                             </h3>
                             <p className="text-gray-600 mb-4">
-                                We couldn't find any tests matching your search
-                                criteria.
+                                No tests match your search criteria.
                             </p>
                             <button
                                 onClick={() => {
                                     setSearchTerm("");
                                     setSelectedDifficulty("");
+                                    setSelectedCategory("All");
                                 }}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
                             >
-                                Clear filters
+                                Clear Filters
                             </button>
                         </div>
                     )}

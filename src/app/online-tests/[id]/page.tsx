@@ -1,406 +1,1181 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
-import { addProgress } from "@/api/progress";
+import Link from "next/link";
+import {
+    ArrowLeft,
+    ArrowRight,
+    Clock,
+    Headphones,
+    PauseCircle,
+    PlayCircle,
+    Volume2,
+    ChevronLeft,
+    ChevronRight,
+    Flag,
+    CheckCircle,
+    HelpCircle,
+    AlertCircle,
+    Save,
+    List,
+    BookOpen,
+    Settings,
+    Check,
+    X,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Types
+type QuestionType = "single" | "multiple" | "fill";
+type SectionType = "listening" | "reading";
+
+interface Answer {
+    questionId: number;
+    selectedOption?: string | string[];
+    isCorrect?: boolean;
+    isMarked?: boolean;
+}
 
 interface Question {
     id: number;
-    question: string;
-    options: string[];
-    answer: string;
+    type: QuestionType;
+    text: string;
+    options?: string[];
+    correctAnswer: string | string[];
+    image?: string;
+    audio?: string;
+    part: number;
+    explanation?: string;
+    sectionType: SectionType;
+    groupId?: number; // Dùng để nhóm các câu hỏi theo cùng một bài đọc/nghe
 }
 
-interface Test {
-    id: string | number;
+interface TestData {
+    id: string;
     title: string;
     description: string;
-    duration: string;
-    participants: number;
-    comments: number;
-    tags: string[];
-    category?: string;
+    instructions: string;
+    duration: number; // in minutes
+    sections: {
+        listening?: {
+            parts: number;
+            questions: number;
+        };
+        reading?: {
+            parts: number;
+            questions: number;
+        };
+    };
+    questions: Question[];
 }
 
-const tests: Test[] = [
-    {
-        id: "placement-test-1",
-        title: "Bài Kiểm Tra Đầu Vào",
-        description: "Đánh giá trình độ tiếng Anh trước khi học.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Placement Test", "TOEIC", "Grammar", "Reading"],
-    },
-    {
-        id: "placement-test-2",
-        title: "Bài Kiểm Tra Đầu Vào Từ Vựng",
-        description: "Đánh giá kiến thức từ vựng trước khi học.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Placement Test", "Vocabulary"],
-    },
-    {
-        id: 2,
-        title: "Economy (old format) TOEIC 4 Test 1",
-        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "TOEIC"],
-    },
-    {
-        id: 3,
-        title: "Longman TOEIC (old format) Test 2",
-        description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "Reading", "TOEIC"],
-    },
-    {
-        id: 4,
-        title: "Economy Y1 TOEIC Test 2",
-        description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "Reading", "TOEIC", "Grammar"],
-    },
-    {
-        id: 5,
-        title: "Economy (old format) TOEIC 4 Test 2",
-        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "TOEIC"],
-    },
-    {
-        id: 6,
-        title: "Economy Longman TOEIC (old format) Test 3",
-        description: "Bài test đánh giá kỹ năng nghe tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "Reading", "TOEIC"],
-    },
-    {
-        id: 7,
-        title: "New Economy TOEIC(old format) Test 4",
-        description: "Kiểm tra kiến thức về ngữ pháp tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "TOEIC", "Grammar"],
-    },
-    {
-        id: 8,
-        title: "Economy (old format) IELTS Simulation 4 Test 2",
-        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "IELTS"],
-    },
-    {
-        id: 9,
-        title: "Economy Y1 TOEIC(old format) Test 2",
-        description: "Kiểm tra kỹ năng đọc và hiểu văn bản tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "Reading", "TOEIC"],
-    },
-    {
-        id: 10,
-        title: "New Economy (old format) IELTS Simulation 4 Test 2",
-        description: "Đánh giá khả năng ghi nhớ và sử dụng từ vựng.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "IELTS"],
-    },
-    {
-        id: 11,
-        title: "New format Economy TOEIC Test 1",
-        description: "Kiểm tra kiến thức về ngữ pháp và đọc hiểu văn bản tiếng Anh.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["Part 5", "TOEIC", "Grammar"],
-        category: "Economy",
-    },
-    {
-        id: 12,
-        title: "Bài Kiểm Tra TOEIC New Format Economy",
-        description: "Bài test giúp luyện tập và kiểm tra khả năng sử dụng ngữ pháp và đọc hiểu.",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["TOEIC", "Grammar", "Reading"],
-        category: "New Economy",
-    },
-    {
-        id: 13,
-        title: "Bài Kiểm Tra IELTS New Economy",
-        description:
-            "Bài test mô phỏng đề thi IELTS giúp kiểm tra khả năng đọc hiểu và sử dụng từ vựng",
-        duration: "120 phút",
-        participants: 0,
-        comments: 0,
-        tags: ["IELTS", "Reading", "Vocab"],
-        category: "New Economy",
-    },
-];
-const TestPage: React.FC = () => {
+const TestPage = () => {
     const router = useRouter();
-    const { id } = useParams();
+    const params = useParams();
+    const testId = params.id as string;
 
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
-    const [score, setScore] = useState<number | null>(null);
-    const [timeLeft, setTimeLeft] = useState<number>(1800);
+    // States
+    const [test, setTest] = useState<TestData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [isMounted, setIsMounted] = useState<boolean>(false);
-    const [showResult, setShowResult] = useState<boolean>(false);
+    const [currentQuestion, setCurrentQuestion] = useState<number>(0);
+    const [answers, setAnswers] = useState<Answer[]>([]);
+    const [timeLeft, setTimeLeft] = useState<number>(0);
+    const [activeSection, setActiveSection] =
+        useState<SectionType>("listening");
+    const [showInstructions, setShowInstructions] = useState<boolean>(true);
+    const [testCompleted, setTestCompleted] = useState<boolean>(false);
+    const [showResults, setShowResults] = useState<boolean>(false);
+    const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+    const [currentAudio, setCurrentAudio] = useState<string | null>(null);
+    const [autoPlayAudio, setAutoPlayAudio] = useState<boolean>(true);
 
-    const user = useSelector((state: RootState) => state.user.user);
+    // Refs
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Cảnh báo rời trang
+    // Fetch test data
     useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
-            e.returnValue = "Nếu bạn rời khỏi trang, bài làm hiện tại sẽ không được lưu lại.";
-        };
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, []);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!isMounted) return;
-        if (!user) {
-            router.push("/auth/login");
-            return;
-        }
-    }, [isMounted, user, router]);
-
-    const userId = user ? parseInt(user.id) : 0;
-    const currentTest = tests.find((t) => t.id.toString() === id);
-
-    useEffect(() => {
-        const fetchQuestions = async () => {
+        const fetchTestData = async () => {
+            setLoading(true);
             try {
-                const res = await fetch(`/questions/1.txt`);
-                const text = await res.text();
-                const parsedQuestions: Question[] = text.split("\n").map((line) => {
-                    const parts = line.split("|");
-                    return {
-                        id: parseInt(parts[0]),
-                        question: parts[1],
-                        options: parts.slice(2, 6),
-                        answer: parts[6],
-                    };
-                });
-                setQuestions(parsedQuestions);
+                // Mock data for now
+                const mockTest: TestData = generateMockTest(testId);
+                setTest(mockTest);
+                setTimeLeft(mockTest.duration * 60); // Convert to seconds
+
+                // Initialize answers array
+                const initialAnswers = mockTest.questions.map((q) => ({
+                    questionId: q.id,
+                    isMarked: false,
+                }));
+                setAnswers(initialAnswers);
+
+                // Set first question's audio if it exists
+                if (mockTest.questions[0].audio) {
+                    setCurrentAudio(mockTest.questions[0].audio);
+                }
             } catch (error) {
-                console.error("Lỗi tải câu hỏi:", error);
+                console.error("Error fetching test data:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchQuestions();
-    }, [id]);
 
-    // Đếm ngược thời gian
+        fetchTestData();
+    }, [testId]);
+
+    // Timer effect
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
+        if (!test || showInstructions || testCompleted) return;
 
-    const handleSelect = (qId: number, option: string) => {
-        setUserAnswers((prev) => ({ ...prev, [qId]: option }));
+        timerRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    // Time's up, submit the test
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    submitTest();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [test, showInstructions, testCompleted]);
+
+    // Format time for display (MM:SS)
+    const formatTime = (seconds: number) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        return `${hours > 0 ? hours + ":" : ""}${
+            minutes < 10 ? "0" : ""
+        }${minutes}:${secs < 10 ? "0" : ""}${secs}`;
     };
 
-    const handleSubmit = async () => {
-        const confirmed = window.confirm("Bạn có chắc chắn muốn nộp bài?");
-        if (!confirmed) return;
+    // Handle start test
+    const startTest = () => {
+        setShowInstructions(false);
+    };
 
-        let correctCount = 0;
-        questions.forEach((q) => {
-            if (userAnswers[q.id] === q.answer) {
-                correctCount += 1;
+    // Navigate to next question
+    const goToNextQuestion = () => {
+        if (!test) return;
+
+        if (currentQuestion < test.questions.length - 1) {
+            setCurrentQuestion(currentQuestion + 1);
+
+            // Update audio if the next question has audio
+            const nextQuestion = test.questions[currentQuestion + 1];
+            if (nextQuestion.audio && nextQuestion.audio !== currentAudio) {
+                setCurrentAudio(nextQuestion.audio);
+                setAutoPlayAudio(true);
+            } else if (!nextQuestion.audio) {
+                setCurrentAudio(null);
             }
-        });
-        const calculatedScore = Math.round((correctCount / questions.length) * 1000);
-        setScore(calculatedScore);
-        setShowResult(true);
-
-        try {
-            await addProgress({
-                userId: userId,
-                lessonId: 1,
-                enrollmentId: 1,
-                status: currentTest?.title,
-                score: calculatedScore,
-                testScores: userAnswers,
-            });
-            console.log("Score updated successfully");
-        } catch (error) {
-            console.error("Error updating progress:", error);
+        } else {
+            // If it's the last question
+            submitTest();
         }
     };
 
-    if (!isMounted || loading) {
+    // Navigate to previous question
+    const goToPreviousQuestion = () => {
+        if (!test || currentQuestion === 0) return;
+
+        setCurrentQuestion(currentQuestion - 1);
+
+        // Update audio if the previous question has audio
+        const prevQuestion = test.questions[currentQuestion - 1];
+        if (prevQuestion.audio && prevQuestion.audio !== currentAudio) {
+            setCurrentAudio(prevQuestion.audio);
+            setAutoPlayAudio(false); // Don't autoplay when going back
+        } else if (!prevQuestion.audio) {
+            setCurrentAudio(null);
+        }
+    };
+
+    // Handle selecting answer
+    const handleSelectAnswer = (questionId: number, option: string) => {
+        setAnswers((prev) =>
+            prev.map((answer) =>
+                answer.questionId === questionId
+                    ? { ...answer, selectedOption: option }
+                    : answer
+            )
+        );
+    };
+
+    // Handle marking a question for review
+    const toggleMarkQuestion = (questionId: number) => {
+        setAnswers((prev) =>
+            prev.map((answer) =>
+                answer.questionId === questionId
+                    ? { ...answer, isMarked: !answer.isMarked }
+                    : answer
+            )
+        );
+    };
+
+    // Switch from listening to reading section
+    const switchToReadingSection = () => {
+        if (!test) return;
+
+        setActiveSection("reading");
+
+        // Find the first reading question
+        const firstReadingIndex = test.questions.findIndex(
+            (q) => q.sectionType === "reading"
+        );
+        if (firstReadingIndex !== -1) {
+            setCurrentQuestion(firstReadingIndex);
+            setCurrentAudio(null); // No audio in reading section
+        }
+    };
+
+    // Go to specific question
+    const goToQuestion = (index: number) => {
+        if (!test) return;
+
+        setCurrentQuestion(index);
+        setSidebarOpen(false);
+
+        // Update audio if needed
+        const targetQuestion = test.questions[index];
+        if (targetQuestion.audio && targetQuestion.audio !== currentAudio) {
+            setCurrentAudio(targetQuestion.audio);
+            setAutoPlayAudio(false); // Don't autoplay when jumping to questions
+        } else if (!targetQuestion.audio) {
+            setCurrentAudio(null);
+        }
+    };
+
+    // Submit test
+    const submitTest = () => {
+        if (!test) return;
+
+        // Calculate results
+        const gradedAnswers = answers.map((answer) => {
+            const question = test.questions.find(
+                (q) => q.id === answer.questionId
+            );
+            if (!question || !answer.selectedOption)
+                return { ...answer, isCorrect: false };
+
+            let isCorrect = false;
+            if (
+                Array.isArray(question.correctAnswer) &&
+                Array.isArray(answer.selectedOption)
+            ) {
+                // Check multiple answers
+                isCorrect = question.correctAnswer.every(
+                    (correct, index) => correct === answer.selectedOption[index]
+                );
+            } else {
+                // Check single answer
+                isCorrect = question.correctAnswer === answer.selectedOption;
+            }
+
+            return { ...answer, isCorrect };
+        });
+
+        setAnswers(gradedAnswers);
+        setTestCompleted(true);
+        setShowResults(true);
+
+        // Clear timer
+        if (timerRef.current) clearInterval(timerRef.current);
+    };
+
+    // Calculate score
+    const getScore = () => {
+        if (!test) return { correct: 0, total: 0, percentage: 0 };
+
+        const correctCount = answers.filter((a) => a.isCorrect).length;
+        const total = test.questions.length;
+        const percentage = Math.round((correctCount / total) * 100);
+
+        return { correct: correctCount, total, percentage };
+    };
+
+    // Generate mock test for development
+    const generateMockTest = (id: string): TestData => {
+        return {
+            id,
+            title: "TOEIC Full Test - ETS 2023",
+            description:
+                "Bài thi TOEIC đầy đủ với cấu trúc và độ khó tương đương đề thi thật.",
+            instructions:
+                "Bài thi gồm 2 phần: Listening (100 câu) và Reading (100 câu). Tổng thời gian làm bài: 120 phút. Làm bài theo hướng dẫn cho từng phần.",
+            duration: 120, // 120 minutes
+            sections: {
+                listening: {
+                    parts: 4,
+                    questions: 100,
+                },
+                reading: {
+                    parts: 3,
+                    questions: 100,
+                },
+            },
+            questions: generateMockQuestions(),
+        };
+    };
+
+    // Generate mock questions for the test
+    const generateMockQuestions = (): Question[] => {
+        const questions: Question[] = [];
+
+        // Generate Listening questions (Parts 1-4)
+        for (let i = 1; i <= 100; i++) {
+            let part = 1;
+            if (i <= 6) part = 1; // Part 1: 6 questions
+            else if (i <= 31) part = 2; // Part 2: 25 questions
+            else if (i <= 70) part = 3; // Part 3: 39 questions
+            else part = 4; // Part 4: 30 questions
+
+            let groupId;
+            // Group questions for Parts 3 and 4 (conversations and talks)
+            if (part === 3) {
+                groupId = Math.ceil((i - 31) / 3); // 3 questions per conversation
+            } else if (part === 4) {
+                groupId = Math.ceil((i - 70) / 3); // 3 questions per talk
+            }
+
+            questions.push({
+                id: i,
+                type: "single",
+                text: `Listening Question ${i}${
+                    part === 1
+                        ? " (Look at the picture and select the statement that best describes what you see)"
+                        : part === 2
+                        ? " (Listen to the question and select the best response)"
+                        : part === 3
+                        ? " (Listen to the conversation and answer the question)"
+                        : " (Listen to the talk and answer the question)"
+                }`,
+                options: ["A", "B", "C", "D"],
+                correctAnswer: ["A", "B", "C", "D"][
+                    Math.floor(Math.random() * 4)
+                ],
+                audio: `/audio/mock-audio-${i % 10}.mp3`, // Mock audio files
+                image: part === 1 ? `/images/mock-image-${i}.jpg` : undefined,
+                part,
+                explanation: `Explanation for question ${i}`,
+                sectionType: "listening",
+                groupId,
+            });
+        }
+
+        // Generate Reading questions (Parts 5-7)
+        for (let i = 101; i <= 200; i++) {
+            let part = 5;
+            if (i <= 130) part = 5; // Part 5: 30 questions (grammar/vocabulary)
+            else if (i <= 146)
+                part = 6; // Part 6: 16 questions (text completion)
+            else part = 7; // Part 7: 54 questions (reading comprehension)
+
+            let groupId;
+            // Group questions for Parts 6 and 7
+            if (part === 6) {
+                groupId = Math.ceil((i - 130) / 4); // 4 questions per text
+            } else if (part === 7) {
+                const questionInPart = i - 146;
+                // Mix of single, double and triple passages
+                if (questionInPart <= 29) {
+                    groupId = 100 + Math.ceil(questionInPart / 2); // 2 questions per passage
+                } else {
+                    groupId = 115 + Math.ceil((questionInPart - 29) / 5); // 5 questions per passage
+                }
+            }
+
+            questions.push({
+                id: i,
+                type: "single",
+                text: `Reading Question ${i}${
+                    part === 5
+                        ? " (Select the word or phrase that best completes the sentence)"
+                        : part === 6
+                        ? " (Select the word or phrase that best completes the text)"
+                        : " (Read the passage and answer the questions)"
+                }`,
+                options: ["A", "B", "C", "D"],
+                correctAnswer: ["A", "B", "C", "D"][
+                    Math.floor(Math.random() * 4)
+                ],
+                image:
+                    part === 7
+                        ? `/images/mock-reading-${Math.ceil((i - 146) / 5)}.jpg`
+                        : undefined,
+                part,
+                explanation: `Explanation for question ${i}`,
+                sectionType: "reading",
+                groupId,
+            });
+        }
+
+        return questions;
+    };
+
+    if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 py-96">
-                <img src="/icons/loading.gif" alt="Loading..." className="w-12 h-12" />
-                <p className="mt-4 text-lg text-gray-700">Loading test...</p>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block h-12 w-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">Đang tải bài thi...</p>
+                </div>
             </div>
         );
     }
 
-    // Trang kết quả
-    if (showResult) {
+    if (!test) {
         return (
-            <div className="container mx-auto max-w-4xl p-6">
-                <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-                    Kết Quả: {currentTest?.title}
-                </h1>
-                <p className="text-xl font-semibold text-blue-700 mb-6 text-center">
-                    Điểm số: {score}/990
-                </p>
-                <div className="space-y-6">
-                    {questions.map((q, idx) => {
-                        const userAns = userAnswers[q.id] || "Chưa trả lời";
-                        const isCorrect = userAns === q.answer;
-                        return (
-                            <div
-                                key={q.id}
-                                className="p-5 bg-gray-50 rounded-lg shadow border border-gray-200"
-                            >
-                                <h2 className="text-lg font-medium mb-2">
-                                    Câu {idx + 100}: {q.question}
-                                </h2>
-                                <div className="space-y-2">
-                                    {q.options.map((opt, index) => {
-                                        const optionValue = opt.charAt(0);
-                                        const isOptionCorrect = optionValue === q.answer;
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`p-2 rounded border ${
-                                                    isOptionCorrect
-                                                        ? "bg-green-100 border-green-500"
-                                                        : "border-gray-300"
-                                                }`}
-                                            >
-                                                {opt}
-                                            </div>
-                                        );
-                                    })}
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                        Không tìm thấy bài thi
+                    </h1>
+                    <p className="text-gray-600 mb-6">
+                        Không thể tìm thấy bài thi với ID {testId}
+                    </p>
+                    <Link href="/online-tests">
+                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+                            Quay lại danh sách bài thi
+                        </button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (showInstructions) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-12">
+                <div className="container mx-auto px-4 max-w-4xl">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                        <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-6">
+                            {test.title}
+                        </h1>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <h2 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+                                <HelpCircle className="h-5 w-5 mr-2 text-blue-600" />
+                                Hướng dẫn làm bài
+                            </h2>
+                            <p className="text-blue-700 mb-2">
+                                {test.instructions}
+                            </p>
+                            <ul className="list-disc list-inside text-blue-700 space-y-1">
+                                <li>Thời gian làm bài: {test.duration} phút</li>
+                                {test.sections.listening && (
+                                    <li>
+                                        Phần Listening:{" "}
+                                        {test.sections.listening.questions} câu
+                                        hỏi, {test.sections.listening.parts}{" "}
+                                        phần
+                                    </li>
+                                )}
+                                {test.sections.reading && (
+                                    <li>
+                                        Phần Reading:{" "}
+                                        {test.sections.reading.questions} câu
+                                        hỏi, {test.sections.reading.parts} phần
+                                    </li>
+                                )}
+                                <li>
+                                    Bạn có thể di chuyển qua lại giữa các câu
+                                    hỏi trong quá trình làm bài
+                                </li>
+                                <li>
+                                    Đừng quên đánh dấu câu hỏi bạn muốn xem lại
+                                    sau
+                                </li>
+                                <li>
+                                    Khi hết thời gian, bài thi sẽ tự động nộp
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="border-t border-gray-200 pt-6 mb-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                                Cấu trúc bài thi:
+                            </h2>
+
+                            {test.sections.listening && (
+                                <div className="mb-4">
+                                    <h3 className="font-medium text-gray-700 mb-2 flex items-center">
+                                        <Headphones className="h-4 w-4 mr-2 text-blue-600" />
+                                        Phần Listening (
+                                        {test.sections.listening.questions} câu)
+                                    </h3>
+                                    <ul className="list-disc list-inside text-gray-600 ml-6 space-y-1">
+                                        <li>Part 1: Photographs (6 câu)</li>
+                                        <li>
+                                            Part 2: Question-Response (25 câu)
+                                        </li>
+                                        <li>Part 3: Conversations (39 câu)</li>
+                                        <li>Part 4: Talks (30 câu)</li>
+                                    </ul>
                                 </div>
-                                <div className="mt-3">
-                                    <p
-                                        className={`font-medium ${
-                                            isCorrect ? "text-green-600" : "text-red-600"
+                            )}
+
+                            {test.sections.reading && (
+                                <div>
+                                    <h3 className="font-medium text-gray-700 mb-2 flex items-center">
+                                        <BookOpen className="h-4 w-4 mr-2 text-green-600" />
+                                        Phần Reading (
+                                        {test.sections.reading.questions} câu)
+                                    </h3>
+                                    <ul className="list-disc list-inside text-gray-600 ml-6 space-y-1">
+                                        <li>
+                                            Part 5: Incomplete Sentences (30
+                                            câu)
+                                        </li>
+                                        <li>
+                                            Part 6: Text Completion (16 câu)
+                                        </li>
+                                        <li>
+                                            Part 7: Reading Comprehension (54
+                                            câu)
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="text-center">
+                            <button
+                                onClick={startTest}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+                            >
+                                Bắt đầu làm bài
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (showResults) {
+        const score = getScore();
+        return (
+            <div className="min-h-screen bg-gray-50 py-12">
+                <div className="container mx-auto px-4 max-w-4xl">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                        <div className="text-center mb-8">
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
+                                <CheckCircle className="h-10 w-10 text-blue-600" />
+                            </div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                                Hoàn thành bài thi!
+                            </h1>
+                            <p className="text-gray-600">{test.title}</p>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                            <div className="text-center">
+                                <div className="text-5xl font-bold text-blue-700 mb-2">
+                                    {score.percentage}%
+                                </div>
+                                <p className="text-blue-600 font-medium mb-4">
+                                    {score.correct} / {score.total} câu trả lời
+                                    đúng
+                                </p>
+
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                                    <div
+                                        className="bg-blue-600 h-2.5 rounded-full"
+                                        style={{
+                                            width: `${score.percentage}%`,
+                                        }}
+                                    ></div>
+                                </div>
+
+                                <div className="flex justify-center space-x-4 flex-wrap">
+                                    <div className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                                        <div className="text-xl font-bold text-green-600">
+                                            {
+                                                answers.filter(
+                                                    (a) => a.isCorrect
+                                                ).length
+                                            }
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Chính xác
+                                        </div>
+                                    </div>
+                                    <div className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                                        <div className="text-xl font-bold text-red-500">
+                                            {
+                                                answers.filter(
+                                                    (a) => a.isCorrect === false
+                                                ).length
+                                            }
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Không chính xác
+                                        </div>
+                                    </div>
+                                    <div className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                                        <div className="text-xl font-bold text-gray-400">
+                                            {
+                                                answers.filter(
+                                                    (a) =>
+                                                        a.selectedOption ===
+                                                        undefined
+                                                ).length
+                                            }
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Bỏ qua
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">
+                                Kết quả theo từng phần
+                            </h2>
+
+                            {test.sections.listening && (
+                                <div className="mb-6">
+                                    <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                                        <Headphones className="h-5 w-5 mr-2 text-blue-600" />
+                                        Phần Listening
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        {[1, 2, 3, 4].map((part) => {
+                                            const partQuestions =
+                                                test.questions.filter(
+                                                    (q) =>
+                                                        q.sectionType ===
+                                                            "listening" &&
+                                                        q.part === part
+                                                );
+                                            const partAnswers = answers.filter(
+                                                (a) =>
+                                                    partQuestions.some(
+                                                        (q) =>
+                                                            q.id ===
+                                                            a.questionId
+                                                    )
+                                            );
+                                            const correctCount =
+                                                partAnswers.filter(
+                                                    (a) => a.isCorrect
+                                                ).length;
+                                            const partPercentage = Math.round(
+                                                (correctCount /
+                                                    partQuestions.length) *
+                                                    100
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={`listening-part-${part}`}
+                                                >
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-sm font-medium text-gray-700">
+                                                            Part {part}
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            {correctCount}/
+                                                            {
+                                                                partQuestions.length
+                                                            }{" "}
+                                                            ({partPercentage}%)
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                                        <div
+                                                            className="bg-blue-500 h-2 rounded-full"
+                                                            style={{
+                                                                width: `${partPercentage}%`,
+                                                            }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {test.sections.reading && (
+                                <div>
+                                    <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                                        <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                                        Phần Reading
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        {[5, 6, 7].map((part) => {
+                                            const partQuestions =
+                                                test.questions.filter(
+                                                    (q) =>
+                                                        q.sectionType ===
+                                                            "reading" &&
+                                                        q.part === part
+                                                );
+                                            const partAnswers = answers.filter(
+                                                (a) =>
+                                                    partQuestions.some(
+                                                        (q) =>
+                                                            q.id ===
+                                                            a.questionId
+                                                    )
+                                            );
+                                            const correctCount =
+                                                partAnswers.filter(
+                                                    (a) => a.isCorrect
+                                                ).length;
+                                            const partPercentage = Math.round(
+                                                (correctCount /
+                                                    partQuestions.length) *
+                                                    100
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={`reading-part-${part}`}
+                                                >
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-sm font-medium text-gray-700">
+                                                            Part {part}
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            {correctCount}/
+                                                            {
+                                                                partQuestions.length
+                                                            }{" "}
+                                                            ({partPercentage}%)
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                                        <div
+                                                            className="bg-green-500 h-2 rounded-full"
+                                                            style={{
+                                                                width: `${partPercentage}%`,
+                                                            }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-center space-x-4 mt-8">
+                            <button
+                                onClick={() => setShowResults(false)}
+                                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Xem lại bài làm
+                            </button>
+                            <Link href="/online-tests">
+                                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    Quay lại danh sách bài thi
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Main test interface
+    const currentQ = test.questions[currentQuestion];
+    const currentAnswer = answers.find((a) => a.questionId === currentQ.id);
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 py-2 px-4 shadow-sm">
+                <div className="container mx-auto flex justify-between items-center">
+                    <div className="flex items-center">
+                        <button
+                            onClick={() => {
+                                if (confirm("Bạn có chắc chắn muốn thoát?")) {
+                                    window.location.href = "/online-tests";
+                                }
+                            }}
+                            className="flex items-center text-gray-700 hover:text-blue-600"
+                        >
+                            <ArrowLeft className="h-5 w-5 mr-1" />
+                            <span className="hidden sm:inline">Thoát</span>
+                        </button>
+                        <h1 className="text-lg font-semibold text-gray-800 ml-4 hidden sm:block">
+                            {test.title}
+                        </h1>
+                    </div>
+
+                    <div className="flex items-center">
+                        <div className="flex items-center mr-4 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                            <Clock className="h-4 w-4 mr-1" />
+                            <span className="font-medium">
+                                {formatTime(timeLeft)}
+                            </span>
+                        </div>
+
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-colors"
+                        >
+                            <List className="h-5 w-5 mr-1" />
+                            <span className="hidden sm:inline">Câu hỏi</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                if (confirm("Bạn có chắc chắn muốn nộp bài?")) {
+                                    submitTest();
+                                }
+                            }}
+                            className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg flex items-center transition-colors"
+                        >
+                            <Save className="h-4 w-4 mr-1" />
+                            <span>Nộp bài</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main content */}
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar for question navigation */}
+                <div
+                    className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity ${
+                        sidebarOpen
+                            ? "opacity-100"
+                            : "opacity-0 pointer-events-none"
+                    }`}
+                >
+                    <div
+                        className={`absolute right-0 top-0 h-full w-80 bg-white shadow-xl transition-transform ${
+                            sidebarOpen ? "translate-x-0" : "translate-x-full"
+                        }`}
+                    >
+                        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                            <h2 className="font-semibold text-gray-800">
+                                Danh sách câu hỏi
+                            </h2>
+                            <button onClick={() => setSidebarOpen(false)}>
+                                <X className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                            </button>
+                        </div>
+
+                        <div className="p-4 border-b border-gray-200">
+                            <div className="flex justify-between text-sm mb-2">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-green-500 mr-1.5"></div>
+                                    <span className="text-gray-600">
+                                        Đã trả lời
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500 mr-1.5"></div>
+                                    <span className="text-gray-600">
+                                        Đánh dấu
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-gray-300 mr-1.5"></div>
+                                    <span className="text-gray-600">
+                                        Chưa trả lời
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-1.5"></div>
+                                    <span className="text-gray-600">
+                                        Hiện tại
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            className="overflow-y-auto"
+                            style={{ height: "calc(100% - 148px)" }}
+                        >
+                            {/* Listening Section */}
+                            {test.sections.listening && (
+                                <div className="p-4 border-b border-gray-200">
+                                    <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                                        <Headphones className="h-4 w-4 mr-2 text-blue-600" />
+                                        Phần Listening
+                                    </h3>
+
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {test.questions
+                                            .filter(
+                                                (q) =>
+                                                    q.sectionType ===
+                                                    "listening"
+                                            )
+                                            .map((q, index) => {
+                                                const answer = answers.find(
+                                                    (a) => a.questionId === q.id
+                                                );
+                                                let bgColor = "bg-gray-200";
+
+                                                if (
+                                                    currentQuestion ===
+                                                    test.questions.indexOf(q)
+                                                ) {
+                                                    bgColor =
+                                                        "bg-blue-500 text-white";
+                                                } else if (answer?.isMarked) {
+                                                    bgColor =
+                                                        "bg-yellow-400 text-white";
+                                                } else if (
+                                                    answer?.selectedOption
+                                                ) {
+                                                    bgColor =
+                                                        "bg-green-500 text-white";
+                                                }
+
+                                                return (
+                                                    <button
+                                                        key={q.id}
+                                                        onClick={() =>
+                                                            goToQuestion(
+                                                                test.questions.indexOf(
+                                                                    q
+                                                                )
+                                                            )
+                                                        }
+                                                        className={`w-full aspect-square flex items-center justify-center rounded ${bgColor} hover:opacity-80 transition-opacity`}
+                                                    >
+                                                        {q.id}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Reading Section */}
+                            {test.sections.reading && (
+                                <div className="p-4">
+                                    <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                                        <BookOpen className="h-4 w-4 mr-2 text-green-600" />
+                                        Phần Reading
+                                    </h3>
+
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {test.questions
+                                            .filter(
+                                                (q) =>
+                                                    q.sectionType === "reading"
+                                            )
+                                            .map((q, index) => {
+                                                const answer = answers.find(
+                                                    (a) => a.questionId === q.id
+                                                );
+                                                let bgColor = "bg-gray-200";
+
+                                                if (
+                                                    currentQuestion ===
+                                                    test.questions.indexOf(q)
+                                                ) {
+                                                    bgColor =
+                                                        "bg-blue-500 text-white";
+                                                } else if (answer?.isMarked) {
+                                                    bgColor =
+                                                        "bg-yellow-400 text-white";
+                                                } else if (
+                                                    answer?.selectedOption
+                                                ) {
+                                                    bgColor =
+                                                        "bg-green-500 text-white";
+                                                }
+
+                                                return (
+                                                    <button
+                                                        key={q.id}
+                                                        onClick={() =>
+                                                            goToQuestion(
+                                                                test.questions.indexOf(
+                                                                    q
+                                                                )
+                                                            )
+                                                        }
+                                                        className={`w-full aspect-square flex items-center justify-center rounded ${bgColor} hover:opacity-80 transition-opacity`}
+                                                    >
+                                                        {q.id}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Question and answer area */}
+                <div className="flex-1 overflow-y-auto p-4">
+                    <div className="container mx-auto max-w-4xl">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                            {/* Part indicator */}
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center">
+                                    {currentQ.sectionType === "listening" ? (
+                                        <Headphones className="h-5 w-5 mr-2 text-blue-600" />
+                                    ) : (
+                                        <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                                    )}
+                                    <span className="font-medium text-gray-800">
+                                        {currentQ.sectionType === "listening"
+                                            ? "Listening"
+                                            : "Reading"}{" "}
+                                        - Part {currentQ.part}
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="text-sm text-gray-500 mr-2">
+                                        Câu {currentQ.id}/200
+                                    </span>
+                                    <button
+                                        onClick={() =>
+                                            toggleMarkQuestion(currentQ.id)
+                                        }
+                                        className={`p-1.5 rounded-full ${
+                                            currentAnswer?.isMarked
+                                                ? "bg-yellow-100 text-yellow-600"
+                                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                         }`}
                                     >
-                                        Đáp án của bạn: {userAns}
-                                    </p>
-                                    {!isCorrect && (
-                                        <p className="font-medium text-green-600">
-                                            Đáp án đúng: {q.answer}
-                                        </p>
-                                    )}
+                                        <Flag className="h-4 w-4" />
+                                    </button>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            </div>
-        );
-    }
 
-    // Trang làm bài test
-    return (
-        <div className="container mx-auto max-w-7xl pt-8 flex flex-col lg:flex-row gap-8">
-            <div className="flex-1 bg-white shadow-lg rounded-lg p-6 border border-violet-200">
-                <h1 className="text-3xl font-bold text-blue-600 mb-6">
-                    Test: {currentTest?.title}
-                </h1>
-                {questions.length === 0 ? (
-                    <p className="text-gray-600">No questions available.</p>
-                ) : (
-                    <div className="space-y-6">
-                        {questions.map(({ id, question, options }) => (
-                            <div
-                                key={id}
-                                className="p-5 bg-gray-50 rounded-lg shadow border border-gray-200"
+                            {/* Audio player for listening questions */}
+                            {currentQ.sectionType === "listening" &&
+                                currentAudio && (
+                                    <div className="mb-4">
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 flex items-center">
+                                            <Headphones className="h-5 w-5 text-blue-600 mr-2" />
+                                            <span className="text-sm text-blue-700">
+                                                Nghe đoạn ghi âm và trả lời câu
+                                                hỏi bên dưới
+                                            </span>
+                                        </div>
+                                        {/* Audio Player Component would go here in a real implementation */}
+                                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <button className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors">
+                                                    <PlayCircle className="h-6 w-6 text-slate-700" />
+                                                </button>
+                                                <div className="flex-1 mx-4">
+                                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                                        <div
+                                                            className="bg-blue-600 h-2 rounded-full transition-all"
+                                                            style={{
+                                                                width: "0%",
+                                                            }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-sm text-gray-500">
+                                                    0:00 / 0:00
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                            {/* Question image if available */}
+                            {currentQ.image && (
+                                <div className="mb-4">
+                                    <img
+                                        src="/a.png"
+                                        alt={`Question ${currentQ.id}`}
+                                        className="w-2/3 h-auto mx-auto object-cover rounded-lg"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Question text */}
+                            <div className="mb-6">
+                                <p className="text-lg text-gray-800">
+                                    {currentQ.id}. {currentQ.text}
+                                </p>
+                            </div>
+
+                            {/* Answer options */}
+                            {currentQ.options && (
+                                <div className="space-y-3">
+                                    {currentQ.options.map((option, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() =>
+                                                handleSelectAnswer(
+                                                    currentQ.id,
+                                                    option
+                                                )
+                                            }
+                                            className={`w-full text-left p-3 rounded-lg border ${
+                                                currentAnswer?.selectedOption ===
+                                                option
+                                                    ? "bg-blue-50 border-blue-300 text-blue-800"
+                                                    : "border-gray-200 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            <span className="inline-block w-8 font-medium">
+                                                {option}.
+                                            </span>
+                                            <span>
+                                                Option text for {option}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation buttons */}
+                        <div className="flex justify-between">
+                            <button
+                                onClick={goToPreviousQuestion}
+                                disabled={currentQuestion === 0}
+                                className={`flex items-center px-4 py-2 rounded-lg ${
+                                    currentQuestion === 0
+                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                                }`}
                             >
-                                <h2 className="text-lg font-medium mb-3">
-                                    Câu {id + 100}: {question}
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {options.map((opt, idx) => {
-                                        const optionValue = opt.charAt(0);
-                                        const selected = userAnswers[id] === optionValue;
-                                        return (
-                                            <button
-                                                key={idx}
-                                                className={`w-full p-3 rounded-lg border text-left font-medium transition-all ${
-                                                    selected
-                                                        ? "bg-blue-500 text-white border-blue-500"
-                                                        : "border-gray-300 hover:bg-gray-100"
-                                                }`}
-                                                onClick={() => handleSelect(id, optionValue)}
-                                            >
-                                                {opt}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+                                <ChevronLeft className="h-5 w-5 mr-1" />
+                                Câu trước
+                            </button>
 
-            {/* Sidebar */}
-            <div className="w-64 bg-white shadow-lg rounded-lg p-4 sticky top-24 h-fit border border-violet-200">
-                <div className="text-center text-lg font-semibold text-red-500 mb-4 flex justify-center items-center gap-2">
-                    <img className="w-6 h-6" src="/icons/clock.png" alt="Time" />
-                    {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                            <button
+                                onClick={goToNextQuestion}
+                                className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                            >
+                                {currentQuestion < test.questions.length - 1
+                                    ? "Câu tiếp theo"
+                                    : "Hoàn thành"}
+                                <ChevronRight className="h-5 w-5 ml-1" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div className="grid grid-cols-5 gap-2 mb-4">
-                    {questions.map(({ id }) => (
-                        <button
-                            key={id}
-                            className={`w-10 h-10 rounded-full font-bold transition-all text-gray-800 ${
-                                userAnswers[id]
-                                    ? "bg-blue-500 text-white"
-                                    : "bg-gray-200 hover:bg-gray-300"
-                            }`}
-                        >
-                            {id}
-                        </button>
-                    ))}
-                </div>
-                <button
-                    onClick={handleSubmit}
-                    className="mt-4 bg-green-500 text-white text-lg font-semibold px-4 py-3 rounded-lg w-full hover:bg-green-600 transition"
-                >
-                    Finish Test
-                </button>
             </div>
         </div>
     );

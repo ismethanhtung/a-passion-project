@@ -90,9 +90,9 @@ const HeroSection = () => {
                         {/* Stats */}
                         <div className="pt-8 flex flex-wrap justify-center lg:justify-start gap-8 fade-in-up">
                             {[
-                                { value: "50+", label: "Languages" },
-                                { value: "10M+", label: "Learners" },
-                                { value: "5K+", label: "Courses" },
+                                { value: "50-", label: "Languages" },
+                                { value: "10M-", label: "Learners" },
+                                { value: "50+", label: "Courses" },
                             ].map((stat, index) => (
                                 <div
                                     key={index}
