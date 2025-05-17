@@ -1,29 +1,42 @@
 # Node modules
 node_modules/
 src/node_modules/
+*/node_modules/
 
 # Next.js build output
 .next/
 src/.next/
+*/.next/
+out/
 
 # Environment variables
 .env
 .env.*
 src/.env
 src/.env.*
+*/.env
+*/.env.*
 
 # Log files
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Mac system files
 .DS_Store
+*/.DS_Store
+**/.DS_Store
 
 # Output and cache
 out/
 .cache/
+dist/
+build/
 
 # VSCode settings
 .vscode/
+.idea/
 
 # Prisma
 prisma/dev.db
@@ -36,10 +49,19 @@ public/uploads/
 *.bak
 *.swp
 *.swo
+*.backup
+*~
 
 # Ignore test coverage
 coverage/
 
-# Ignore build artifacts
-dist/
-build/
+# Database backup files
+*.sql
+
+# Dependency directories
+jspm_packages/
+bower_components/
+
+# Temporary files
+tmp/
+temp/

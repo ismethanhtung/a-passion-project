@@ -1,7 +1,0 @@
-{
-  "/study-groups/page": "app/study-groups/page.js",
-  "/events/page": "app/events/page.js",
-  "/ai-tutor/page": "app/ai-tutor/page.js",
-  "/resources/library/page": "app/resources/library/page.js",
-  "/games/page": "app/games/page.js"
-}
