@@ -1,7 +1,45 @@
-node_modules
-.next
+# Node modules
+node_modules/
+src/node_modules/
+
+# Next.js build output
+.next/
+src/.next/
+
+# Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+src/.env
+src/.env.*
+
+# Log files
+*.log
+
+# Mac system files
+.DS_Store
+
+# Output and cache
+out/
+.cache/
+
+# VSCode settings
+.vscode/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Public uploads (if any)
+public/uploads/
+
+# Ignore backup files
+*.bak
+*.swp
+*.swo
+
+# Ignore test coverage
+coverage/
+
+# Ignore build artifacts
+dist/
+build/
