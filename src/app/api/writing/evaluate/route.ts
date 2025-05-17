@@ -58,7 +58,7 @@ ${content}
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer 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`,
+                    Authorization: `Bearer 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`,
                 },
                 body: JSON.stringify({
                     model: "llama3-8b-8192",

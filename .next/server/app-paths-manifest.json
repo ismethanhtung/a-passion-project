@@ -1,9 +1,10 @@
 {
-  "/forum/page": "app/forum/page.js",
-  "/page": "app/page.js",
-  "/courses/page": "app/courses/page.js",
+  "/events/page": "app/events/page.js",
+  "/ai-tutor/page": "app/ai-tutor/page.js",
+  "/daily-challenge/page": "app/daily-challenge/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/online-tests/page": "app/online-tests/page.js",
-  "/courses/[id]/page": "app/courses/[id]/page.js",
-  "/docs/page": "app/docs/page.js"
+  "/resources/library/page": "app/resources/library/page.js",
+  "/games/page": "app/games/page.js",
+  "/study-groups/page": "app/study-groups/page.js",
+  "/translate/page": "app/translate/page.js"
 }

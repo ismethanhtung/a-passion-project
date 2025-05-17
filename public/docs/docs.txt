@@ -1,0 +1,179 @@
+[
+  {
+    "title": "English for Absolute Beginners",
+    "description": "A step-by-step guide for those starting from scratch, with essential vocabulary, grammar, and pronunciation tips.",
+    "url": "/docs/english-basics.pdf",
+    "category": "Beginner",
+    "tags": ["starter", "vocabulary", "grammar", "listening", "pronunciation", "speaking"],
+    "isNew": true
+  },
+  {
+    "title": "Mastering English Grammar",
+    "description": "Comprehensive rules and usage examples covering all grammar levels from basic to advanced.",
+    "url": "/docs/master-grammar.pdf",
+    "category": "Grammar",
+    "tags": ["grammar", "tenses", "sentence structure", "academic"]
+  },
+  {
+    "title": "American Pronunciation Course",
+    "description": "A full audio course to train your American English pronunciation with practice scripts and recordings.",
+    "url": "/docs/us-pronunciation.zip",
+    "category": "Pronunciation",
+    "tags": ["pronunciation", "accent", "phonetics", "speaking", "listening"],
+    "isFeatured": true
+  },
+  {
+    "title": "Thematic Vocabulary Builder",
+    "description": "Vocabulary lists organized by themes such as travel, health, business, and everyday conversation.",
+    "url": "/docs/thematic-vocab.xlsx",
+    "category": "Vocabulary",
+    "tags": ["vocabulary", "topics", "word bank", "IELTS", "TOEIC"]
+  },
+  {
+    "title": "Listening Practice for All Levels",
+    "description": "Effective listening exercises with real-life audio samples and comprehension questions.",
+    "url": "/docs/listening-course.mp3",
+    "category": "Listening",
+    "tags": ["listening", "comprehension", "TOEIC", "real-life"],
+    "isNew": true
+  },
+  {
+    "title": "Everyday Speaking Guide",
+    "description": "Daily speaking scenarios and conversation patterns for fluency and confidence building.",
+    "url": "/docs/speaking-scenarios.docx",
+    "category": "Speaking",
+    "tags": ["speaking", "fluency", "conversation", "communication", "phrases"]
+  },
+  {
+    "title": "Academic Writing Templates",
+    "description": "Templates and techniques for writing academic essays, reports, and emails professionally.",
+    "url": "/docs/academic-writing.docx",
+    "category": "Writing",
+    "tags": ["writing", "academic", "report", "email", "IELTS"]
+  },
+  {
+    "title": "Basic English Conversations",
+    "description": "Practice dialogues and common phrases used in daily English communication.",
+    "url": "/docs/daily-conversation.pdf",
+    "category": "Communication",
+    "tags": ["communication", "speaking", "daily", "phrases"]
+  },
+  {
+    "title": "Advanced Business English",
+    "description": "Master business meetings, presentations, and email writing in professional contexts.",
+    "url": "/docs/business-english.pdf",
+    "category": "Business",
+    "tags": ["business", "professional", "communication", "writing"]
+  },
+  {
+    "title": "IELTS Vocabulary by Topic",
+    "description": "Essential vocabulary grouped by IELTS topics with usage examples and synonyms.",
+    "url": "/docs/ielts-topics.xlsx",
+    "category": "IELTS",
+    "tags": ["IELTS", "vocabulary", "topics", "exam", "academic"],
+    "isFeatured": true
+  },
+  {
+    "title": "TOEIC Practice Test Pack",
+    "description": "Full mock tests for TOEIC Listening and Reading sections with answer keys and explanations.",
+    "url": "/docs/toeic-test-pack.pdf",
+    "category": "TOEIC",
+    "tags": ["TOEIC", "mock test", "listening", "reading", "practice"],
+    "isNew": true,
+    "isFeatured": true
+  },
+  {
+    "title": "Reading Strategies and Analysis",
+    "description": "Techniques to understand articles and passages, identify key ideas, and analyze structure.",
+    "url": "/docs/reading-strategies.pdf",
+    "category": "Reading",
+    "tags": ["reading", "comprehension", "articles", "analysis", "skills"]
+  },
+  {
+    "title": "Advanced Pronunciation Guide",
+    "description": "Improve your pronunciation with drills, minimal pairs, intonation practice, and feedback tips.",
+    "url": "/docs/pronunciation-drills.mp3",
+    "category": "Pronunciation",
+    "tags": ["pronunciation", "intonation", "stress", "advanced", "native-like"]
+  },
+  {
+    "title": "Specialized Vocabulary for Careers",
+    "description": "Industry-specific vocabulary for healthcare, engineering, law, and IT.",
+    "url": "/docs/industry-vocab.xlsx",
+    "category": "Vocabulary",
+    "tags": ["professional", "specialized", "careers", "health", "technology", "law"],
+    "isNew": true
+  },
+  {
+    "title": "Luyện phát âm chuyên sâu",
+    "description": "Các bài tập luyện phát âm nâng cao cho người học muốn hoàn thiện giọng nói gần với người bản xứ.",
+    "url": "/docs/advanced-pronunciation.mp3",
+    "category": "Pronunciation",
+    "tags": ["pronunciation", "advanced", "native-like"]
+  },
+  {
+    "title": "Khóa học TOEIC cơ bản",
+    "description": "Chuẩn bị cho kỳ thi TOEIC với các bài tập và bài kiểm tra mô phỏng phần Listening và Reading.",
+    "url": "/docs/toeic-preparation.pdf",
+    "category": "TOEIC",
+    "tags": ["TOEIC", "exam", "preparation"],
+    "isNew": true,
+    "isFeatured": true
+  },
+  {
+    "title": "Advanced TOEIC Strategies",
+    "description": "Master high-level TOEIC strategies for both Listening and Reading sections with practice tests and tips.",
+    "url": "/docs/toeic-advanced.pdf",
+    "category": "TOEIC",
+    "tags": ["TOEIC", "advanced", "strategy", "exam", "test-tips"]
+  },
+  {
+    "title": "IELTS Writing Task 2 Guide",
+    "description": "Comprehensive guide to mastering IELTS Writing Task 2 with model essays and scoring criteria.",
+    "url": "/docs/ielts-writing-task2.pdf",
+    "category": "IELTS",
+    "tags": ["IELTS", "writing", "essay", "task2", "bandscore"]
+  },
+  {
+    "title": "Everyday English Conversations",
+    "description": "Real-life dialogues and expressions for daily situations: shopping, traveling, dining, and more.",
+    "url": "/docs/everyday-conversations.mp3",
+    "category": "Speaking",
+    "tags": ["speaking", "conversation", "daily", "phrases", "real-life"]
+  },
+  {
+    "title": "English for Presentations",
+    "description": "Learn essential vocabulary, structures, and techniques for effective English presentations.",
+    "url": "/docs/presentation-skills.pptx",
+    "category": "Business",
+    "tags": ["presentation", "business", "communication", "public-speaking"]
+  },
+  {
+    "title": "Academic Vocabulary Builder",
+    "description": "Build academic English vocabulary with categorized word lists and usage in context.",
+    "url": "/docs/academic-vocab.xlsx",
+    "category": "Vocabulary",
+    "tags": ["academic", "vocabulary", "reading", "writing", "context"]
+  },
+  {
+    "title": "Listening Practice – Natural Speed",
+    "description": "Train your ears with native-level listening exercises using news, podcasts, and interviews.",
+    "url": "/docs/natural-listening.mp3",
+    "category": "Listening",
+    "tags": ["listening", "natural-speed", "native", "news", "interview"]
+  },
+  {
+    "title": "Business Email Writing",
+    "description": "Templates and language tips for writing effective and professional emails in English.",
+    "url": "/docs/business-email.docx",
+    "category": "Writing",
+    "tags": ["writing", "email", "business", "formal", "template"]
+  },
+  {
+    "title": "Idioms and Slang Explained",
+    "description": "Understand and use popular English idioms and slang in casual conversation.",
+    "url": "/docs/idioms-guide.pdf",
+    "category": "Vocabulary",
+    "tags": ["idioms", "slang", "phrases", "casual", "speaking"]
+  }
+]

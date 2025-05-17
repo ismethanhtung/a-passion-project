@@ -60,10 +60,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 {/* Author avatar column */}
                 <div className="mr-6 flex flex-col items-center">
                     <img
-                        src={
-                            post.author?.avatar ||
-                            "https://randomuser.me/api/portraits/men/32.jpg"
-                        }
+                        src="/images/avatar/avatar2.png"
                         alt="Author"
                         className="w-12 h-12 rounded-full object-cover"
                     />
@@ -236,10 +233,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                         {post.comments.map((comment, index) => (
                             <div key={index} className="flex">
                                 <img
-                                    src={
-                                        comment.author?.avatar ||
-                                        "https://randomuser.me/api/portraits/women/32.jpg"
-                                    }
+                                    src="/images/avatar/avatar2.png"
                                     alt="Author"
                                     className="w-8 h-8 rounded-full mr-3 object-cover"
                                 />

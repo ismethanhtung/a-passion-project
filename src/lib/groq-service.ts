@@ -61,7 +61,7 @@ export async function assessPronunciationWithGroq(
     // Kiểm tra GROQ_API_KEY
     const groqApiKey =
         process.env.GROQ_API_KEY ||
-        "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";
+        "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";
 
     if (!groqApiKey) {
         console.warn("GROQ_API_KEY không tìm thấy, sử dụng đánh giá mặc định");

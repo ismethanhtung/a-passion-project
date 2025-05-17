@@ -306,11 +306,11 @@ const TestPage = () => {
     const generateMockTest = (id: string): TestData => {
         return {
             id,
-            title: "TOEIC Full Test - ETS 2023",
+            title: "Full Online Test",
             description:
-                "Bài thi TOEIC đầy đủ với cấu trúc và độ khó tương đương đề thi thật.",
+                "A full test with a structure and difficulty equivalent to the real test.",
             instructions:
-                "Bài thi gồm 2 phần: Listening (100 câu) và Reading (100 câu). Tổng thời gian làm bài: 120 phút. Làm bài theo hướng dẫn cho từng phần.",
+                "The test consists of 2 parts: Listening (100 questions) and Reading (100 questions). Total time: 120 minutes. Follow the instructions for each part.",
             duration: 120, // 120 minutes
             sections: {
                 listening: {
@@ -465,7 +465,7 @@ const TestPage = () => {
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                             <h2 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
                                 <HelpCircle className="h-5 w-5 mr-2 text-blue-600" />
-                                Hướng dẫn làm bài
+                                Instructions for the test
                             </h2>
                             <p className="text-blue-700 mb-2">
                                 {test.instructions}
@@ -474,52 +474,60 @@ const TestPage = () => {
                                 <li>Thời gian làm bài: {test.duration} phút</li>
                                 {test.sections.listening && (
                                     <li>
-                                        Phần Listening:{" "}
-                                        {test.sections.listening.questions} câu
-                                        hỏi, {test.sections.listening.parts}{" "}
-                                        phần
+                                        Listening part:{" "}
+                                        {test.sections.listening.questions}{" "}
+                                        questions,{" "}
+                                        {test.sections.listening.parts} parts
                                     </li>
                                 )}
                                 {test.sections.reading && (
                                     <li>
-                                        Phần Reading:{" "}
-                                        {test.sections.reading.questions} câu
-                                        hỏi, {test.sections.reading.parts} phần
+                                        Reading part:{" "}
+                                        {test.sections.reading.questions}{" "}
+                                        questions, {test.sections.reading.parts}{" "}
+                                        parts
                                     </li>
                                 )}
                                 <li>
-                                    Bạn có thể di chuyển qua lại giữa các câu
-                                    hỏi trong quá trình làm bài
+                                    You can move between questions during the
+                                    test
                                 </li>
                                 <li>
-                                    Đừng quên đánh dấu câu hỏi bạn muốn xem lại
-                                    sau
+                                    Don't forget to mark the questions you want
+                                    to review
                                 </li>
                                 <li>
-                                    Khi hết thời gian, bài thi sẽ tự động nộp
+                                    When the time is up, the test will
+                                    automatically submit
                                 </li>
                             </ul>
                         </div>
 
                         <div className="border-t border-gray-200 pt-6 mb-6">
                             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                                Cấu trúc bài thi:
+                                Test structure:
                             </h2>
 
                             {test.sections.listening && (
                                 <div className="mb-4">
                                     <h3 className="font-medium text-gray-700 mb-2 flex items-center">
                                         <Headphones className="h-4 w-4 mr-2 text-blue-600" />
-                                        Phần Listening (
-                                        {test.sections.listening.questions} câu)
+                                        Listening part (
+                                        {test.sections.listening.questions}{" "}
+                                        questions)
                                     </h3>
                                     <ul className="list-disc list-inside text-gray-600 ml-6 space-y-1">
-                                        <li>Part 1: Photographs (6 câu)</li>
                                         <li>
-                                            Part 2: Question-Response (25 câu)
+                                            Part 1: Photographs (6 questions)
                                         </li>
-                                        <li>Part 3: Conversations (39 câu)</li>
-                                        <li>Part 4: Talks (30 câu)</li>
+                                        <li>
+                                            Part 2: Question-Response (25
+                                            questions)
+                                        </li>
+                                        <li>
+                                            Part 3: Conversations (39 questions)
+                                        </li>
+                                        <li>Part 4: Talks (30 questions)</li>
                                     </ul>
                                 </div>
                             )}
@@ -528,20 +536,22 @@ const TestPage = () => {
                                 <div>
                                     <h3 className="font-medium text-gray-700 mb-2 flex items-center">
                                         <BookOpen className="h-4 w-4 mr-2 text-green-600" />
-                                        Phần Reading (
-                                        {test.sections.reading.questions} câu)
+                                        Reading part (
+                                        {test.sections.reading.questions}{" "}
+                                        questions)
                                     </h3>
                                     <ul className="list-disc list-inside text-gray-600 ml-6 space-y-1">
                                         <li>
                                             Part 5: Incomplete Sentences (30
-                                            câu)
+                                            questions)
                                         </li>
                                         <li>
-                                            Part 6: Text Completion (16 câu)
+                                            Part 6: Text Completion (16
+                                            questions)
                                         </li>
                                         <li>
                                             Part 7: Reading Comprehension (54
-                                            câu)
+                                            questions)
                                         </li>
                                     </ul>
                                 </div>
@@ -553,7 +563,7 @@ const TestPage = () => {
                                 onClick={startTest}
                                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
                             >
-                                Bắt đầu làm bài
+                                Start the test
                             </button>
                         </div>
                     </div>
@@ -573,7 +583,7 @@ const TestPage = () => {
                                 <CheckCircle className="h-10 w-10 text-blue-600" />
                             </div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                                Hoàn thành bài thi!
+                                Test completed!
                             </h1>
                             <p className="text-gray-600">{test.title}</p>
                         </div>
@@ -584,8 +594,8 @@ const TestPage = () => {
                                     {score.percentage}%
                                 </div>
                                 <p className="text-blue-600 font-medium mb-4">
-                                    {score.correct} / {score.total} câu trả lời
-                                    đúng
+                                    {score.correct} / {score.total} questions
+                                    answered correctly
                                 </p>
 
                                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
@@ -607,7 +617,7 @@ const TestPage = () => {
                                             }
                                         </div>
                                         <div className="text-sm text-gray-600">
-                                            Chính xác
+                                            Correct
                                         </div>
                                     </div>
                                     <div className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -619,7 +629,7 @@ const TestPage = () => {
                                             }
                                         </div>
                                         <div className="text-sm text-gray-600">
-                                            Không chính xác
+                                            Incorrect
                                         </div>
                                     </div>
                                     <div className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -633,7 +643,7 @@ const TestPage = () => {
                                             }
                                         </div>
                                         <div className="text-sm text-gray-600">
-                                            Bỏ qua
+                                            Skipped
                                         </div>
                                     </div>
                                 </div>
@@ -642,14 +652,14 @@ const TestPage = () => {
 
                         <div className="mb-8">
                             <h2 className="text-xl font-bold text-gray-800 mb-4">
-                                Kết quả theo từng phần
+                                Results by part
                             </h2>
 
                             {test.sections.listening && (
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                                         <Headphones className="h-5 w-5 mr-2 text-blue-600" />
-                                        Phần Listening
+                                        Listening part
                                     </h3>
 
                                     <div className="space-y-3">
@@ -714,7 +724,7 @@ const TestPage = () => {
                                 <div>
                                     <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                                         <BookOpen className="h-5 w-5 mr-2 text-green-600" />
-                                        Phần Reading
+                                        Reading part
                                     </h3>
 
                                     <div className="space-y-3">
@@ -781,11 +791,11 @@ const TestPage = () => {
                                 onClick={() => setShowResults(false)}
                                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                             >
-                                Xem lại bài làm
+                                Review the test
                             </button>
                             <Link href="/online-tests">
                                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                    Quay lại danh sách bài thi
+                                    Back to the list of tests
                                 </button>
                             </Link>
                         </div>
@@ -802,39 +812,45 @@ const TestPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 py-2 px-4 shadow-sm">
+            <div className="bg-white border-b border-gray-200 py-3 px-4 shadow-sm sticky top-0 z-20">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center">
                         <button
                             onClick={() => {
-                                if (confirm("Bạn có chắc chắn muốn thoát?")) {
+                                if (
+                                    confirm(
+                                        "Bạn có chắc chắn muốn thoát khỏi bài kiểm tra?"
+                                    )
+                                ) {
                                     window.location.href = "/online-tests";
                                 }
                             }}
-                            className="flex items-center text-gray-700 hover:text-blue-600"
+                            className="flex items-center text-gray-700 hover:text-indigo-600 transition-colors"
                         >
                             <ArrowLeft className="h-5 w-5 mr-1" />
-                            <span className="hidden sm:inline">Thoát</span>
+                            <span className="hidden sm:inline font-medium">
+                                Thoát
+                            </span>
                         </button>
-                        <h1 className="text-lg font-semibold text-gray-800 ml-4 hidden sm:block">
+                        <h1 className="text-lg font-semibold text-gray-800 ml-4 hidden sm:block truncate max-w-md">
                             {test.title}
                         </h1>
                     </div>
 
-                    <div className="flex items-center">
-                        <div className="flex items-center mr-4 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                            <Clock className="h-4 w-4 mr-1" />
-                            <span className="font-medium">
-                                {formatTime(timeLeft)}
-                            </span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium text-sm">
+                            <Clock className="h-4 w-4 mr-1.5" />
+                            <span>{formatTime(timeLeft)}</span>
                         </div>
 
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-colors"
+                            className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors"
                         >
                             <List className="h-5 w-5 mr-1" />
-                            <span className="hidden sm:inline">Câu hỏi</span>
+                            <span className="hidden sm:inline font-medium">
+                                Câu hỏi
+                            </span>
                         </button>
 
                         <button
@@ -843,17 +859,29 @@ const TestPage = () => {
                                     submitTest();
                                 }
                             }}
-                            className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg flex items-center transition-colors"
+                            className="ml-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg flex items-center transition-colors"
                         >
                             <Save className="h-4 w-4 mr-1" />
-                            <span>Nộp bài</span>
+                            <span className="font-medium">Nộp bài</span>
                         </button>
                     </div>
                 </div>
             </div>
 
+            {/* Progress bar */}
+            <div className="h-1 bg-gray-200">
+                <div
+                    className="h-full bg-indigo-600 transition-all duration-300"
+                    style={{
+                        width: `${
+                            (currentQuestion / test.questions.length) * 100
+                        }%`,
+                    }}
+                ></div>
+            </div>
+
             {/* Main content */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden relative">
                 {/* Sidebar for question navigation */}
                 <div
                     className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity ${
@@ -861,23 +889,28 @@ const TestPage = () => {
                             ? "opacity-100"
                             : "opacity-0 pointer-events-none"
                     }`}
+                    onClick={() => setSidebarOpen(false)}
                 >
                     <div
                         className={`absolute right-0 top-0 h-full w-80 bg-white shadow-xl transition-transform ${
                             sidebarOpen ? "translate-x-0" : "translate-x-full"
                         }`}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center p-4 border-b border-gray-200">
                             <h2 className="font-semibold text-gray-800">
                                 Danh sách câu hỏi
                             </h2>
-                            <button onClick={() => setSidebarOpen(false)}>
-                                <X className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                            <button
+                                onClick={() => setSidebarOpen(false)}
+                                className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+                            >
+                                <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="flex justify-between text-sm mb-2">
+                        <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <div className="grid grid-cols-2 gap-2 text-sm mb-2">
                                 <div className="flex items-center">
                                     <div className="w-3 h-3 rounded-full bg-green-500 mr-1.5"></div>
                                     <span className="text-gray-600">
@@ -890,8 +923,6 @@ const TestPage = () => {
                                         Đánh dấu
                                     </span>
                                 </div>
-                            </div>
-                            <div className="flex justify-between text-sm">
                                 <div className="flex items-center">
                                     <div className="w-3 h-3 rounded-full bg-gray-300 mr-1.5"></div>
                                     <span className="text-gray-600">
@@ -899,7 +930,7 @@ const TestPage = () => {
                                     </span>
                                 </div>
                                 <div className="flex items-center">
-                                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-1.5"></div>
+                                    <div className="w-3 h-3 rounded-full bg-indigo-500 mr-1.5"></div>
                                     <span className="text-gray-600">
                                         Hiện tại
                                     </span>
@@ -916,10 +947,10 @@ const TestPage = () => {
                                 <div className="p-4 border-b border-gray-200">
                                     <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                                         <Headphones className="h-4 w-4 mr-2 text-blue-600" />
-                                        Phần Listening
+                                        Phần Nghe
                                     </h3>
 
-                                    <div className="grid grid-cols-5 gap-2">
+                                    <div className="grid grid-cols-6 gap-2">
                                         {test.questions
                                             .filter(
                                                 (q) =>
@@ -937,7 +968,7 @@ const TestPage = () => {
                                                     test.questions.indexOf(q)
                                                 ) {
                                                     bgColor =
-                                                        "bg-blue-500 text-white";
+                                                        "bg-indigo-500 text-white";
                                                 } else if (answer?.isMarked) {
                                                     bgColor =
                                                         "bg-yellow-400 text-white";
@@ -958,7 +989,7 @@ const TestPage = () => {
                                                                 )
                                                             )
                                                         }
-                                                        className={`w-full aspect-square flex items-center justify-center rounded ${bgColor} hover:opacity-80 transition-opacity`}
+                                                        className={`w-full aspect-square flex items-center justify-center rounded-md text-sm font-medium ${bgColor} hover:opacity-90 transition-opacity`}
                                                     >
                                                         {q.id}
                                                     </button>
@@ -973,10 +1004,10 @@ const TestPage = () => {
                                 <div className="p-4">
                                     <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                                         <BookOpen className="h-4 w-4 mr-2 text-green-600" />
-                                        Phần Reading
+                                        Phần Đọc
                                     </h3>
 
-                                    <div className="grid grid-cols-5 gap-2">
+                                    <div className="grid grid-cols-6 gap-2">
                                         {test.questions
                                             .filter(
                                                 (q) =>
@@ -993,7 +1024,7 @@ const TestPage = () => {
                                                     test.questions.indexOf(q)
                                                 ) {
                                                     bgColor =
-                                                        "bg-blue-500 text-white";
+                                                        "bg-indigo-500 text-white";
                                                 } else if (answer?.isMarked) {
                                                     bgColor =
                                                         "bg-yellow-400 text-white";
@@ -1014,7 +1045,7 @@ const TestPage = () => {
                                                                 )
                                                             )
                                                         }
-                                                        className={`w-full aspect-square flex items-center justify-center rounded ${bgColor} hover:opacity-80 transition-opacity`}
+                                                        className={`w-full aspect-square flex items-center justify-center rounded-md text-sm font-medium ${bgColor} hover:opacity-90 transition-opacity`}
                                                     >
                                                         {q.id}
                                                     </button>
@@ -1028,26 +1059,30 @@ const TestPage = () => {
                 </div>
 
                 {/* Question and answer area */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto px-4 py-6">
                     <div className="container mx-auto max-w-4xl">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             {/* Part indicator */}
-                            <div className="flex justify-between items-center mb-4">
+                            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
                                 <div className="flex items-center">
                                     {currentQ.sectionType === "listening" ? (
-                                        <Headphones className="h-5 w-5 mr-2 text-blue-600" />
+                                        <div className="flex items-center">
+                                            <Headphones className="h-5 w-5 mr-2 text-blue-600" />
+                                            <span className="font-medium text-gray-800">
+                                                Phần Nghe - Part {currentQ.part}
+                                            </span>
+                                        </div>
                                     ) : (
-                                        <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                                        <div className="flex items-center">
+                                            <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                                            <span className="font-medium text-gray-800">
+                                                Phần Đọc - Part {currentQ.part}
+                                            </span>
+                                        </div>
                                     )}
-                                    <span className="font-medium text-gray-800">
-                                        {currentQ.sectionType === "listening"
-                                            ? "Listening"
-                                            : "Reading"}{" "}
-                                        - Part {currentQ.part}
-                                    </span>
                                 </div>
                                 <div className="flex items-center">
-                                    <span className="text-sm text-gray-500 mr-2">
+                                    <span className="text-sm text-gray-500 mr-3">
                                         Câu {currentQ.id}/200
                                     </span>
                                     <button
@@ -1058,7 +1093,12 @@ const TestPage = () => {
                                             currentAnswer?.isMarked
                                                 ? "bg-yellow-100 text-yellow-600"
                                                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                                        }`}
+                                        } transition-colors`}
+                                        title={
+                                            currentAnswer?.isMarked
+                                                ? "Bỏ đánh dấu"
+                                                : "Đánh dấu để xem lại sau"
+                                        }
                                     >
                                         <Flag className="h-4 w-4" />
                                     </button>
@@ -1068,8 +1108,8 @@ const TestPage = () => {
                             {/* Audio player for listening questions */}
                             {currentQ.sectionType === "listening" &&
                                 currentAudio && (
-                                    <div className="mb-4">
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 flex items-center">
+                                    <div className="px-6 pt-6 pb-2">
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center">
                                             <Headphones className="h-5 w-5 text-blue-600 mr-2" />
                                             <span className="text-sm text-blue-700">
                                                 Nghe đoạn ghi âm và trả lời câu
@@ -1079,20 +1119,20 @@ const TestPage = () => {
                                         {/* Audio Player Component would go here in a real implementation */}
                                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                                             <div className="flex items-center justify-between mb-2">
-                                                <button className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors">
-                                                    <PlayCircle className="h-6 w-6 text-slate-700" />
+                                                <button className="p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors">
+                                                    <PlayCircle className="h-6 w-6 text-indigo-700" />
                                                 </button>
                                                 <div className="flex-1 mx-4">
                                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                                         <div
-                                                            className="bg-blue-600 h-2 rounded-full transition-all"
+                                                            className="bg-indigo-600 h-2 rounded-full transition-all"
                                                             style={{
                                                                 width: "0%",
                                                             }}
                                                         ></div>
                                                     </div>
                                                 </div>
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-gray-500 font-medium">
                                                     0:00 / 0:00
                                                 </div>
                                             </div>
@@ -1102,77 +1142,105 @@ const TestPage = () => {
 
                             {/* Question image if available */}
                             {currentQ.image && (
-                                <div className="mb-4">
-                                    <img
-                                        src="/a.png"
-                                        alt={`Question ${currentQ.id}`}
-                                        className="w-2/3 h-auto mx-auto object-cover rounded-lg"
-                                    />
+                                <div className="px-6 pt-6 pb-2">
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center justify-center">
+                                        <img
+                                            src="/a.png"
+                                            alt={`Question ${currentQ.id}`}
+                                            className="max-w-full h-auto max-h-80 object-contain rounded"
+                                        />
+                                    </div>
                                 </div>
                             )}
 
                             {/* Question text */}
-                            <div className="mb-6">
-                                <p className="text-lg text-gray-800">
-                                    {currentQ.id}. {currentQ.text}
-                                </p>
+                            <div className="px-6 pt-6 pb-4">
+                                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                                    Câu {currentQ.id}
+                                </h2>
+                                <p className="text-gray-700">{currentQ.text}</p>
                             </div>
 
                             {/* Answer options */}
                             {currentQ.options && (
-                                <div className="space-y-3">
-                                    {currentQ.options.map((option, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() =>
-                                                handleSelectAnswer(
-                                                    currentQ.id,
-                                                    option
-                                                )
-                                            }
-                                            className={`w-full text-left p-3 rounded-lg border ${
-                                                currentAnswer?.selectedOption ===
-                                                option
-                                                    ? "bg-blue-50 border-blue-300 text-blue-800"
-                                                    : "border-gray-200 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            <span className="inline-block w-8 font-medium">
-                                                {option}.
-                                            </span>
-                                            <span>
-                                                Option text for {option}
-                                            </span>
-                                        </button>
-                                    ))}
+                                <div className="px-6 pb-6">
+                                    <div className="space-y-3">
+                                        {currentQ.options.map(
+                                            (option, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() =>
+                                                        handleSelectAnswer(
+                                                            currentQ.id,
+                                                            option
+                                                        )
+                                                    }
+                                                    className={`w-full text-left p-4 rounded-lg border ${
+                                                        currentAnswer?.selectedOption ===
+                                                        option
+                                                            ? "bg-indigo-50 border-indigo-300 text-indigo-800 ring-1 ring-indigo-300"
+                                                            : "border-gray-200 hover:bg-gray-50"
+                                                    } transition-colors`}
+                                                >
+                                                    <div className="flex items-center">
+                                                        <div
+                                                            className={`w-6 h-6 flex-shrink-0 rounded-full mr-3 flex items-center justify-center border ${
+                                                                currentAnswer?.selectedOption ===
+                                                                option
+                                                                    ? "bg-indigo-600 border-indigo-600 text-white"
+                                                                    : "border-gray-300 bg-white"
+                                                            }`}
+                                                        >
+                                                            {currentAnswer?.selectedOption ===
+                                                            option ? (
+                                                                <Check className="h-3.5 w-3.5" />
+                                                            ) : (
+                                                                <span className="text-gray-500 font-medium">
+                                                                    {option}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-gray-800">
+                                                            {`Option text for ${option}`}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             )}
-                        </div>
 
-                        {/* Navigation buttons */}
-                        <div className="flex justify-between">
-                            <button
-                                onClick={goToPreviousQuestion}
-                                disabled={currentQuestion === 0}
-                                className={`flex items-center px-4 py-2 rounded-lg ${
-                                    currentQuestion === 0
-                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                                }`}
-                            >
-                                <ChevronLeft className="h-5 w-5 mr-1" />
-                                Câu trước
-                            </button>
+                            {/* Navigation buttons */}
+                            <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <button
+                                    onClick={goToPreviousQuestion}
+                                    disabled={currentQuestion === 0}
+                                    className={`flex items-center px-4 py-2.5 rounded-lg ${
+                                        currentQuestion === 0
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                                    } transition-colors`}
+                                >
+                                    <ChevronLeft className="h-5 w-5 mr-1" />
+                                    <span className="font-medium">
+                                        Câu trước
+                                    </span>
+                                </button>
 
-                            <button
-                                onClick={goToNextQuestion}
-                                className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                            >
-                                {currentQuestion < test.questions.length - 1
-                                    ? "Câu tiếp theo"
-                                    : "Hoàn thành"}
-                                <ChevronRight className="h-5 w-5 ml-1" />
-                            </button>
+                                <button
+                                    onClick={goToNextQuestion}
+                                    className="flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                                >
+                                    <span className="font-medium">
+                                        {currentQuestion <
+                                        test.questions.length - 1
+                                            ? "Câu tiếp theo"
+                                            : "Hoàn thành"}
+                                    </span>
+                                    <ChevronRight className="h-5 w-5 ml-1" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -180,25 +180,6 @@ const NewReleasesPage: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Navigation */}
-                        <div className="flex justify-center mt-12 space-x-4">
-                            <Link href="/courses">
-                                <button className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                                    All Courses
-                                </button>
-                            </Link>
-                            <Link href="/courses/featured">
-                                <button className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                                    Featured Courses
-                                </button>
-                            </Link>
-                            <Link href="/courses/popular">
-                                <button className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                                    Popular Languages
-                                </button>
-                            </Link>
-                        </div>
                     </>
                 )}
             </div>

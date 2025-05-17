@@ -52,201 +52,133 @@ const validateInputData = (
     return errors;
 };
 
-export async function POST(request: NextRequest) {
+// Sử dụng Node.js runtime để hỗ trợ các thư viện xử lý âm thanh
+export const runtime = "nodejs";
+
+/**
+ * Xử lý yêu cầu đánh giá phát âm
+ */
+export async function POST(req: NextRequest) {
     try {
-        console.log("API pronunciation: Nhận yêu cầu mới");
-        let recordedText: string = "";
-        let originalText: string = "";
-        let language: string = "";
+        console.log("Nhận yêu cầu đánh giá phát âm");
 
-        // Kiểm tra kiểu yêu cầu
-        const contentType = request.headers.get("content-type") || "";
-        console.log("Content-Type:", contentType);
+        // Kiểm tra nếu là FormData (từ ghi âm trực tiếp)
+        if (req.headers.get("content-type")?.includes("multipart/form-data")) {
+            console.log("Xử lý yêu cầu dạng FormData");
+            const formData = await req.formData();
 
-        if (contentType.includes("multipart/form-data")) {
-            // Xử lý FormData (file âm thanh)
-            try {
-                console.log(
-                    "Đang xử lý yêu cầu multipart/form-data với file âm thanh"
-                );
-                const formData = await request.formData();
+            // Lấy các tham số từ FormData
+            const audioFile = formData.get("audio") as File;
+            const originalText = formData.get("text") as string;
+            const language = formData.get("language") as string;
+            let recordedText = formData.get("recordedText") as string;
 
-                // Log tất cả các keys trong formData
-                console.log("FormData keys:", Array.from(formData.keys()));
+            console.log("Thông tin yêu cầu:", {
+                hasAudio: !!audioFile,
+                audioSize: audioFile ? audioFile.size : 0,
+                originalText,
+                language,
+                hasRecordedText: !!recordedText,
+            });
 
-                // Lấy dữ liệu từ FormData
-                const audioFile = formData.get("audio") as File;
-                originalText = formData.get("text") as string;
-                language = formData.get("language") as string;
-                // recordedText có thể được gửi trực tiếp từ client để tránh phải xử lý âm thanh trên server
-                recordedText = (formData.get("recordedText") as string) || "";
+            // Nếu có file âm thanh nhưng không có văn bản đã ghi, gửi đến API speech-to-text
+            if (audioFile && !recordedText) {
+                console.log("Gửi âm thanh đến API speech-to-text để nhận dạng");
 
-                console.log("Thông tin từ form:", {
-                    hasAudioFile: !!audioFile,
-                    audioFileSize: audioFile ? audioFile.size : 0,
-                    audioFileType: audioFile ? audioFile.type : "unknown",
-                    originalText: originalText,
-                    language: language,
-                    recordedText: recordedText || "không có",
-                });
+                try {
+                    // Tạo FormData mới để gửi đến API speech-to-text
+                    const speechFormData = new FormData();
+                    speechFormData.append("audio", audioFile);
+                    speechFormData.append("language", language);
 
-                // Chi tiết hơn về recordedText
-                if (recordedText) {
-                    console.log(
-                        `recordedText được nhận từ client: "${recordedText}"`
+                    // Gọi API speech-to-text nội bộ
+                    const speechResponse = await fetch(
+                        new URL("/api/speech-to-text", req.url).toString(),
+                        {
+                            method: "POST",
+                            body: speechFormData,
+                        }
                     );
-                    console.log("Độ dài recordedText:", recordedText.length);
-                } else {
-                    console.log("Không nhận được recordedText từ client");
-                }
 
-                // Xác thực dữ liệu đầu vào
-                const validationErrors = validateInputData(
+                    if (!speechResponse.ok) {
+                        throw new Error(
+                            `Lỗi API speech-to-text: ${speechResponse.status} ${speechResponse.statusText}`
+                        );
+                    }
+
+                    const speechData = await speechResponse.json();
+                    recordedText = speechData.transcription || "";
+                    console.log("Văn bản đã nhận dạng:", recordedText);
+                } catch (error) {
+                    console.error("Lỗi khi gọi API speech-to-text:", error);
+                    return NextResponse.json(
+                        {
+                            error: "Không thể nhận dạng giọng nói",
+                            details:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                        },
+                        { status: 500 }
+                    );
+                }
+            }
+
+            // Nếu có văn bản gốc và văn bản đã ghi, đánh giá phát âm
+            if (originalText && recordedText) {
+                console.log("Đánh giá phát âm với Groq API");
+                const pronunciationFeedback = await assessPronunciationWithGroq(
                     recordedText,
                     originalText,
                     language
                 );
 
-                if (validationErrors.length > 0) {
-                    console.error(
-                        "Lỗi xác thực dữ liệu đầu vào:",
-                        validationErrors
-                    );
-                    return NextResponse.json(
-                        {
-                            error: "Validation failed",
-                            details: validationErrors,
-                        },
-                        { status: 400 }
-                    );
-                }
-
-                // Nếu không có văn bản được ghi nhận, trả về kết quả với điểm thấp
-                if (!recordedText || recordedText.trim() === "") {
-                    console.log(
-                        "Không có văn bản được ghi nhận, trả về kết quả mặc định với điểm thấp"
-                    );
-                    const defaultResult: PronunciationFeedback = {
-                        overallScore: 10,
-                        feedback: [
-                            "Không thể nhận dạng được giọng nói của bạn",
-                            "Vui lòng thử nói to và rõ ràng hơn",
-                        ],
-                        wordAnalysis: originalText.split(/\s+/).map((word) => ({
-                            word,
-                            isCorrect: false,
-                            feedback: "Không thể nhận dạng",
-                            confidence: 0,
-                        })),
-                        detailedFeedback:
-                            "Hệ thống không thể nhận dạng được giọng nói của bạn. Vui lòng đảm bảo bạn đang nói vào microphone, tăng âm lượng và nói rõ ràng hơn.",
-                        improvementSuggestions: [
-                            "Nói chậm và rõ ràng hơn",
-                            "Đảm bảo microphone hoạt động tốt",
-                            "Giảm tiếng ồn xung quanh",
-                        ],
-                        commonErrors: ["Không phát hiện được lời nói"],
-                        recordedText: "",
-                    };
-                    return NextResponse.json(defaultResult);
-                }
-            } catch (error) {
-                console.error("Lỗi khi xử lý FormData:", error);
-                return handleApiError(error, "Error processing form data");
+                return NextResponse.json({
+                    ...pronunciationFeedback,
+                    recordedText,
+                });
+            } else if (recordedText) {
+                // Nếu chỉ có văn bản đã ghi, trả về kết quả nhận dạng
+                return NextResponse.json({
+                    recordedText,
+                });
+            } else {
+                // Nếu không có cả văn bản gốc và văn bản đã ghi
+                return NextResponse.json(
+                    { error: "Không đủ thông tin để đánh giá phát âm" },
+                    { status: 400 }
+                );
             }
         } else {
-            // Xử lý JSON
-            try {
-                console.log("Đang xử lý yêu cầu JSON");
-                const body = await request.json();
-                recordedText = body.recordedText;
-                originalText = body.originalText;
-                language = body.language;
+            // Xử lý yêu cầu JSON
+            console.log("Xử lý yêu cầu dạng JSON");
+            const { recordedText, originalText, language } = await req.json();
 
-                console.log("Dữ liệu từ request JSON:", {
-                    recordedText: recordedText,
-                    originalText: originalText,
-                    language: language,
-                });
-
-                // Xác thực dữ liệu đầu vào
-                const validationErrors = validateInputData(
-                    recordedText,
-                    originalText,
-                    language
+            if (!recordedText || !originalText) {
+                return NextResponse.json(
+                    { error: "Thiếu văn bản để đánh giá" },
+                    { status: 400 }
                 );
-
-                if (validationErrors.length > 0) {
-                    console.error(
-                        "Lỗi xác thực dữ liệu đầu vào:",
-                        validationErrors
-                    );
-                    return NextResponse.json(
-                        {
-                            error: "Validation failed",
-                            details: validationErrors,
-                        },
-                        { status: 400 }
-                    );
-                }
-            } catch (error) {
-                console.error("Lỗi khi phân tích JSON:", error);
-                return handleApiError(error, "Error parsing request JSON");
             }
-        }
 
-        // Thực hiện phân tích phát âm sử dụng Groq LLM
-        try {
-            console.log("Đang phân tích phát âm với Groq LLM...");
-            console.log(`Text gốc: "${originalText}"`);
-            console.log(`Text đã ghi: "${recordedText}"`);
-
-            // Sử dụng Groq API để phân tích phát âm
-            console.log("Đang gọi Groq API để phân tích phát âm...");
-            const groqAssessment = await assessPronunciationWithGroq(
+            console.log("Đánh giá phát âm với Groq API");
+            const pronunciationFeedback = await assessPronunciationWithGroq(
                 recordedText,
                 originalText,
-                language
-            );
-            console.log("Kết quả từ Groq API:", groqAssessment);
-
-            // Xây dựng phản hồi dựa trên kết quả từ Groq
-            const wordAnalysis = analyzeWords(recordedText, originalText);
-
-            // Kết hợp kết quả từ Groq và phân tích từ
-            const combinedAnalysis: PronunciationFeedback = {
-                overallScore: groqAssessment.overallScore,
-                feedback: groqAssessment.feedback,
-                wordAnalysis: wordAnalysis,
-                detailedFeedback: groqAssessment.detailedFeedback,
-                improvementSuggestions: groqAssessment.improvementSuggestions,
-                commonErrors: groqAssessment.commonErrors,
-                recordedText: recordedText, // Trả về văn bản đã nhận dạng
-            };
-
-            console.log("Phân tích phát âm hoàn tất, trả về kết quả");
-            return NextResponse.json(combinedAnalysis);
-        } catch (error) {
-            // Sử dụng phân tích fallback nếu có lỗi với Groq
-            console.error(
-                "Lỗi khi sử dụng Groq, đang sử dụng phân tích cơ bản:",
-                error
-            );
-            const analysis = analyzePronunciation(
-                recordedText,
-                originalText,
-                language
+                language || "en-US"
             );
 
-            // Thêm văn bản đã ghi vào kết quả
-            analysis.recordedText = recordedText;
-            console.log("Đã hoàn thành phân tích cơ bản, trả về kết quả");
-
-            return NextResponse.json(analysis);
+            return NextResponse.json(pronunciationFeedback);
         }
     } catch (error) {
-        console.error("Lỗi nội bộ của server:", error);
-        return handleApiError(error, "Internal server error");
+        console.error("Lỗi khi xử lý yêu cầu đánh giá phát âm:", error);
+        return NextResponse.json(
+            {
+                error: "Lỗi khi xử lý yêu cầu",
+                details: error instanceof Error ? error.message : String(error),
+            },
+            { status: 500 }
+        );
     }
 }
 

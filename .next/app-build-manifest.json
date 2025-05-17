@@ -21,15 +21,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/pronunciation/page.js"
     ],
-    "/_not-found/page": [
+    "/settings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
-    ],
-    "/auth/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/auth/login/page.js"
+      "static/chunks/app/settings/page.js"
     ],
     "/courses/page": [
       "static/chunks/webpack.js",
@@ -41,25 +36,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/online-tests/page.js"
     ],
-    "/db/course/page": [
+    "/online-tests/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/db/course/page.js"
+      "static/chunks/app/online-tests/[id]/page.js"
     ],
-    "/courses/[id]/page": [
+    "/online-tests/[id]/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/courses/[id]/page.js"
+      "static/chunks/app/online-tests/[id]/layout.js"
     ],
     "/learning-paths/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/learning-paths/page.js"
     ],
-    "/courses/new/page": [
+    "/blogs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/courses/new/page.js"
+      "static/chunks/app/blogs/page.js"
+    ],
+    "/footer/about/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/footer/about/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
+    ],
+    "/footer/contact/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/footer/contact/page.js"
     ],
     "/courses/featured/page": [
       "static/chunks/webpack.js",
@@ -71,55 +81,90 @@
       "static/chunks/main-app.js",
       "static/chunks/app/flashcard/page.js"
     ],
-    "/learning/programs/page": [
+    "/forum/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/learning/programs/page.js"
-    ],
-    "/courses/popular/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/courses/popular/page.js"
-    ],
-    "/blogs/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/blogs/page.js"
+      "static/chunks/app/forum/page.js"
     ],
     "/docs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/docs/page.js"
     ],
-    "/forum/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/forum/page.js"
-    ],
-    "/online-tests/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/online-tests/[id]/page.js"
-    ],
     "/chat/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/chat/page.js"
     ],
-    "/settings/page": [
+    "/dictionary/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/settings/page.js"
+      "static/chunks/app/dictionary/page.js"
+    ],
+    "/podcast/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/podcast/page.js"
+    ],
+    "/daily-challenge/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/daily-challenge/page.js"
+    ],
+    "/translate/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/translate/page.js"
+    ],
+    "/grammar/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/grammar/page.js"
+    ],
+    "/speaking-lab/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/speaking-lab/page.js"
     ],
     "/writing-practice/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/writing-practice/page.js"
     ],
-    "/forum/[threadId]/page": [
+    "/vocabulary/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/forum/[threadId]/page.js"
+      "static/chunks/app/vocabulary/page.js"
+    ],
+    "/leaderboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/leaderboard/page.js"
+    ],
+    "/events/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/events/page.js"
+    ],
+    "/study-groups/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/study-groups/page.js"
+    ],
+    "/ai-tutor/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/ai-tutor/page.js"
+    ],
+    "/resources/library/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/resources/library/page.js"
+    ],
+    "/games/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/games/page.js"
     ]
   }
 }

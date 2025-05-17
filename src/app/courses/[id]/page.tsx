@@ -659,10 +659,10 @@ const CourseDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Course Content */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                        {/* Course Content - Redesigned */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="border-b border-gray-100">
+                                <h2 className="text-2xl font-bold text-gray-900 p-6 flex items-center">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="h-6 w-6 mr-3 text-indigo-500"
@@ -674,29 +674,46 @@ const CourseDetail: React.FC = () => {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M19 9l-7 7-7-7"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-                                    Course content
+                                    Nội dung khóa học
                                 </h2>
-                                <div className="text-gray-600 text-sm">
-                                    <span className="font-medium">
-                                        {course.lessons?.length || 0}
-                                    </span>{" "}
-                                    lessons •
-                                    <span className="font-medium ml-1">
-                                        {course.duration ||
-                                            "16 hours 40 minutes"}
-                                    </span>
+                            </div>
+
+                            {/* Course summary stats */}
+                            <div className="grid grid-cols-3 divide-x divide-gray-100 py-4 bg-gray-50">
+                                <div className="px-6 py-3 text-center">
+                                    <div className="text-sm text-gray-500 mb-1">
+                                        Tổng số bài học
+                                    </div>
+                                    <div className="text-xl font-bold text-indigo-600">
+                                        {course.lessons.length}
+                                    </div>
+                                </div>
+                                <div className="px-6 py-3 text-center">
+                                    <div className="text-sm text-gray-500 mb-1">
+                                        Thời lượng
+                                    </div>
+                                    <div className="text-xl font-bold text-indigo-600">
+                                        {course.totalDuration ||
+                                            "12 giờ 30 phút"}
+                                    </div>
+                                </div>
+                                <div className="px-6 py-3 text-center">
+                                    <div className="text-sm text-gray-500 mb-1">
+                                        Cấp độ
+                                    </div>
+                                    <div className="text-xl font-bold text-indigo-600">
+                                        {course.level}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4 mb-6">
-                                {course.lessons?.map((lesson, index) => (
-                                    <div
-                                        key={lesson.id}
-                                        className="border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
-                                    >
+                            {/* Lessons list */}
+                            <div className="divide-y divide-gray-100">
+                                {course.lessons.map((lesson, index) => (
+                                    <div key={lesson.id} className="group">
                                         <div
                                             onClick={() => {
                                                 if (isPurchased || index < 3) {
@@ -705,53 +722,80 @@ const CourseDetail: React.FC = () => {
                                                     );
                                                 }
                                             }}
-                                            className={`flex justify-between items-center p-4 cursor-pointer ${
+                                            className={`flex justify-between items-center p-5 cursor-pointer ${
                                                 isPurchased || index < 3
-                                                    ? "hover:bg-gray-50"
+                                                    ? "hover:bg-indigo-50/40 group-hover:border-l-4 group-hover:border-indigo-500 transition-all"
                                                     : "bg-gray-50/50 cursor-not-allowed"
                                             }`}
                                         >
-                                            <div className="flex items-center">
-                                                <div className="mr-4 flex-shrink-0">
+                                            <div className="flex items-center space-x-4 flex-1">
+                                                <div
+                                                    className={`rounded-full p-2.5 ${
+                                                        visibleVideo ===
+                                                        lesson.id
+                                                            ? "bg-indigo-500 text-white"
+                                                            : "bg-indigo-100 text-indigo-500"
+                                                    }`}
+                                                >
                                                     {isPurchased ||
                                                     index < 3 ? (
-                                                        visibleVideo ===
-                                                        lesson.id ? (
-                                                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    className="h-4 w-4 text-indigo-600"
-                                                                    viewBox="0 0 20 20"
-                                                                    fill="currentColor"
-                                                                >
-                                                                    <path
-                                                                        fillRule="evenodd"
-                                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                                        clipRule="evenodd"
-                                                                    />
-                                                                </svg>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    className="h-4 w-4 text-indigo-600"
-                                                                    viewBox="0 0 20 20"
-                                                                    fill="currentColor"
-                                                                >
-                                                                    <path
-                                                                        fillRule="evenodd"
-                                                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                                                        clipRule="evenodd"
-                                                                    />
-                                                                </svg>
-                                                            </div>
-                                                        )
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-5 w-5"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                                            />
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                            />
+                                                        </svg>
                                                     ) : (
-                                                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-5 w-5"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                            />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center">
+                                                        <span className="text-sm font-medium text-gray-500 mr-2">
+                                                            Bài {index + 1}:
+                                                        </span>
+                                                        <h3 className="text-base font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                                                            {lesson.title}
+                                                        </h3>
+                                                        {index < 3 &&
+                                                            !isPurchased && (
+                                                                <span className="ml-3 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                                                    Miễn phí
+                                                                </span>
+                                                            )}
+                                                    </div>
+                                                    {lesson.duration && (
+                                                        <div className="flex items-center mt-1 text-sm text-gray-500">
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-4 w-4 text-gray-500"
+                                                                className="h-4 w-4 mr-1"
                                                                 fill="none"
                                                                 viewBox="0 0 24 24"
                                                                 stroke="currentColor"
@@ -762,40 +806,31 @@ const CourseDetail: React.FC = () => {
                                                                     strokeWidth={
                                                                         2
                                                                     }
-                                                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                 />
                                                             </svg>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <div className="text-base font-medium text-gray-900 flex items-center">
-                                                        {index + 1}.{" "}
-                                                        {lesson.title}
-                                                        {index < 3 &&
-                                                            !isPurchased && (
-                                                                <span className="ml-2 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                                                                    Free
-                                                                </span>
-                                                            )}
-                                                    </div>
-                                                    {lesson.duration && (
-                                                        <div className="text-sm text-gray-500 mt-1">
                                                             {lesson.duration}
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center">
+                                            <div className="ml-4">
                                                 {isPurchased || index < 3 ? (
-                                                    <div className="text-sm font-medium text-indigo-600">
+                                                    <div
+                                                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                                                            visibleVideo ===
+                                                            lesson.id
+                                                                ? "bg-indigo-100 text-indigo-700"
+                                                                : "bg-gray-100 text-gray-700 group-hover:bg-indigo-100 group-hover:text-indigo-700"
+                                                        } transition-colors`}
+                                                    >
                                                         {visibleVideo ===
                                                         lesson.id
-                                                            ? "Ẩn nội dung"
+                                                            ? "Đang xem"
                                                             : "Xem bài học"}
                                                     </div>
                                                 ) : (
-                                                    <div className="bg-gray-100 p-1.5 rounded-full">
+                                                    <div className="bg-gray-100 p-2 rounded-full">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             className="h-4 w-4 text-gray-500"
@@ -816,7 +851,7 @@ const CourseDetail: React.FC = () => {
                                         </div>
                                         {visibleVideo === lesson.id &&
                                             (isPurchased || index < 3) && (
-                                                <div className="p-4 border-t border-gray-100 bg-gray-50">
+                                                <div className="p-6 border-t border-gray-100 bg-indigo-50/30">
                                                     <Video
                                                         videoUrl={
                                                             lesson.videoUrl
@@ -832,58 +867,33 @@ const CourseDetail: React.FC = () => {
                             </div>
 
                             {!isPurchased && (
-                                <div className="bg-indigo-50 rounded-lg p-6 flex flex-col sm:flex-row justify-between items-center">
+                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-8 flex flex-col sm:flex-row justify-between items-center rounded-b-xl">
                                     <div className="mb-4 sm:mb-0 text-center sm:text-left">
-                                        <h3 className="text-lg font-semibold text-indigo-900 mb-1">
-                                            Unlock all content
+                                        <h3 className="text-xl font-bold text-indigo-900 mb-2">
+                                            Mở khóa toàn bộ nội dung
                                         </h3>
-                                        <p className="text-indigo-700">
-                                            Register now to access unlimited
-                                            content
+                                        <p className="text-indigo-600">
+                                            Đăng ký ngay để truy cập không giới
+                                            hạn tất cả bài học
                                         </p>
                                     </div>
                                     <button
-                                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition"
+                                        className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow transform hover:-translate-y-0.5"
                                         onClick={handleBuyNow}
                                     >
-                                        Register now
+                                        Đăng ký ngay
                                     </button>
                                 </div>
                             )}
                         </div>
 
-                        {/* Reviews */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-6 w-6 mr-3 text-indigo-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                    />
-                                </svg>
-                                Student reviews
-                            </h2>
-                            <ReviewForm
-                                courseId={Number(id)}
-                                onReviewAdded={() =>
-                                    fetchReviewsById(id).then(setReviews)
-                                }
-                            />
-                            {reviews.length > 0 ? (
-                                <ReviewList reviews={reviews} />
-                            ) : (
-                                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        {/* Student Reviews - Redesigned */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="border-b border-gray-100">
+                                <h2 className="text-2xl font-bold text-gray-900 p-6 flex items-center">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-12 w-12 mx-auto text-gray-400 mb-4"
+                                        className="h-6 w-6 mr-3 text-indigo-500"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -892,17 +902,243 @@ const CourseDetail: React.FC = () => {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                                         />
                                     </svg>
-                                    <p className="text-gray-500 text-lg">
-                                        No reviews yet
-                                    </p>
-                                    <p className="text-gray-400 mt-2">
-                                        Be the first to review this course
-                                    </p>
+                                    Đánh giá từ học viên
+                                </h2>
+                            </div>
+
+                            {/* Overall rating summary */}
+                            {reviews.length > 0 && (
+                                <div className="bg-indigo-50/50 p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-gray-100">
+                                    <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                                        <div className="text-5xl font-bold text-indigo-600 mb-2">
+                                            {(
+                                                reviews.reduce(
+                                                    (sum, review) =>
+                                                        sum + review.rating,
+                                                    0
+                                                ) / reviews.length
+                                            ).toFixed(1)}
+                                        </div>
+                                        <div className="flex justify-center mb-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <svg
+                                                    key={star}
+                                                    className={`w-5 h-5 ${
+                                                        star <=
+                                                        Math.round(
+                                                            reviews.reduce(
+                                                                (sum, review) =>
+                                                                    sum +
+                                                                    review.rating,
+                                                                0
+                                                            ) / reviews.length
+                                                        )
+                                                            ? "text-yellow-400"
+                                                            : "text-gray-300"
+                                                    }`}
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            ))}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            Điểm trung bình
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-white rounded-lg shadow-sm">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-4">
+                                            Thống kê đánh giá
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {[5, 4, 3, 2, 1].map((rating) => {
+                                                const count = reviews.filter(
+                                                    (review) =>
+                                                        review.rating === rating
+                                                ).length;
+                                                const percentage =
+                                                    (count / reviews.length) *
+                                                    100;
+
+                                                return (
+                                                    <div
+                                                        key={rating}
+                                                        className="flex items-center text-sm"
+                                                    >
+                                                        <div className="w-8">
+                                                            {rating}
+                                                        </div>
+                                                        <svg
+                                                            className="w-4 h-4 text-yellow-400 ml-1"
+                                                            fill="currentColor"
+                                                            viewBox="0 0 20 20"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                        <div className="w-full ml-4">
+                                                            <div className="h-2 bg-gray-200 rounded">
+                                                                <div
+                                                                    className="h-2 bg-gradient-to-r from-indigo-600 to-blue-500 rounded"
+                                                                    style={{
+                                                                        width: `${percentage}%`,
+                                                                    }}
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-10 text-right text-gray-600">
+                                                            {count}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-white rounded-lg shadow-sm flex flex-col justify-center items-center">
+                                        <h3 className="text-center text-gray-700 mb-4 font-semibold">
+                                            Bạn đã học khóa này?
+                                        </h3>
+                                        <button
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "reviewForm"
+                                                    )
+                                                    ?.scrollIntoView({
+                                                        behavior: "smooth",
+                                                    })
+                                            }
+                                            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition"
+                                        >
+                                            Viết đánh giá
+                                        </button>
+                                    </div>
                                 </div>
                             )}
+
+                            {/* Review form */}
+                            <div
+                                id="reviewForm"
+                                className="p-6 border-b border-gray-100"
+                            >
+                                <ReviewForm
+                                    courseId={Number(id)}
+                                    onReviewAdded={() =>
+                                        fetchReviewsById(id).then(setReviews)
+                                    }
+                                />
+                            </div>
+
+                            {/* Reviews list */}
+                            <div className="p-6">
+                                {reviews.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {reviews.map((review) => (
+                                            <div
+                                                key={review.id}
+                                                className="bg-white p-5 rounded-lg border border-gray-100 hover:border-indigo-100 shadow-sm hover:shadow transition-all"
+                                            >
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex items-center">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white flex items-center justify-center text-lg font-bold">
+                                                            {review.user
+                                                                ?.name?.[0] ||
+                                                                "U"}
+                                                        </div>
+                                                        <div className="ml-3">
+                                                            <div className="font-semibold text-gray-900">
+                                                                {review.user
+                                                                    ?.name ||
+                                                                    "Học viên"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {new Date(
+                                                                    review.createdAt
+                                                                ).toLocaleDateString(
+                                                                    "vi-VN",
+                                                                    {
+                                                                        year: "numeric",
+                                                                        month: "long",
+                                                                        day: "numeric",
+                                                                    }
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex">
+                                                        {[1, 2, 3, 4, 5].map(
+                                                            (star) => (
+                                                                <svg
+                                                                    key={star}
+                                                                    className={`w-5 h-5 ${
+                                                                        star <=
+                                                                        review.rating
+                                                                            ? "text-yellow-400"
+                                                                            : "text-gray-300"
+                                                                    }`}
+                                                                    fill="currentColor"
+                                                                    viewBox="0 0 20 20"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                >
+                                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                                </svg>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-700 whitespace-pre-line">
+                                                    {review.comment}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-100">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={1.5}
+                                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                            />
+                                        </svg>
+                                        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                                            Chưa có đánh giá nào
+                                        </h3>
+                                        <p className="text-gray-500 mb-6">
+                                            Hãy là người đầu tiên đánh giá khóa
+                                            học này
+                                        </p>
+                                        <button
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        "reviewForm"
+                                                    )
+                                                    ?.scrollIntoView({
+                                                        behavior: "smooth",
+                                                    })
+                                            }
+                                            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition"
+                                        >
+                                            Viết đánh giá đầu tiên
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

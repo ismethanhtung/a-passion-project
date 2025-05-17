@@ -300,6 +300,9 @@ const FlashcardPage: React.FC = () => {
 
         if (view === "study" && selectedDeck) {
             fetchFlashcards();
+        } else {
+            // Đảm bảo isLoading được đặt về false nếu không phải view study
+            setIsLoading(false);
         }
     }, [
         view,
@@ -1013,12 +1016,12 @@ const FlashcardPage: React.FC = () => {
                                     <CheckCircle className="h-8 w-8 text-white" />
                                 </div>
                                 <h1 className="text-2xl font-bold mb-2">
-                                    Phiên học hoàn thành!
+                                    Study Session Completed!
                                 </h1>
                                 <p className="text-blue-100">
-                                    Bạn đã học xong{" "}
+                                    You have completed{" "}
                                     {knownCards.length + unknownCards.length}{" "}
-                                    thẻ từ bộ {selectedDeck?.name}
+                                    cards from the {selectedDeck?.name} deck
                                 </p>
                             </div>
                         </div>
@@ -1029,14 +1032,16 @@ const FlashcardPage: React.FC = () => {
                                     <div className="text-3xl font-bold text-green-600 mb-2">
                                         {knownCards.length}
                                     </div>
-                                    <div className="text-gray-700">Đã nhớ</div>
+                                    <div className="text-gray-700">
+                                        Remembered
+                                    </div>
                                 </div>
                                 <div className="bg-red-50 rounded-xl p-6 text-center">
                                     <div className="text-3xl font-bold text-red-600 mb-2">
                                         {unknownCards.length}
                                     </div>
                                     <div className="text-gray-700">
-                                        Cần ôn tập
+                                        Need to Study
                                     </div>
                                 </div>
                             </div>
@@ -1045,7 +1050,7 @@ const FlashcardPage: React.FC = () => {
                             <div className="mb-8">
                                 <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
                                     <BarChart2 className="h-5 w-5 mr-2 text-blue-500" />
-                                    Hiệu suất học tập
+                                    Study Performance
                                 </h2>
                                 <div className="w-full h-2.5 bg-gray-200 rounded-full mb-2">
                                     <div
@@ -1069,7 +1074,7 @@ const FlashcardPage: React.FC = () => {
                                                     unknownCards.length)) *
                                                 100
                                         )}
-                                        % đã ghi nhớ
+                                        % remembered
                                     </span>
                                     <span>100%</span>
                                 </div>
@@ -1082,8 +1087,7 @@ const FlashcardPage: React.FC = () => {
                                         className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center"
                                     >
                                         <RefreshCw className="h-4 w-4 mr-2" />
-                                        Ôn tập {unknownCards.length} thẻ chưa
-                                        nhớ
+                                        Study {unknownCards.length} cards again
                                     </button>
                                 )}
                                 <button
@@ -1091,14 +1095,14 @@ const FlashcardPage: React.FC = () => {
                                     className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center"
                                 >
                                     <RotateCcw className="h-4 w-4 mr-2" />
-                                    Học lại tất cả
+                                    Study again
                                 </button>
                                 <button
                                     onClick={endStudySession}
                                     className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors flex items-center justify-center"
                                 >
                                     <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Quay lại danh sách
+                                    Return to List
                                 </button>
                             </div>
                         </div>
@@ -1116,22 +1120,22 @@ const FlashcardPage: React.FC = () => {
                         <Book className="h-8 w-8 text-purple-600" />
                     </div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                        Không còn từ nào để học!
+                        No more words to study!
                     </h1>
                     <p className="text-gray-600 mb-8">
-                        Bạn đã học hết tất cả các từ vựng. Bạn có thể bắt đầu
-                        phiên học mới hoặc quay lại trang chủ.
+                        You have studied all the words. You can start a new
+                        study session or go back to the home page.
                     </p>
                     <div className="flex flex-wrap justify-center gap-4">
                         <button
                             onClick={resetStudySession}
                             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                         >
-                            Bắt đầu phiên mới
+                            Start new session
                         </button>
                         <Link href="/">
                             <button className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-                                Quay lại trang chủ
+                                Return to home page
                             </button>
                         </Link>
                     </div>
@@ -1162,12 +1166,12 @@ const FlashcardPage: React.FC = () => {
                             {flashcards.length +
                                 knownCards.length +
                                 unknownCards.length}{" "}
-                            thẻ
+                            cards
                         </p>
                     </div>
                     <div className="ml-11 sm:ml-0 mt-4 sm:mt-0 flex items-center gap-3">
                         <span className="text-sm text-gray-600">
-                            {Math.round(progress)}% hoàn thành
+                            {Math.round(progress)}% completed
                         </span>
                         <button
                             onClick={() => setShowSettings(!showSettings)}
@@ -1251,7 +1255,7 @@ const FlashcardPage: React.FC = () => {
                                             </button>
                                         </div>
 
-                                        <div className="flex flex-col items-center justify-center h-full">
+                                        <div className="flex flex-col items-center justify-center h-full pt-40">
                                             <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
                                                 {flashcards[currentIndex].word}
                                             </h2>
@@ -1295,7 +1299,7 @@ const FlashcardPage: React.FC = () => {
                                     <div className="flip-card-back bg-white rounded-xl shadow-md border border-gray-200 p-8">
                                         <div className="mb-6">
                                             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
-                                                Nghĩa
+                                                Meaning
                                             </h3>
                                             <p className="text-2xl font-semibold text-blue-600">
                                                 {
@@ -1307,7 +1311,7 @@ const FlashcardPage: React.FC = () => {
 
                                         <div className="mb-6">
                                             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
-                                                Ví dụ
+                                                Example
                                             </h3>
                                             <p className="text-lg text-gray-700 italic mb-2">
                                                 "
@@ -1326,7 +1330,7 @@ const FlashcardPage: React.FC = () => {
                                         </div>
 
                                         <p className="text-gray-500 italic text-sm text-center mt-12">
-                                            Nhấp vào thẻ để xem từ
+                                            Click on the card to see the word
                                         </p>
                                     </div>
                                 </div>
@@ -1354,7 +1358,7 @@ const FlashcardPage: React.FC = () => {
                         className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg flex items-center font-medium transition-colors"
                     >
                         <X className="h-5 w-5 mr-2 text-red-500" />
-                        <span>Chưa nhớ</span>
+                        <span>Not Remembered</span>
                     </button>
 
                     <button
@@ -1362,7 +1366,7 @@ const FlashcardPage: React.FC = () => {
                         className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center font-medium transition-colors"
                     >
                         <Check className="h-5 w-5 mr-2" />
-                        <span>Đã nhớ</span>
+                        <span>Remembered</span>
                     </button>
 
                     <button
@@ -1382,7 +1386,7 @@ const FlashcardPage: React.FC = () => {
                         <span className="text-xl font-medium text-gray-800">
                             {flashcards.length}
                         </span>
-                        <p className="text-sm text-gray-500">Còn lại</p>
+                        <p className="text-sm text-gray-500">Remaining</p>
                     </div>
 
                     <div>
@@ -1392,7 +1396,7 @@ const FlashcardPage: React.FC = () => {
                         <span className="text-xl font-medium text-gray-800">
                             {knownCards.length}
                         </span>
-                        <p className="text-sm text-gray-500">Đã nhớ</p>
+                        <p className="text-sm text-gray-500">Remembered</p>
                     </div>
 
                     <div>
@@ -1402,7 +1406,7 @@ const FlashcardPage: React.FC = () => {
                         <span className="text-xl font-medium text-gray-800">
                             {unknownCards.length}
                         </span>
-                        <p className="text-sm text-gray-500">Chưa nhớ</p>
+                        <p className="text-sm text-gray-500">Not Remembered</p>
                     </div>
                 </div>
             </div>

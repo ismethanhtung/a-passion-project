@@ -104,10 +104,7 @@ const ForumCard: React.FC<ForumCardProps> = ({ thread }) => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
                         <img
-                            src={
-                                thread.author?.avatar ||
-                                "https://randomuser.me/api/portraits/men/32.jpg"
-                            }
+                            src="/images/avatar/avatar2.png"
                             alt="Author"
                             className="w-8 h-8 rounded-full mr-3 object-cover"
                         />

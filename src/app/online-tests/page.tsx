@@ -23,9 +23,10 @@ import {
     BookMarked,
     PenTool,
     FileText,
-    ArrowPath,
+    ArrowUp,
 } from "lucide-react";
 import Link from "next/link";
+import TestsChatbot from "@/components/TestsChatbot";
 
 // Types định nghĩa cho bài thi
 type TestType = "TOEIC" | "IELTS" | "General" | "Placement";
@@ -86,7 +87,7 @@ const Tests = () => {
     const tests: TestItem[] = [
         {
             id: "toeic-1",
-            title: "TOEIC Full Test - ETS 2023",
+            title: "TOEIC Full Test",
             description:
                 "Bài thi TOEIC đầy đủ với cấu trúc và độ khó tương đương đề thi thật.",
             duration: "120 phút",
@@ -182,7 +183,7 @@ const Tests = () => {
             tags: ["Placement", "CEFR", "All Levels"],
             difficulty: "Beginner",
             popularity: 95,
-            isFeatured: true,
+            isFeatured: false,
             completionRate: 96,
             lastUpdated: "2023-12-01",
         },
@@ -319,6 +320,21 @@ const Tests = () => {
             completionRate: 88,
             lastUpdated: "2023-11-05",
         },
+        {
+            id: "placement-2",
+            title: "Bài kiểm tra đầu vào",
+            description: "Bài kiểm tra phân loại trình độ tiếng Anh.",
+            duration: "55 phút",
+            questions: 54,
+            participants: 697,
+            testType: "Placement",
+            tags: ["Placement", "CEFR", "All Levels"],
+            difficulty: "Beginner",
+            popularity: 78,
+            isFeatured: false,
+            completionRate: 88,
+            lastUpdated: "2023-11-15",
+        },
     ];
 
     // Filter tests based on search term, category, difficulty, and sort
@@ -410,8 +426,8 @@ const Tests = () => {
             {/* Hero Banner - Updated with cleaner design */}
             <div className="bg-slate-900 text-white py-16 md:py-20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/40 to-indigo-900/40"></div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-3xl mx-auto text-center">
+                <div className="container mx-auto px-4 relative z-10 ">
+                    <div className="max-w-3xl mx-auto text-center ">
                         <div className="inline-flex items-center bg-blue-900/30 rounded-full px-4 py-2 mb-4 border border-blue-700/30">
                             <BookOpen className="h-4 w-4 text-blue-300 mr-2" />
                             <span className="text-sm font-medium">
@@ -443,7 +459,7 @@ const Tests = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-12">
+            <div className="container mx-auto px-4 py-12 px-32">
                 {/* Filter and Sort Controls - Modernized */}
                 <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-100 p-5">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -532,8 +548,8 @@ const Tests = () => {
                                 Featured Tests
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                {featuredTests.slice(0, 4).map((test) => (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {featuredTests.slice(0, 3).map((test) => (
                                     <div
                                         key={test.id}
                                         className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm 
@@ -691,7 +707,7 @@ const Tests = () => {
                     </h2>
 
                     {isLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <div
                                     key={i}
@@ -716,7 +732,7 @@ const Tests = () => {
                             ))}
                         </div>
                     ) : filteredTests.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredTests.map((test) => (
                                 <div
                                     key={test.id}
@@ -876,6 +892,9 @@ const Tests = () => {
                     )}
                 </div>
             </div>
+
+            {/* Thêm Chatbot cho tests */}
+            <TestsChatbot />
         </div>
     );
 };

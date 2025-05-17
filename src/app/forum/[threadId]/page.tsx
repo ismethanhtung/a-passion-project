@@ -77,7 +77,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
                           name: post?.author?.name || `User ${authorId}`,
                           avatar:
                               post?.author?.avatar ||
-                              "https://randomuser.me/api/portraits/men/32.jpg",
+                              "/images/avatar/avatar2.png",
                           postCount: posts.filter(
                               (p) => p.authorId === authorId
                           ).length,
@@ -197,10 +197,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ params }) => {
                         </h1>
                         <div className="flex items-center">
                             <img
-                                src={
-                                    thread.author?.avatar ||
-                                    "https://randomuser.me/api/portraits/men/32.jpg"
-                                }
+                                src="/images/avatar/avatar2.png"
                                 alt="Author"
                                 className="w-10 h-10 rounded-full mr-4 object-cover"
                             />

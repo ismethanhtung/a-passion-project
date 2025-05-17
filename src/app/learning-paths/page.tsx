@@ -676,7 +676,7 @@ export default function LearningPath() {
                                     <Check className="h-5 w-5 mr-2 text-green-500 shrink-0 mt-0.5" />
                                     <span>
                                         Thực hành với bạn học hoặc ứng dụng đàm
-                                        thoại AI
+                                        thoại Pronunciation Coach
                                     </span>
                                 </li>
                                 <li className="flex items-start">

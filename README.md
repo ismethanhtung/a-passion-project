@@ -129,3 +129,57 @@ Nếu gặp vấn đề khi nhận dạng giọng nói:
 
 -   Vosk model sẽ được tải khi cần thiết (~50MB)
 -   Khi không có kết nối Internet, hệ thống vẫn có thể phân tích phát âm bằng Vosk
+
+## Cấu hình Speech-to-Text
+
+Pronunciation Coach sử dụng Groq API để chuyển đổi giọng nói thành văn bản và đánh giá phát âm. Để sử dụng đầy đủ tính năng này, bạn cần cấu hình API key của Groq.
+
+### Cách cấu hình
+
+1. Tạo file `.env.local` tại thư mục gốc của dự án
+2. Thêm API key của bạn vào file:
+
+```
+# Groq API Key (cho Speech-to-Text và phân tích phát âm)
+GROQ_API_KEY=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
+```
+
+3. Khởi động lại server
+
+### Chức năng Speech-to-Text
+
+Pronunciation Coach sử dụng Groq API với model `distil-whisper-large-v3-en` để chuyển đổi giọng nói thành văn bản với độ chính xác cao. Các tính năng:
+
+-   Nhận dạng giọng nói tiếng Anh với độ chính xác cao
+-   Xử lý nhanh chóng với tốc độ thời gian thực
+-   Phân tích phát âm chi tiết dựa trên kết quả nhận dạng
+-   Tự động chuyển sang Web Speech API nếu không có kết nối mạng
+
+### Chế độ dự phòng
+
+Nếu không có kết nối mạng hoặc API key không hợp lệ, Pronunciation Coach sẽ tự động chuyển sang sử dụng Web Speech API của trình duyệt để tiếp tục hoạt động mà không bị gián đoạn.
+
+## Cập nhật mới nhất
+
+### Tính năng mới: Tải xuống bản ghi âm
+
+-   Giờ đây người dùng có thể tải xuống bản ghi âm của họ để lưu trữ hoặc chia sẻ
+-   Nút tải xuống được cung cấp cả trong màn hình chính và trong lịch sử luyện tập
+-   Các file được lưu dưới định dạng .webm với thời gian tạo trong tên file
+
+### Sửa lỗi
+
+-   Đã khắc phục lỗi khi gửi yêu cầu đến Groq API Speech-to-Text
+-   Cải thiện xử lý lỗi khi không kết nối được với Groq API, tự động chuyển sang chế độ mô phỏng
+-   Thay đổi định dạng file gửi đi để tương thích tốt hơn với API
+-   Thêm thông tin gỡ lỗi chi tiết hơn khi có lỗi xảy ra
+
+### Lưu ý khi sử dụng
+
+Nếu bạn gặp lỗi "Error: 500 Internal Server Error" khi sử dụng tính năng chuyển đổi giọng nói thành văn bản, nguyên nhân có thể do:
+
+1. Kết nối với Groq API bị gián đoạn
+2. API key đã hết hạn hoặc không hợp lệ
+3. File âm thanh có định dạng không được hỗ trợ
+
+Trong những trường hợp này, hệ thống sẽ tự động chuyển sang chế độ mô phỏng để bạn vẫn có thể tiếp tục luyện tập.

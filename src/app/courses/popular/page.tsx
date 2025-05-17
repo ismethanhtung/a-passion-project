@@ -35,18 +35,6 @@ const PopularLanguagesPage: React.FC = () => {
     // Danh sách ngôn ngữ phổ biến
     const popularLanguages = [
         { id: 1, name: "English", icon: "🇬🇧", color: "bg-blue-500" },
-        { id: 2, name: "Japanese", icon: "🇯🇵", color: "bg-red-500" },
-        { id: 3, name: "Korean", icon: "🇰🇷", color: "bg-blue-600" },
-        { id: 4, name: "Chinese", icon: "🇨🇳", color: "bg-red-600" },
-        { id: 5, name: "French", icon: "🇫🇷", color: "bg-indigo-500" },
-        { id: 6, name: "German", icon: "🇩🇪", color: "bg-yellow-600" },
-        {
-            id: 7,
-            name: "Spanish",
-            icon: "🇪🇸",
-            color: "bg-yellow-500",
-        },
-        { id: 8, name: "Italian", icon: "🇮🇹", color: "bg-green-600" },
     ];
 
     useEffect(() => {
@@ -161,39 +149,50 @@ const PopularLanguagesPage: React.FC = () => {
                     <>
                         {/* Language Selection */}
                         <div className="mb-12">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                                Chọn Ngôn Ngữ
-                            </h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                                {languageCategories.map((language) => (
-                                    <button
-                                        key={language.id}
-                                        onClick={() =>
-                                            setSelectedLanguage(language.id)
-                                        }
-                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
-                                            selectedLanguage === language.id
-                                                ? `border-${language.color.replace(
-                                                      "bg-",
-                                                      ""
-                                                  )} bg-${language.color.replace(
-                                                      "bg-",
-                                                      ""
-                                                  )}/10`
-                                                : "border-gray-200 hover:border-gray-300"
-                                        }`}
-                                    >
-                                        <span className="text-3xl mb-2">
-                                            {language.icon}
-                                        </span>
-                                        <span className="text-sm font-medium">
-                                            {language.name}
-                                        </span>
-                                        <span className="text-xs text-gray-500 mt-1">
-                                            {language.courseCount} khóa học
-                                        </span>
-                                    </button>
-                                ))}
+                            <div className="mt-16 bg-white rounded-2xl shadow-md p-8">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                                    Why Learn a New Language?
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <div className="flex flex-col items-center text-center">
+                                        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                                            <Globe className="h-8 w-8 text-green-600" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            Expanding Opportunities
+                                        </h3>
+                                        <p className="text-gray-600">
+                                            Learning a new language opens up new
+                                            opportunities for your career and
+                                            learning globally
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col items-center text-center">
+                                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                                            <Users className="h-8 w-8 text-blue-600" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            Connecting Cultures
+                                        </h3>
+                                        <p className="text-gray-600">
+                                            Understanding and experiencing
+                                            different cultures deeply
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col items-center text-center">
+                                        <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                                            <Check className="h-8 w-8 text-purple-600" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            Developing Thinking
+                                        </h3>
+                                        <p className="text-gray-600">
+                                            Learning a new language improves
+                                            memory and multi-dimensional
+                                            thinking
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -201,19 +200,11 @@ const PopularLanguagesPage: React.FC = () => {
                         {selectedLanguageData && (
                             <div className="mb-16">
                                 <div className="flex justify-between items-center mb-6">
-                                    <div className="flex items-center">
-                                        <span className="text-3xl mr-3">
-                                            {selectedLanguageData.icon}
-                                        </span>
-                                        <h2 className="text-2xl font-bold text-gray-800">
-                                            Khóa học {selectedLanguageData.name}
-                                        </h2>
-                                    </div>
                                     <Link
                                         href="/courses"
                                         className="text-green-600 hover:text-green-800 flex items-center text-sm font-medium"
                                     >
-                                        Xem tất cả{" "}
+                                        View all{" "}
                                         <ChevronRight className="h-4 w-4 ml-1" />
                                     </Link>
                                 </div>
@@ -244,15 +235,15 @@ const PopularLanguagesPage: React.FC = () => {
                                     <div className="bg-white rounded-xl p-8 text-center shadow-md">
                                         <Library className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                                         <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                            Chưa có khóa học nào
+                                            No courses available
                                         </h3>
                                         <p className="text-gray-600 mb-6">
-                                            Hiện tại chúng tôi chưa có khóa học
-                                            nào cho ngôn ngữ này.
+                                            Currently, we do not have any
+                                            courses for this language.
                                         </p>
                                         <Link href="/courses">
                                             <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                                Khám phá các khóa học khác
+                                                Explore other courses
                                             </button>
                                         </Link>
                                     </div>
@@ -261,50 +252,6 @@ const PopularLanguagesPage: React.FC = () => {
                         )}
 
                         {/* Why Learn Languages Section */}
-                        <div className="mt-16 bg-white rounded-2xl shadow-md p-8">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                                Why Learn a New Language?
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                                        <Globe className="h-8 w-8 text-green-600" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Expanding Opportunities
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Learning a new language opens up new
-                                        opportunities for your career and
-                                        learning globally
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                                        <Users className="h-8 w-8 text-blue-600" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Connecting Cultures
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Understanding and experiencing different
-                                        cultures deeply
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
-                                        <Check className="h-8 w-8 text-purple-600" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold mb-2">
-                                        Developing Thinking
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Learning a new language improves memory
-                                        and multi-dimensional thinking
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Navigation */}
                         <div className="flex justify-center mt-12 space-x-4">

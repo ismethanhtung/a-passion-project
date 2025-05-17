@@ -210,25 +210,6 @@ const FeaturedCoursesPage: React.FC = () => {
                                 />
                             ))}
                         </div>
-
-                        {/* Navigation */}
-                        <div className="flex justify-center mt-12 space-x-4">
-                            <Link href="/courses">
-                                <button className="px-6 py-2 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors">
-                                    All Courses
-                                </button>
-                            </Link>
-                            <Link href="/courses/new">
-                                <button className="px-6 py-2 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors">
-                                    New Courses
-                                </button>
-                            </Link>
-                            <Link href="/courses/popular">
-                                <button className="px-6 py-2 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors">
-                                    Popular Languages
-                                </button>
-                            </Link>
-                        </div>
                     </>
                 )}
             </div>
