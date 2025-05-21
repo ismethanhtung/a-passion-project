@@ -30,7 +30,12 @@ export const fetchNotificationById = async (id: any) => {
     return response.json();
 };
 
-export const addNotification = async (parsedInput: object) => {
+export const addNotification = async (parsedInput: {
+    userId: number;
+    message: string;
+    type?: string;
+    data?: string;
+}) => {
     const response = await fetch(`${API_BASE_URL}/notification`, {
         method: "POST",
         headers: {

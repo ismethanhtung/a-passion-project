@@ -9,10 +9,12 @@ import { addConversation } from "@/api/conversation";
 import { fetchUserById } from "@/api/user";
 import { fetchCourses } from "@/api/courses";
 import ReactMarkdown from "react-markdown";
-import { updatePath } from "@/api/learningPath";
+import { updatePath, addRecommendedCourse } from "@/api/learningPath";
 import { useRef } from "react";
 import { Bot } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { fetchConversationMessages } from "@/api/conversation";
+import { fetchConversationMessages as fetchConversationMsgs } from "@/api/message";
 
 // Dữ liệu tài liệu học tập
 const documentData = [
@@ -364,16 +366,70 @@ Link: ${courseLink}`;
                 setConversationId(data.id);
 
                 // Lấy lịch sử tin nhắn
-                const messagesResponse = await fetch(
-                    `${API_BASE_URL}/conversation/user/${userId}`
-                );
-                const messagesData = await messagesResponse.json();
-                setMessages(
-                    messagesData.map((msg) => ({
-                        sender: msg.senderId === userId ? "user" : "bot",
-                        text: msg.content,
-                    }))
-                );
+                try {
+                    // Trước tiên lấy tin nhắn theo userId
+                    const userMessagesData = await fetchConversationMessages(
+                        userId
+                    );
+                    if (
+                        Array.isArray(userMessagesData) &&
+                        userMessagesData.length > 0
+                    ) {
+                        setMessages(
+                            userMessagesData.map((msg) => ({
+                                sender:
+                                    msg.senderId === userId ? "user" : "bot",
+                                text: msg.content,
+                            }))
+                        );
+                        console.log(
+                            "✅ Đã tải lịch sử tin nhắn theo userId thành công:",
+                            userMessagesData.length,
+                            "tin nhắn"
+                        );
+                    } else {
+                        // Nếu không có tin nhắn theo userId, thử lấy theo conversationId
+                        const convId = data.id;
+                        if (convId) {
+                            try {
+                                const conversationMessagesData =
+                                    await fetchConversationMsgs(convId);
+                                if (
+                                    Array.isArray(conversationMessagesData) &&
+                                    conversationMessagesData.length > 0
+                                ) {
+                                    setMessages(
+                                        conversationMessagesData.map((msg) => ({
+                                            sender:
+                                                msg.senderId === userId
+                                                    ? "user"
+                                                    : "bot",
+                                            text: msg.content,
+                                        }))
+                                    );
+                                    console.log(
+                                        "✅ Đã tải lịch sử tin nhắn theo conversationId thành công:",
+                                        conversationMessagesData.length,
+                                        "tin nhắn"
+                                    );
+                                } else {
+                                    console.log(
+                                        "ℹ️ Không có lịch sử tin nhắn cho cuộc hội thoại"
+                                    );
+                                }
+                            } catch (conversationError) {
+                                console.error(
+                                    "❌ Lỗi khi tải tin nhắn theo conversationId:",
+                                    conversationError
+                                );
+                            }
+                        } else {
+                            console.log("ℹ️ Không có lịch sử tin nhắn");
+                        }
+                    }
+                } catch (error) {
+                    console.error("❌ Lỗi khi tải lịch sử tin nhắn:", error);
+                }
             } catch (error) {
                 console.error("❌ Error:", error);
             }
@@ -1319,7 +1375,7 @@ Link: ${courseLink}`;
                     console.log("🟢 Xử lý lộ trình học tập");
 
                     // Kiểm tra xem phản hồi có phải là JSON không
-                    let jsonData = null;
+                    let jsonData: { learning_plan?: any } | null = null;
                     let isJsonResponse = false;
                     let formattedResponse = responseText;
 
@@ -1328,7 +1384,9 @@ Link: ${courseLink}`;
                         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
                         if (jsonMatch) {
                             const jsonString = jsonMatch[0];
-                            jsonData = JSON.parse(jsonString);
+                            jsonData = JSON.parse(jsonString) as {
+                                learning_plan?: any;
+                            };
                             isJsonResponse = true;
                             console.log(
                                 "🟢 Phát hiện JSON trong phản hồi:",
@@ -1336,7 +1394,7 @@ Link: ${courseLink}`;
                             );
 
                             // Chuyển đổi JSON thành Markdown
-                            if (jsonData.learning_plan) {
+                            if (jsonData && jsonData.learning_plan) {
                                 formattedResponse =
                                     formatLearningPathToMarkdown(jsonData);
                             }
@@ -1408,7 +1466,7 @@ Link: ${courseLink}`;
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            senderId: null,
+                            senderId: null, // senderId là null cho tin nhắn từ bot
                             content: responseText,
                         }),
                         credentials: "include", // Thêm credentials để đảm bảo cookie được gửi đi
@@ -1422,6 +1480,25 @@ Link: ${courseLink}`;
                     );
                 } else {
                     console.log("✅ Đã lưu tin nhắn bot thành công");
+                    // Lấy lại tin nhắn mới nhất sau khi lưu thành công
+                    try {
+                        const latestMessages = await fetchConversationMsgs(
+                            conversationId
+                        );
+                        if (
+                            Array.isArray(latestMessages) &&
+                            latestMessages.length > 0
+                        ) {
+                            console.log(
+                                "🔄 Cập nhật lại tin nhắn từ server sau khi lưu tin nhắn bot"
+                            );
+                        }
+                    } catch (refreshError) {
+                        console.error(
+                            "❌ Lỗi khi làm mới tin nhắn:",
+                            refreshError
+                        );
+                    }
                 }
             } catch (saveError) {
                 console.error("❌ Exception khi lưu tin nhắn bot:", saveError);
@@ -1964,19 +2041,157 @@ Link: ${courseLink}`;
 
             // Kiểm tra xem pathData có phải là JSON không
             let dataToSave = pathData;
+            let pathId: number | null = null;
+            let extractedCourses: {
+                id: string;
+                title: string;
+                priority: number;
+            }[] = [];
+
             try {
                 // Nếu là chuỗi JSON, phân tích và lấy dữ liệu
                 const jsonData = JSON.parse(pathData);
                 if (jsonData && typeof jsonData === "object") {
                     console.log("🟢 Phát hiện dữ liệu JSON hợp lệ");
                     dataToSave = pathData; // Lưu chuỗi JSON nguyên bản
+
+                    // Trích xuất thông tin khóa học từ lộ trình
+                    if (jsonData.learning_plan) {
+                        // Tìm các khóa học từ giai đoạn
+                        if (
+                            jsonData.learning_plan.phases &&
+                            Array.isArray(jsonData.learning_plan.phases)
+                        ) {
+                            jsonData.learning_plan.phases.forEach(
+                                (phase: any, phaseIndex: number) => {
+                                    // Ưu tiên cao hơn cho các khóa học ở giai đoạn đầu
+                                    const priority = phaseIndex + 1;
+
+                                    if (
+                                        phase.courses &&
+                                        Array.isArray(phase.courses)
+                                    ) {
+                                        phase.courses.forEach((course: any) => {
+                                            if (course.link && course.name) {
+                                                // Trích xuất ID khóa học từ đường dẫn
+                                                const courseIdMatch =
+                                                    course.link.match(
+                                                        /\/courses\/(\d+)/
+                                                    );
+                                                if (
+                                                    courseIdMatch &&
+                                                    courseIdMatch[1]
+                                                ) {
+                                                    extractedCourses.push({
+                                                        id: courseIdMatch[1],
+                                                        title: course.name,
+                                                        priority: priority,
+                                                    });
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            );
+                        }
+
+                        // Tìm các khóa học từ recommended_materials_and_courses
+                        if (
+                            jsonData.learning_plan
+                                .recommended_materials_and_courses &&
+                            jsonData.learning_plan
+                                .recommended_materials_and_courses.courses
+                        ) {
+                            const recCourses =
+                                jsonData.learning_plan
+                                    .recommended_materials_and_courses.courses;
+                            if (Array.isArray(recCourses)) {
+                                recCourses.forEach((course: any) => {
+                                    if (course.link && course.name) {
+                                        const courseIdMatch =
+                                            course.link.match(
+                                                /\/courses\/(\d+)/
+                                            );
+                                        if (courseIdMatch && courseIdMatch[1]) {
+                                            // Kiểm tra xem khóa học đã được thêm chưa
+                                            const existingIndex =
+                                                extractedCourses.findIndex(
+                                                    (c) =>
+                                                        c.id ===
+                                                        courseIdMatch[1]
+                                                );
+                                            if (existingIndex === -1) {
+                                                extractedCourses.push({
+                                                    id: courseIdMatch[1],
+                                                    title: course.name,
+                                                    priority: 999, // Ưu tiên thấp hơn
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
                 }
             } catch (jsonError) {
                 // Không phải JSON, tiếp tục với dữ liệu văn bản
                 console.log("🟢 Dữ liệu không phải JSON, lưu dưới dạng text");
+
+                // Tìm kiếm các link khóa học trong văn bản
+                const courseMatches = pathData.match(
+                    /\[.*?\]\(http:\/\/localhost:3000\/courses\/\d+\)/g
+                );
+                if (courseMatches) {
+                    courseMatches.forEach((match, index) => {
+                        const titleMatch = match.match(/\[(.*?)\]/);
+                        const idMatch = match.match(/\/courses\/(\d+)/);
+
+                        if (
+                            titleMatch &&
+                            titleMatch[1] &&
+                            idMatch &&
+                            idMatch[1]
+                        ) {
+                            extractedCourses.push({
+                                id: idMatch[1],
+                                title: titleMatch[1],
+                                priority: index + 1,
+                            });
+                        }
+                    });
+                }
             }
 
-            await updatePath(userId, { pathDetails: dataToSave });
+            // Cập nhật lộ trình
+            const pathResponse = await updatePath(userId, {
+                pathDetails: dataToSave,
+            });
+            const pathResponseData = await pathResponse.json();
+            pathId = pathResponseData.id;
+
+            // Thêm các khóa học được đề xuất vào lộ trình
+            if (pathId && extractedCourses.length > 0) {
+                console.log(
+                    "🟢 Đã tìm thấy",
+                    extractedCourses.length,
+                    "khóa học trong lộ trình"
+                );
+
+                for (const course of extractedCourses) {
+                    try {
+                        await addRecommendedCourse(pathId, parseInt(course.id));
+                        console.log(
+                            `✅ Đã thêm khóa học [${course.title}] (ID: ${course.id}) vào lộ trình`
+                        );
+                    } catch (courseError) {
+                        console.error(
+                            `❌ Lỗi khi thêm khóa học ID: ${course.id}:`,
+                            courseError
+                        );
+                    }
+                }
+            }
 
             // Cập nhật tin nhắn đã được lưu
             setMessages((prev) =>
@@ -1986,7 +2201,10 @@ Link: ${courseLink}`;
                               ...msg,
                               text:
                                   msg.text +
-                                  "\n\n✅ **Lộ trình đã được lưu thành công!**",
+                                  "\n\n✅ **Lộ trình đã được lưu thành công!**" +
+                                  (extractedCourses.length > 0
+                                      ? `\n\n🎯 **Chúng tôi đã nhận diện ${extractedCourses.length} khóa học trong lộ trình của bạn và sẽ nhắc nhở bạn đăng ký khi cần thiết.**`
+                                      : ""),
                           }
                         : msg
                 )

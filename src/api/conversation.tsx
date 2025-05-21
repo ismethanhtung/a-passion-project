@@ -20,6 +20,19 @@ export const fetchConversationsById = async (id: any) => {
     return response.json();
 };
 
+export const fetchConversationMessages = async (userId: any) => {
+    const response = await fetch(
+        `${API_BASE_URL}/conversation/user/${userId}/messages`,
+        {
+            credentials: "include",
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Cant fetch conversation messages.");
+    }
+    return response.json();
+};
+
 export const deleteConversation = async (id: number) => {
     const response = await await fetch(`${API_BASE_URL}/conversation/${id}`, {
         method: "DELETE",

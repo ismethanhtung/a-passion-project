@@ -554,7 +554,7 @@ export default function LearningPath() {
                     </>
                 ) : (
                     // Lộ trình cá nhân hóa
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-10xl mx-auto">
                         {typeof learningPath === "undefined" ? (
                             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">

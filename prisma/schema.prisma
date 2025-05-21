@@ -58,15 +58,34 @@ model User {
 }
 
 model LearningPath {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  recommendedBy String?
-  pathDetails   Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id])
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  recommendedBy     String?
+  pathDetails       Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  lastReminderSent  DateTime?          // Thời điểm nhắc nhở cuối cùng
+  reminderCount     Int                @default(0) // Số lần đã nhắc nhở
+  user              User               @relation(fields: [userId], references: [id])
+  recommendedCourses LearningPathCourse[]
 
   @@index([userId], map: "LearningPath_userId_fkey")
+}
+
+model LearningPathCourse {
+  id            Int           @id @default(autoincrement())
+  pathId        Int
+  courseId      Int  
+  addedAt       DateTime      @default(now())
+  isEnrolled    Boolean       @default(false) // Người dùng đã đăng ký chưa
+  enrolledAt    DateTime?     // Thời điểm đăng ký
+  priority      Int           @default(1) // Mức độ ưu tiên (1: cao nhất)
+  path          LearningPath  @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  course        Course        @relation(fields: [courseId], references: [id])
+
+  @@unique([pathId, courseId])
+  @@index([pathId], map: "LearningPathCourse_pathId_fkey") 
+  @@index([courseId], map: "LearningPathCourse_courseId_fkey")
 }
 
 model RefreshToken {
@@ -208,6 +227,8 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  type      String?  @default("general") // Loại thông báo: learning_path_reminder, course_update, etc.
+  data      String?  // Dữ liệu JSON cho thông báo (nếu cần)
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId], map: "Notification_userId_fkey")
@@ -236,35 +257,42 @@ model Category {
 }
 
 model Course {
-  id                Int           @id @default(autoincrement())
-  title             String?       @db.VarChar(255)
-  description       String?       @db.Text
-  objectives        String?       @db.Text
+  id                Int               @id @default(autoincrement())
+  title             String?           @db.VarChar(255)
+  description       String?           @db.Text
+  objectives        String?           @db.Text
   price             Int
   newPrice          Int?
   thumbnail         String?
   videoUrl          String?
-  categoryId        Int           @default(1)
+  categoryId        Int               @default(1)
   creatorId         Int
   teacherId         Int?
   createdAt         DateTime?
-  updatedAt         DateTime?     @updatedAt
-  isPublished       Boolean       @default(false)
-  isDeleted         Boolean       @default(false)
+  updatedAt         DateTime?         @updatedAt
+  isPublished       Boolean           @default(false)
+  isDeleted         Boolean           @default(false)
   tags              String?
-  time              String?       @db.Text
-  learning_outcomes String?       @db.Text
-  language          String?       @db.Text
-  level             String?       @db.Text
-  carts             Cart[]
-  category          Category      @relation(fields: [categoryId], references: [id])
-  creator           User          @relation("CreatedCourses", fields: [creatorId], references: [id])
-  teacher           User?         @relation("TaughtCourses", fields: [teacherId], references: [id])
+  duration          String?
+  level             String?
+  averageRating     Float?
+  totalRatings      Int?              @default(0)
+  totalStudents     Int?              @default(0)
+  language          String?           @default("vi")
+  requirements      String?           @db.Text
+  targetAudience    String?           @db.Text
+  learning_outcomes String?           @db.Text
+  latestRevision    DateTime?
+  cart              Cart[]
+  category          Category          @relation(fields: [categoryId], references: [id])
+  creator           User              @relation("CourseCreator", fields: [creatorId], references: [id])
   enrollments       Enrollment[]
   lessons           Lesson[]
-  liveSessions      LiveSession[] @relation("CourseLiveSessions")
+  liveSessions      LiveSession[]     @relation("CourseLiveSessions")
   purchases         Purchase[]
   reviews           Review[]
+  teacher           User?             @relation("CourseTeacher", fields: [teacherId], references: [id])
+  recommendedIn     LearningPathCourse[] // Quan hệ với các lộ trình mà khóa học này được đề xuất
 
   @@index([categoryId], map: "Course_categoryId_fkey")
   @@index([creatorId], map: "Course_creatorId_fkey")

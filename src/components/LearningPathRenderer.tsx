@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Card,
@@ -20,6 +20,8 @@ import {
     FileText,
     Users,
     Heart,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 
 interface LearningPathRendererProps {
@@ -29,7 +31,28 @@ interface LearningPathRendererProps {
 const LearningPathRenderer: React.FC<LearningPathRendererProps> = ({
     jsonData,
 }) => {
-    const [activePhase, setActivePhase] = useState(1);
+    const [activePhase, setActivePhase] = useState<string>("phase-1");
+    const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+    // Hàm cuộn tab sang trái
+    const scrollTabsLeft = () => {
+        if (tabsContainerRef.current) {
+            tabsContainerRef.current.scrollBy({
+                left: -200,
+                behavior: "smooth",
+            });
+        }
+    };
+
+    // Hàm cuộn tab sang phải
+    const scrollTabsRight = () => {
+        if (tabsContainerRef.current) {
+            tabsContainerRef.current.scrollBy({
+                left: 200,
+                behavior: "smooth",
+            });
+        }
+    };
 
     let parsedData;
     try {
@@ -61,6 +84,11 @@ const LearningPathRenderer: React.FC<LearningPathRendererProps> = ({
         additional_resources,
         advice,
     } = learningPlan;
+
+    // Hàm xử lý khi thay đổi tab
+    const handleTabChange = (value: string) => {
+        setActivePhase(value);
+    };
 
     return (
         <div className="learning-path-container w-full">
@@ -156,22 +184,49 @@ const LearningPathRenderer: React.FC<LearningPathRendererProps> = ({
                     Các giai đoạn học tập
                 </h2>
 
-                <Tabs defaultValue={`phase-1`} className="w-full">
-                    <TabsList className="mb-2 flex overflow-x-auto pb-1 scrollbar-hide">
-                        {phases?.map((phase: any, index: number) => (
-                            <TabsTrigger
-                                key={index}
-                                value={`phase-${phase.phase_number}`}
-                                className="min-w-[120px] whitespace-nowrap"
-                                onClick={() =>
-                                    setActivePhase(phase.phase_number)
-                                }
-                            >
-                                {phase.title ||
-                                    `Giai đoạn ${phase.phase_number}`}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
+                <Tabs
+                    value={activePhase}
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
+                    <div className="relative">
+                        {/* Nút cuộn sang trái */}
+                        <button
+                            onClick={scrollTabsLeft}
+                            className="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white to-transparent px-1 flex items-center justify-center"
+                            aria-label="Cuộn sang trái"
+                        >
+                            <ChevronLeft className="h-5 w-5 text-violet-500" />
+                        </button>
+
+                        {/* Tabs container với ref */}
+                        <div
+                            ref={tabsContainerRef}
+                            className="overflow-hidden mx-6"
+                        >
+                            <TabsList className="mb-2 flex justify-start overflow-x-auto pb-1 scrollbar-hide w-full">
+                                {phases?.map((phase: any, index: number) => (
+                                    <TabsTrigger
+                                        key={index}
+                                        value={`phase-${phase.phase_number}`}
+                                        className="min-w-[120px] whitespace-nowrap flex-shrink-0 text-sm px-4"
+                                    >
+                                        {phase.title ||
+                                            `Giai đoạn ${phase.phase_number}`}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </div>
+
+                        {/* Nút cuộn sang phải */}
+                        <button
+                            onClick={scrollTabsRight}
+                            className="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white to-transparent px-1 flex items-center justify-center"
+                            aria-label="Cuộn sang phải"
+                        >
+                            <ChevronRight className="h-5 w-5 text-violet-500" />
+                        </button>
+                    </div>
 
                     {phases?.map((phase: any, index: number) => (
                         <TabsContent

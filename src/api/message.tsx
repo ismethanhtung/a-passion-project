@@ -20,6 +20,19 @@ export const fetchLimitMessages = async () => {
     return response.json();
 };
 
+export const fetchConversationMessages = async (conversationId: any) => {
+    const response = await fetch(
+        `${API_BASE_URL}/conversation/${conversationId}/messages`,
+        {
+            credentials: "include",
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Cant get conversation messages.");
+    }
+    return response.json();
+};
+
 export const fetchMessageById = async (id: any) => {
     const response = await fetch(`${API_BASE_URL}/message/${id}`, {
         credentials: "include",
