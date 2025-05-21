@@ -1,0 +1,155 @@
+{
+    "learning_plan": {
+        "basic_information": {
+            "goal": {
+                "description": "string",
+                "target_score": "string",
+                "focus_skills": [
+                    "string"
+                ]
+            },
+            "current_level": {
+                "description": "string",
+                "test_results": {
+                    "test_name": "string",
+                    "score": "number"
+                },
+                "vocabulary_size": "number"
+            },
+            "duration": {
+                "total_months": "number",
+                "start_date": "string",
+                "end_date": "string"
+            },
+            "expected_outcomes": [
+                {
+                    "description": "string"
+                }
+            ]
+        },
+        "phases": [
+            {
+                "phase_number": "number",
+                "title": "string",
+                "timeframe": {
+                    "start_date": "string",
+                    "end_date": "string"
+                },
+                "goals": [
+                    {
+                        "description": "string"
+                    }
+                ],
+                "focus_skills": [
+                    "string"
+                ],
+                "resources": [
+                    {
+                        "name": "string",
+                        "type": "string",
+                        "description": "string",
+                        "link": "string"
+                    }
+                ],
+                "courses": [
+                    {
+                        "name": "string",
+                        "description": "string",
+                        "link": "string"
+                    }
+                ],
+                "weekly_schedule": [
+                    {
+                        "weeks": "string",
+                        "activities": [
+                            "string"
+                        ]
+                    }
+                ],
+                "practice_tasks": [
+                    {
+                        "description": "string"
+                    }
+                ],
+                "progress_evaluation": [
+                    {
+                        "description": "string",
+                        "frequency": "string"
+                    }
+                ]
+            }
+        ],
+        "learning_strategy": {
+            "methods": [
+                "string"
+            ],
+            "daily_plan": [
+                {
+                    "activity": "string",
+                    "duration": "string"
+                }
+            ],
+            "tools": [
+                {
+                    "name": "string",
+                    "description": "string"
+                }
+            ],
+            "overcoming_challenges": [
+                "string"
+            ]
+        },
+        "evaluation_and_adjustment": {
+            "milestones": [
+                "string"
+            ],
+            "criteria": [
+                "string"
+            ],
+            "adjustment_strategy": [
+                "string"
+            ]
+        },
+        "additional_resources": {
+            "reference_materials": [
+                {
+                    "name": "string",
+                    "description": "string",
+                    "link": "string"
+                }
+            ],
+            "communities": [
+                {
+                    "name": "string",
+                    "description": "string"
+                }
+            ],
+            "free_resources": [
+                {
+                    "name": "string",
+                    "description": "string",
+                    "link": "string"
+                }
+            ]
+        },
+        "advice": [
+            "string"
+        ],
+        "recommended_materials_and_courses": {
+            "documents": [
+                {
+                    "name": "string",
+                    "description": "string",
+                    "link": "string"
+                }
+            ],
+            "courses": [
+                {
+                    "name": "string",
+                    "description": "string",
+                    "link": "string"
+                }
+            ]
+        }
+    }
+}

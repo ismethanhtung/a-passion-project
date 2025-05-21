@@ -61,7 +61,7 @@ export async function assessPronunciationWithGroq(
     // Kiểm tra GROQ_API_KEY
     const groqApiKey =
         process.env.GROQ_API_KEY ||
-        "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";
+        "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";
 
     if (!groqApiKey) {
         console.warn("GROQ_API_KEY không tìm thấy, sử dụng đánh giá mặc định");
@@ -102,7 +102,7 @@ export async function assessPronunciationWithGroq(
             {
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${groqApiKey}`,
+                    Authorization: `Bearer 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`,
                 },
             }
         );

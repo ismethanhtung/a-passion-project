@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { WritingService, WritingTopic } from "@/lib/writing/writing-service";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 
 // Định nghĩa các bước trong quá trình luyện tập

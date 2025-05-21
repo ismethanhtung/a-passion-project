@@ -7,6 +7,7 @@ import { RootState } from "@/store/store";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LearningPathRenderer from "@/components/LearningPathRenderer";
 import {
     BookOpen,
     ChevronRight,
@@ -24,6 +25,7 @@ import {
     Sparkles,
     RefreshCw,
     User,
+    CheckSquare,
 } from "lucide-react";
 
 // Types
@@ -48,8 +50,57 @@ interface LearningPathItem {
     icon?: React.ReactNode;
 }
 
+// Cập nhật interface phù hợp với định dạng JSON mới từ API
+interface PathCourse {
+    id?: number;
+    title: string;
+    description: string;
+    duration: string;
+    level: string;
+    skills: string[];
+    url?: string;
+    type: string;
+    priority: number;
+    estimatedTimeToComplete: string;
+}
+
+interface PathStage {
+    name: string;
+    description: string;
+    duration: string;
+    focusAreas: string[];
+    targetSkills: string[];
+    courses: PathCourse[];
+    milestones: string[];
+    expectedOutcomes: string[];
+    skillLevel: string;
+}
+
 interface LearningPath {
-    pathDetails?: string;
+    pathDetails?: string; // Legacy field
+    // Thêm các trường mới theo định dạng JSON từ API
+    summary?: {
+        title: string;
+        description: string;
+        totalDuration: string;
+        startingLevel: string;
+        targetLevel: string;
+        mainFocus: string[];
+    };
+    stages?: PathStage[];
+    overallRecommendations?: string[];
+    studyTips?: string[];
+    resourceRecommendations?: {
+        books: string[];
+        websites: string[];
+        apps: string[];
+        communities: string[];
+    };
+    progressTracking?: {
+        assessmentFrequency: string;
+        assessmentMethods: string[];
+        successIndicators: string[];
+    };
 }
 
 // Dữ liệu mẫu
@@ -517,9 +568,9 @@ export default function LearningPath() {
                                     trình độ và sở thích học tập của bạn
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <Link href="/chatbot">
+                                    <Link href="/create-learning-path">
                                         <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors w-full sm:w-auto">
-                                            Tạo lộ trình với Chatbot
+                                            Tạo lộ trình cá nhân hóa
                                         </button>
                                     </Link>
                                     <Link href="/settings">
@@ -531,94 +582,28 @@ export default function LearningPath() {
                             </div>
                         ) : learningPath ? (
                             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-                                    <h2 className="text-2xl font-bold mb-2">
-                                        Lộ trình học cá nhân hóa
-                                    </h2>
-                                    <p className="text-blue-100">
-                                        Được cá nhân hóa dựa trên mục tiêu và
-                                        trình độ của bạn
-                                    </p>
+                                <div className="flex justify-end p-4 bg-gray-50 border-b">
+                                    <div className="inline-flex gap-2">
+                                        <Link href="/create-learning-path">
+                                            <button className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-sm font-medium transition-colors flex items-center">
+                                                <span>Làm mới lộ trình</span>
+                                                <RefreshCw className="h-3.5 w-3.5 ml-1.5" />
+                                            </button>
+                                        </Link>
+                                        <Link href="/settings">
+                                            <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm font-medium transition-colors flex items-center">
+                                                <span>Cập nhật mục tiêu</span>
+                                                <Target className="h-3.5 w-3.5 ml-1.5" />
+                                            </button>
+                                        </Link>
+                                    </div>
                                 </div>
-
-                                <div className="p-6">
-                                    <div className="flex justify-end mb-6">
-                                        <div className="inline-flex gap-2">
-                                            <Link href="/chatbot">
-                                                <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm font-medium transition-colors flex items-center">
-                                                    <span>
-                                                        Làm mới lộ trình
-                                                    </span>
-                                                    <RefreshCw className="h-3.5 w-3.5 ml-1.5" />
-                                                </button>
-                                            </Link>
-                                            <Link href="/settings">
-                                                <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm font-medium transition-colors flex items-center">
-                                                    <span>
-                                                        Cập nhật mục tiêu
-                                                    </span>
-                                                    <Target className="h-3.5 w-3.5 ml-1.5" />
-                                                </button>
-                                            </Link>
-                                        </div>
-                                    </div>
-
-                                    <div className="prose prose-slate max-w-none">
-                                        <ReactMarkdown
-                                            components={{
-                                                ol: ({ node, ...props }) => (
-                                                    <ol
-                                                        className="list-decimal ml-6 space-y-2 text-gray-700"
-                                                        {...props}
-                                                    />
-                                                ),
-                                                ul: ({ node, ...props }) => (
-                                                    <ul
-                                                        className="list-disc ml-6 space-y-2 text-gray-700"
-                                                        {...props}
-                                                    />
-                                                ),
-                                                a: ({ node, ...props }) => (
-                                                    <a
-                                                        {...props}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    />
-                                                ),
-                                                h1: ({ node, ...props }) => (
-                                                    <h1
-                                                        className="text-2xl font-bold text-gray-800 my-4"
-                                                        {...props}
-                                                    />
-                                                ),
-                                                h2: ({ node, ...props }) => (
-                                                    <h2
-                                                        className="text-xl font-semibold text-gray-800 mt-6 mb-3"
-                                                        {...props}
-                                                    />
-                                                ),
-                                                h3: ({ node, ...props }) => (
-                                                    <h3
-                                                        className="text-lg font-medium text-gray-800 mt-5 mb-2"
-                                                        {...props}
-                                                    />
-                                                ),
-                                                p: ({ node, ...props }) => (
-                                                    <p
-                                                        className="my-3 text-gray-700"
-                                                        {...props}
-                                                    />
-                                                ),
-                                            }}
-                                        >
-                                            {learningPath.pathDetails
-                                                ? formatMarkdown(
-                                                      learningPath.pathDetails
-                                                  )
-                                                : "Lộ trình học chưa có nội dung"}
-                                        </ReactMarkdown>
-                                    </div>
+                                <div className="p-4">
+                                    {learningPath.pathDetails && (
+                                        <LearningPathRenderer
+                                            jsonData={learningPath.pathDetails}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -634,9 +619,9 @@ export default function LearningPath() {
                                     trình độ và sở thích học tập của bạn
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <Link href="/chatbot">
+                                    <Link href="/create-learning-path">
                                         <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors w-full sm:w-auto">
-                                            Tạo lộ trình với Chatbot
+                                            Tạo lộ trình cá nhân hóa
                                         </button>
                                     </Link>
                                     <Link href="/settings">

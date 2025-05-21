@@ -141,7 +141,7 @@ Pronunciation Coach sử dụng Groq API để chuyển đổi giọng nói thà
 
 ```
 # Groq API Key (cho Speech-to-Text và phân tích phát âm)
-GROQ_API_KEY=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
+GROQ_API_KEY=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
 ```
 
 3. Khởi động lại server

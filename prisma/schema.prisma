@@ -49,6 +49,10 @@ model User {
   role              Role               @relation(fields: [roleId], references: [id])
   settings          UserSettings?
   tests             Test[]             @relation("TestParticipants")
+  createdOnlineTests OnlineTest[]      @relation("TestCreator")
+  onlineTests       OnlineTest[]       @relation("TestParticipants")
+  testAnswers       TestAnswer[]
+  testAttempts      TestAttempt[]
 
   @@index([roleId], map: "User_roleId_fkey")
 }
@@ -437,4 +441,89 @@ model AssistantLog {
   request    AssistantRequest @relation(fields: [requestId], references: [id])
 
   @@index([requestId], map: "AssistantLog_requestId_fkey")
+}
+
+model OnlineTest {
+  id            Int         @id @default(autoincrement())
+  title         String
+  description   String
+  instructions  String      @db.Text
+  testType      String      // TOEIC, IELTS, Placement, General
+  difficulty    String      // Beginner, Intermediate, Advanced, Expert
+  duration      Int         // Thời gian làm bài (phút)
+  tags          String      // Các tags phân loại
+  popularity    Int         @default(0)
+  completionRate Int        @default(0)
+  isPublished   Boolean     @default(false)
+  isFeatured    Boolean     @default(false)
+  creatorId     Int         
+  creator       User        @relation("TestCreator", fields: [creatorId], references: [id])
+  participants  User[]      @relation("TestParticipants")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  sections      Json?       // Cấu trúc bài thi
+  thumbnail     String?     // URL hình ảnh đại diện
+  isAIGenerated Boolean     @default(false)
+  testQuestions TestQuestion[]
+  testAttempts  TestAttempt[]
+
+  @@index([creatorId], map: "OnlineTest_creatorId_fkey")
+}
+
+model TestQuestion {
+  id              Int         @id @default(autoincrement())
+  testId          Int
+  content         String      @db.Text
+  type            String      // single, multiple, fill, essay, speaking
+  options         Json?       // Các lựa chọn (nếu có)
+  correctAnswer   Json?       // Đáp án đúng
+  part            Int         // Phần của bài thi
+  sectionType     String      // listening, reading, writing, speaking
+  explanation     String?     @db.Text // Giải thích đáp án
+  audioUrl        String?     // URL audio (cho phần nghe)
+  imageUrl        String?     // URL hình ảnh (nếu có)
+  groupId         Int?        // Để nhóm các câu hỏi theo cùng một bài đọc/nghe
+  order           Int         // Thứ tự câu hỏi
+  test            OnlineTest  @relation(fields: [testId], references: [id])
+  answers         TestAnswer[]
+
+  @@index([testId], map: "TestQuestion_testId_fkey")
+}
+
+model TestAnswer {
+  id              Int         @id @default(autoincrement())
+  questionId      Int
+  userId          Int
+  attemptId       Int
+  selectedAnswer  Json?       // Câu trả lời của người dùng
+  isCorrect       Boolean?    // Đánh giá đúng/sai
+  score           Float?      // Điểm số (cho writing/speaking)
+  feedback        String?     @db.Text // Phản hồi của AI (cho writing/speaking)
+  markedForReview Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  question        TestQuestion @relation(fields: [questionId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  attempt         TestAttempt @relation(fields: [attemptId], references: [id])
+
+  @@index([questionId], map: "TestAnswer_questionId_fkey")
+  @@index([userId], map: "TestAnswer_userId_fkey")
+  @@index([attemptId], map: "TestAnswer_attemptId_fkey")
+}
+
+model TestAttempt {
+  id              Int         @id @default(autoincrement())
+  testId          Int
+  userId          Int
+  startTime       DateTime    @default(now())
+  endTime         DateTime?
+  score           Float?      // Điểm số tổng
+  sectionScores   Json?       // Điểm theo từng phần
+  completed       Boolean     @default(false)
+  feedback        String?     @db.Text // Đánh giá tổng quan
+  test            OnlineTest  @relation(fields: [testId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  answers         TestAnswer[]
+
+  @@index([testId], map: "TestAttempt_testId_fkey")
+  @@index([userId], map: "TestAttempt_userId_fkey")
 }

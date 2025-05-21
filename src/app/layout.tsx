@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ClientProvider from "@/store/ClientProvider";
 import Footer from "@/components/footer";
+import { ToastProvider } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
     title: "Code Alone",
@@ -19,9 +20,11 @@ export default function RootLayout({
         <html lang="en">
             <body style={{ fontFamily: "Poppins, sans-serif" }}>
                 <ClientProvider>
-                    <Navbar />
-                    {children}
-                    <Footer />
+                    <ToastProvider>
+                        <Navbar />
+                        {children}
+                        <Footer />
+                    </ToastProvider>
                 </ClientProvider>
             </body>
         </html>

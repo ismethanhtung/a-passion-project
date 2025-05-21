@@ -10,6 +10,8 @@
     },
     "dependencies": {
         "@greatsumini/react-facebook-login": "^3.4.0",
+        "@headlessui/react": "^2.2.4",
+        "@prisma/client": "^6.8.2",
         "@radix-ui/react-slider": "^1.3.2",
         "@react-oauth/google": "^0.12.1",
         "@reduxjs/toolkit": "^2.5.0",

@@ -77,8 +77,7 @@ export async function POST(req: NextRequest) {
             {
                 method: "POST",
                 headers: {
-                    Authorization:
-                        "Bearer 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",
+                    Authorization: `Bearer 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`,
                 },
                 body: formDataForGroq,
             }

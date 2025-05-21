@@ -12,6 +12,7 @@ import ReactMarkdown from "react-markdown";
 import { updatePath } from "@/api/learningPath";
 import { useRef } from "react";
 import { Bot } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 // Dữ liệu tài liệu học tập
 const documentData = [
@@ -255,9 +256,18 @@ interface Document {
     isFeatured?: boolean;
 }
 
+// Thêm interface định nghĩa cho tin nhắn
+interface Message {
+    sender: "user" | "bot";
+    text: string;
+    isTyping?: boolean;
+    isLearningPath?: boolean;
+    pathData?: string;
+}
+
 export default function Chatbot() {
     const [showChat, setShowChat] = useState(false);
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [conversationId, setConversationId] = useState(null);
 
@@ -266,7 +276,7 @@ export default function Chatbot() {
     const toggleChat = () => setShowChat((prev) => !prev);
     const chatBoxRef = useRef<HTMLDivElement>(null);
 
-    function formatCourses(courseList, scores = []) {
+    function formatCourses(courseList: string[], scores: number[] = []) {
         if (!Array.isArray(courseList) || courseList.length === 0) {
             return "Không tìm thấy khóa học phù hợp.";
         }
@@ -470,26 +480,46 @@ Link: ${courseLink}`;
     const sendMessage = async () => {
         if (!input.trim()) return;
 
-        const newMessage = { sender: "user", text: input };
+        const newMessage = { sender: "user" as const, text: input };
         setMessages((prev) => [...prev, newMessage]);
         setInput("");
 
         try {
             // Lưu tin nhắn người dùng
-            await fetch(
-                `${API_BASE_URL}/conversation/${conversationId}/message`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ senderId: userId, content: input }),
+            try {
+                const userMessageResponse = await fetch(
+                    `${API_BASE_URL}/conversation/${conversationId}/message`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            senderId: userId,
+                            content: input,
+                        }),
+                        credentials: "include", // Thêm credentials để đảm bảo cookie được gửi đi
+                    }
+                );
+
+                if (!userMessageResponse.ok) {
+                    console.error(
+                        "❌ Lỗi khi lưu tin nhắn người dùng:",
+                        await userMessageResponse.text()
+                    );
+                } else {
+                    console.log("✅ Đã lưu tin nhắn người dùng thành công");
                 }
-            );
+            } catch (saveError) {
+                console.error(
+                    "❌ Exception khi lưu tin nhắn người dùng:",
+                    saveError
+                );
+            }
 
             // Hiển thị trạng thái đang nhập
             setMessages((prev) => [
                 ...prev,
                 {
-                    sender: "bot",
+                    sender: "bot" as const,
                     text: "Đang tìm kiếm thông tin...",
                     isTyping: true,
                 },
@@ -500,7 +530,11 @@ Link: ${courseLink}`;
             console.log("🟢 userProfile:", userProfile);
 
             // Khởi tạo biến vectorDB
-            let relevantCourses = {
+            let relevantCourses: {
+                results: string[];
+                scores: number[];
+                query_analysis: any;
+            } = {
                 results: [],
                 scores: [],
                 query_analysis: {},
@@ -520,6 +554,13 @@ Link: ${courseLink}`;
                 isKhóaHọc: queryTypes.isCourse,
                 isLộTrình: queryTypes.isPath,
             });
+
+            // Ghi log nếu là yêu cầu lộ trình
+            if (queryTypes.isPath) {
+                console.log(
+                    "🟢 Đây là yêu cầu tạo lộ trình - không sử dụng lịch sử tin nhắn"
+                );
+            }
 
             if (isQueryAboutCoursesOrDocs) {
                 // Tìm kiếm tài liệu nếu là câu hỏi về tài liệu hoặc lộ trình
@@ -599,9 +640,7 @@ Link: ${courseLink}`;
 
                     // Lọc những tài liệu không phù hợp và sắp xếp theo điểm
                     const filteredDocuments = scoredDocuments
-                        .filter(
-                            (item) => item.matchedTerms > 0 || item.score > 2
-                        )
+                        .filter((item) => item.matchedTerms > 0)
                         .sort((a, b) => b.score - a.score)
                         .slice(0, 5); // Giới hạn kết quả
 
@@ -615,20 +654,96 @@ Link: ${courseLink}`;
                 try {
                     // Gọi đến vectorDB với các thông số nếu là câu hỏi về khóa học hoặc lộ trình
                     if (queryTypes.isCourse || queryTypes.isPath) {
+                        // Xử lý prompt trước khi truy vấn vector DB
+                        let enhancedQuery = input;
+
+                        // Tạo prompt nâng cao dựa trên thông tin người dùng và yêu cầu hiện tại
+                        if (userProfile) {
+                            const userInfo: string[] = [];
+
+                            // Thêm thông tin về trình độ
+                            if (userProfile.skillLevel) {
+                                userInfo.push(
+                                    `trình độ ${userProfile.skillLevel}`
+                                );
+                            }
+
+                            // Thêm thông tin về mục tiêu cụ thể
+                            if (userProfile.specificGoals) {
+                                userInfo.push(
+                                    `mục tiêu ${userProfile.specificGoals}`
+                                );
+                            }
+
+                            // Thêm thông tin về kỹ năng ưu tiên
+                            if (userProfile.prioritySkills) {
+                                userInfo.push(
+                                    `cần kỹ năng ${userProfile.prioritySkills}`
+                                );
+                            }
+
+                            // Thêm thông tin về mục đích học tập
+                            if (userProfile.learningPurpose) {
+                                userInfo.push(
+                                    `mục đích ${userProfile.learningPurpose}`
+                                );
+                            }
+
+                            // Thêm thông tin về mục tiêu học tập
+                            if (userProfile.learningGoals) {
+                                userInfo.push(
+                                    `mục tiêu học tập ${userProfile.learningGoals}`
+                                );
+                            }
+
+                            // Tạo câu truy vấn nâng cao
+                            if (userInfo.length > 0) {
+                                enhancedQuery = `${input} cho người học ${userInfo.join(
+                                    ", "
+                                )}`;
+                                console.log(
+                                    "🟢 Câu truy vấn nâng cao:",
+                                    enhancedQuery
+                                );
+                            }
+                        }
+
+                        // Chuẩn bị các bộ lọc dựa trên thông tin người dùng
+                        const filters: any = {};
+
+                        // Thêm bộ lọc trình độ nếu có
+                        if (userProfile?.skillLevel) {
+                            // Chuyển đổi trình độ người dùng thành mức độ khóa học
+                            const levelMapping: { [key: string]: string } = {
+                                beginner: "beginner",
+                                elementary: "beginner",
+                                "pre-intermediate": "intermediate",
+                                intermediate: "intermediate",
+                                "upper-intermediate": "advanced",
+                                advanced: "advanced",
+                            };
+
+                            const userLevel =
+                                userProfile.skillLevel.toLowerCase();
+                            if (levelMapping[userLevel]) {
+                                filters.level = levelMapping[userLevel];
+                            }
+                        }
+
+                        // Gọi đến vectorDB với câu truy vấn nâng cao
                         const findCoursesInVectorDB = await fetch(
                             `http://localhost:8000/search`,
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                    query: input,
+                                    query: enhancedQuery,
                                     top_k: 5,
-                                    // min_score: 0.3,
-                                    // filters: {
-                                    //     level:
-                                    //         userProfile?.skillLevel?.toLowerCase() ||
-                                    //         undefined,
-                                    // },
+                                    min_score: 0.3,
+                                    filters:
+                                        Object.keys(filters).length > 0
+                                            ? filters
+                                            : undefined,
                                 }),
                             }
                         );
@@ -658,13 +773,179 @@ Link: ${courseLink}`;
             }
 
             // Tạo prompt cho LLM
-            const promptMessages = [
-                ...messages.slice(-5).map((m) => ({
-                    role: m.sender === "user" ? "user" : "assistant",
-                    content: m.text,
-                })),
-                { role: "user", content: input },
-            ];
+            const isPathRequest = queryTypes.isPath;
+
+            // Nếu là yêu cầu tạo lộ trình, chỉ gửi tin nhắn hiện tại
+            // Nếu không phải, gửi cả tin nhắn trước đó để giữ ngữ cảnh
+            const promptMessages = isPathRequest
+                ? [
+                      {
+                          role: "system",
+                          content: `Bạn là một chuyên gia giáo dục ngôn ngữ với kiến thức sâu rộng về thiết kế chương trình học, phương pháp học ngôn ngữ và phát triển tài liệu giáo dục. Bạn chuyên tạo lộ trình học tập cá nhân hóa chi tiết cho người học ngôn ngữ.
+                          
+                          QUAN TRỌNG: Hãy trả về kết quả theo định dạng JSON với cấu trúc như sau:
+                          {
+                            "learning_plan": {
+                              "basic_information": {
+                                "goal": {
+                                  "description": "Mô tả mục tiêu học tập",
+                                  "target_score": "Điểm mục tiêu (nếu có)",
+                                  "focus_skills": ["Kỹ năng 1", "Kỹ năng 2"]
+                                },
+                                "current_level": {
+                                  "description": "Mô tả trình độ hiện tại",
+                                  "test_results": {
+                                    "test_name": "Tên bài kiểm tra",
+                                    "score": "Điểm số"
+                                  },
+                                  "vocabulary_size": "Số lượng từ vựng ước tính"
+                                },
+                                "duration": {
+                                  "total_months": "Tổng số tháng",
+                                  "start_date": "Ngày bắt đầu",
+                                  "end_date": "Ngày kết thúc"
+                                },
+                                "expected_outcomes": [
+                                  {"description": "Kết quả mong đợi 1"},
+                                  {"description": "Kết quả mong đợi 2"}
+                                ]
+                              },
+                              "phases": [
+                                {
+                                  "phase_number": 1,
+                                  "title": "Tên giai đoạn",
+                                  "timeframe": {
+                                    "start_date": "Ngày bắt đầu",
+                                    "end_date": "Ngày kết thúc"
+                                  },
+                                  "goals": [
+                                    {"description": "Mục tiêu 1"},
+                                    {"description": "Mục tiêu 2"}
+                                  ],
+                                  "focus_skills": ["Kỹ năng 1", "Kỹ năng 2"],
+                                  "resources": [
+                                    {
+                                      "name": "Tên tài liệu",
+                                      "type": "Loại tài liệu",
+                                      "description": "Mô tả",
+                                      "link": "Đường dẫn"
+                                    }
+                                  ],
+                                  "courses": [
+                                    {
+                                      "name": "Tên khóa học",
+                                      "description": "Mô tả",
+                                      "link": "Đường dẫn"
+                                    }
+                                  ],
+                                  "weekly_schedule": [
+                                    {
+                                      "weeks": "Tuần 1-2",
+                                      "activities": ["Hoạt động 1", "Hoạt động 2"]
+                                    }
+                                  ],
+                                  "practice_tasks": [
+                                    {"description": "Bài tập thực hành 1"}
+                                  ],
+                                  "progress_evaluation": [
+                                    {
+                                      "description": "Phương pháp đánh giá",
+                                      "frequency": "Tần suất"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "learning_strategy": {
+                                "methods": ["Phương pháp 1", "Phương pháp 2"],
+                                "daily_plan": [
+                                  {
+                                    "activity": "Hoạt động",
+                                    "duration": "Thời lượng"
+                                  }
+                                ],
+                                "tools": [
+                                  {
+                                    "name": "Tên công cụ",
+                                    "description": "Mô tả"
+                                  }
+                                ],
+                                "overcoming_challenges": ["Cách vượt qua thách thức 1"]
+                              },
+                              "evaluation_and_adjustment": {
+                                "milestones": ["Cột mốc 1", "Cột mốc 2"],
+                                "criteria": ["Tiêu chí 1", "Tiêu chí 2"],
+                                "adjustment_strategy": ["Chiến lược điều chỉnh 1"]
+                              },
+                              "additional_resources": {
+                                "reference_materials": [
+                                  {
+                                    "name": "Tên tài liệu",
+                                    "description": "Mô tả",
+                                    "link": "Đường dẫn"
+                                  }
+                                ],
+                                "communities": [
+                                  {
+                                    "name": "Tên cộng đồng",
+                                    "description": "Mô tả"
+                                  }
+                                ],
+                                "free_resources": [
+                                  {
+                                    "name": "Tên tài nguyên",
+                                    "description": "Mô tả",
+                                    "link": "Đường dẫn"
+                                  }
+                                ]
+                              },
+                              "advice": ["Lời khuyên 1", "Lời khuyên 2"],
+                              "recommended_materials_and_courses": {
+                                "documents": [
+                                  {
+                                    "name": "Tên tài liệu",
+                                    "description": "Mô tả",
+                                    "link": "Đường dẫn"
+                                  }
+                                ],
+                                "courses": [
+                                  {
+                                    "name": "Tên khóa học",
+                                    "description": "Mô tả",
+                                    "link": "Đường dẫn"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                          
+                          CHÚ Ý:
+                          1. Phải trả về JSON hợp lệ, không có markdown hoặc text khác
+                          2. Phải tuân theo đúng cấu trúc JSON đã cung cấp
+                          3. Điền đầy đủ thông tin vào tất cả các trường
+                          4. Tạo ít nhất 3 giai đoạn học tập
+                          5. Đảm bảo mỗi giai đoạn có đầy đủ thông tin chi tiết
+                          6. Không được thêm bất kỳ text nào ngoài JSON
+                          7. Không được thêm các trường không có trong cấu trúc mẫu
+                          `,
+                      },
+                      { role: "user", content: input },
+                  ]
+                : [
+                      ...messages.slice(-5).map((m) => ({
+                          role: m.sender === "user" ? "user" : "assistant",
+                          content: m.text,
+                      })),
+                      { role: "user", content: input },
+                  ];
+
+            // Log để kiểm tra
+            console.log("🟢 promptMessages:", promptMessages);
+            console.log("🟢 Số lượng promptMessages:", promptMessages.length);
+            if (isPathRequest) {
+                console.log(
+                    "🟢 Xác nhận: Chỉ gửi tin nhắn hiện tại cho yêu cầu lộ trình"
+                );
+            }
 
             // Thêm thông tin ngữ cảnh vào prompt
             if (
@@ -708,22 +989,20 @@ Link: ${courseLink}`;
                     1. Tên đầy đủ của khóa học
                     2. Mô tả ngắn gọn khóa học
                     3. GIÁ GỐC và GIÁ SAU GIẢM (nếu có giảm giá)
-                    4. Số bài học hoặc thời lượng (nếu có)
                     5. Trình độ phù hợp
                     6. Thông tin về mục tiêu của khóa học
-                    7. Link đến khóa học (dạng markdown [tên khóa học](http://localhost:3000/courses/ID))
-                    4. Không bịa ra tài liệu không có trong danh sách được cung cấp
+                    7. Cung cấp Link đến khóa học (dạng markdown [tên khóa học](http://localhost:3000/courses/ID))
+                    4. Không bịa ra tài liệu/ khóa học không có trong danh sách được cung cấp, không lấy khóa học ngoài hệ thống
 
                     Giải thích ngắn gọn tại sao những khóa học này phù hợp với nhu cầu và trình độ của người học.
-                    Cung cấp link đến khóa học để người dùng có thể dễ dàng truy cập.
                     
                     FORMAT mẫu cho mỗi khóa học:
-                    ## [Tên khóa học](link)
-                    - **Mô tả**: Mô tả chi tiết
-                    - **Giá**: XX.XXX.XXXđ ~~XX.XXX.XXXđ~~ (Giảm XX%)
-                    - **Trình độ**: Trình độ phù hợp
-                    - **Thời lượng**: X bài học
-                    - **Mục tiêu**: Mục tiêu của khóa học
+                    [Tên khóa học](link)
+                    - Mô tả: Mô tả chi tiết
+                    - Giá: XX.XXX.XXXđ ~~XX.XXX.XXXđ~~ (Giảm XX%)
+                    - Trình độ: Trình độ phù hợp
+                    - Thời lượng: X bài học
+                    - Mục tiêu: Mục tiêu của khóa học
                     
                     Lý do nên chọn: [Giải thích]`;
                 }
@@ -746,11 +1025,11 @@ Link: ${courseLink}`;
                     Cung cấp link tải tài liệu để người dùng có thể truy cập dễ dàng.
                     
                     FORMAT mẫu cho mỗi tài liệu:
-                    ## [Tên tài liệu](link tải)
-                    - **Loại**: Phân loại tài liệu
-                    - **Mô tả**: Mô tả chi tiết
-                    - **Đối tượng**: Người học phù hợp
-                    - **Ứng dụng**: Cách sử dụng tài liệu hiệu quả
+                    [Tên tài liệu](link tải)
+                    - Loại: Phân loại tài liệu
+                    - Mô tả: Mô tả chi tiết
+                    - Đối tượng: Người học phù hợp
+                    - Ứng dụng: Cách sử dụng tài liệu hiệu quả
                     
                     Lý do nên sử dụng: [Giải thích]
                     
@@ -759,41 +1038,107 @@ Link: ${courseLink}`;
 
                 if (queryTypes.isPath) {
                     systemContent += `
-                    Đây là yêu cầu về lộ trình học tập. Hãy tạo một lộ trình học tập cá nhân hóa phù hợp với trình độ và mục tiêu của người học.
+                    Đây là yêu cầu về lộ trình học tập. Hãy tạo một lộ trình học tập cá nhân hóa RẤT CHI TIẾT phù hợp với trình độ và mục tiêu của người học.
                     
-                    YÊU CẦU CHI TIẾT ĐỐI VỚI LỘ TRÌNH:
-                    1. Xác định rõ thời gian: Đề xuất khoảng thời gian phù hợp (ví dụ: 2 tháng, 4 tháng, 6 tháng - nhớ rõ 1 tháng có 4 tuần) tùy thuộc vào mục tiêu và trình độ hiện tại của học viên.
-                    2. Chia theo tuần: Mỗi 2 tuần nên có hoạt động và mục tiêu cụ thể.
-                    3. Đề xuất khóa học cụ thể: Nêu rõ tên khóa học và cung cấp link,                         
-                    4. Không bịa ra tài liệu không có trong danh sách được cung cấp,
-                    5. Đánh giá tiến độ: Mô tả phương pháp để học viên tự đánh giá tiến độ của mình.
-                    6. Đưa ra lời khuyên: Cung cấp các mẹo và chiến lược học tập phù hợp.
+                    YÊU CẦU CHI TIẾT ĐỐI VỚI LỘ TRÌNH (PHẢI đảm bảo TẤT CẢ các điểm dưới đây):
                     
+                    ## 1. THÔNG TIN CƠ BẢN
+                    1.1. MỤC TIÊU RÕ RÀNG: Nêu cụ thể mục tiêu của lộ trình (VD: TOEIC 700, IELTS 8.0, lưu loát giao tiếp, v.v.)
+                    1.2. TRÌNH ĐỘ HIỆN TẠI: Đánh giá chi tiết trình độ hiện tại của học viên dựa trên thông tin có sẵn
+                    1.3. THỜI GIAN TOÀN BỘ LỘ TRÌNH: 
+                       - PHẢI sử dụng thời gian thực với ngày tháng cụ thể (không chỉ ghi "tháng 1, tháng 2")
+                       - Bắt đầu từ NGÀY HIỆN TẠI (${new Date().toLocaleDateString(
+                           "vi-VN"
+                       )}) và kéo dài 3-6 tháng
+                       - Xác định rõ ngày bắt đầu và kết thúc cho mỗi giai đoạn (ví dụ: từ 15/08/2023 đến 15/09/2023)
+                       - Mỗi tháng phải có đầy đủ nội dung - mỗi tháng là một giai đoạn, không được bỏ trống hoặc thiếu thông tin
+                    1.4. KẾT QUẢ MONG ĐỢI SAU KHI HOÀN THÀNH: Liệt kê ít nhất kỹ năng/năng lực cụ thể sẽ đạt được
                     
-             
+                    ## 2. CẤU TRÚC LỘ TRÌNH THEO GIAI ĐOẠN (chia theo tháng, tối thiểu 3-6 tháng)
                     
+                    Với MỖI GIAI ĐOẠN (tháng) PHẢI có đầy đủ:
+                    2.1. THỜI GIAN CỤ THỂ: Xác định chính xác ngày bắt đầu và kết thúc của giai đoạn (VD: 15/08/2023 - 14/09/2023)
+                    2.2. MỤC TIÊU GIAI ĐOẠN: Liệt kê 3-5 mục tiêu cụ thể của giai đoạn với lời khuyên chi tiết cho từng mục tiêu
+                    2.3. KỸ NĂNG TRỌNG TÂM: Xác định rõ 2-3 kỹ năng trọng tâm (nghe, nói, đọc, viết, từ vựng, ngữ pháp...) kèm lý do ưu tiên
+                    2.4. TÀI LIỆU SỬ DỤNG: Liệt kê cụ thể 2-4 tài liệu kèm đường dẫn và hướng dẫn sử dụng chi tiết từng phần
+                    2.5. KHÓA HỌC THAM GIA: Chỉ định 1-2 khóa học kèm đường dẫn và kế hoạch học chi tiết (bài/tuần, giờ/ngày)
+                    2.6. LỊCH TRÌNH HÀNG TUẦN: Chi tiết hoạt động từng tuần với ngày cụ thể (tối thiểu 3-4 hoạt động/tuần)
+                    2.7. BÀI TẬP THỰC HÀNH: Gợi ý 5-10 bài tập cụ thể cho giai đoạn với hướng dẫn chi tiết
+                    2.8. ĐÁNH GIÁ TIẾN ĐỘ: Tiêu chí và phương pháp đánh giá cuối giai đoạn với mục tiêu cụ thể
+                    2.9. LỜI KHUYÊN RIÊNG: 2-4 lời khuyên đặc biệt cho giai đoạn này
                     
-                    ### LỜI KHUYÊN VÀ CHIẾN LƯỢC HỌC TẬP
-                    [Cung cấp 3-5 lời khuyên cụ thể]
+                    ## 3. CHIẾN LƯỢC VÀ PHƯƠNG PHÁP HỌC TẬP
+                    3.1. PHƯƠNG PHÁP HỌC: Đề xuất 3-5 phương pháp học hiệu quả phù hợp với người học
+                    3.2. KẾ HOẠCH HÀNG NGÀY: Gợi ý lịch học chi tiết (phân bổ thời gian, tối thiểu 5-7 ngày/tuần)
+                    3.3. CÔNG CỤ HỖ TRỢ: Giới thiệu 3-5 ứng dụng/công cụ hỗ trợ việc học
+                    3.4. VƯỢT QUA KHÓ KHĂN: Đưa ra giải pháp cho 3-5 khó khăn phổ biến
                     
-                    ĐẶC BIỆT LƯU Ý KHI TẠO LỘ TRÌNH:
-                    1. Tất cả các URL phải ở định dạng markdown chuẩn [Tên](URL)
-                    2. URL không được chứa các ký tự đặc biệt [ ] ( ) 
-                    3. Mỗi tài liệu hoặc khóa học phải có một URL riêng
-                    4. Không bịa ra khóa học không có trong danh sách được cung cấp`;
+                    ## 4. ĐÁNH GIÁ VÀ ĐIỀU CHỈNH
+                    4.1. CỘT MỐC ĐÁNH GIÁ: Thiết lập 3-5 cột mốc đánh giá trong suốt lộ trình
+                    4.2. TIÊU CHÍ ĐÁNH GIÁ: Liệt kê 5-7 tiêu chí cụ thể để tự đánh giá
+                    4.3. CHIẾN LƯỢC ĐIỀU CHỈNH: Hướng dẫn cách điều chỉnh lộ trình nếu cần
+                    
+                    ## 5. TÀI NGUYÊN BỔ SUNG (chỉ dùng các tài nguyên trong hệ thống)
+                    5.1. TÀI LIỆU THAM KHẢO: Liệt kê 5-10 tài liệu bổ sung kèm đường dẫn
+                    5.2. CỘNG ĐỒNG HỌC TẬP: Giới thiệu 2-3 cộng đồng/nhóm hỗ trợ
+                    5.3. NGUỒN TÀI NGUYÊN MIỄN PHÍ: Chia sẻ 3-5 nguồn tài nguyên miễn phí
+                    
+                    ### LƯU Ý QUAN TRỌNG
+                    - Mỗi mục phải ĐƯỢC VIẾT CHI TIẾT, DÀI ĐẦY ĐỦ với nhiều đề mục phụ
+                    - Sử dụng formatting đẹp mắt (headings, subheadings, bullet points, bold, italic)
+                    - Đặt tiêu đề rõ ràng cho từng phần và mục
+                    - Tạo ra một văn bản DÀI, TOÀN DIỆN, CHI TIẾT với hướng dẫn cụ thể
+                    - KHÔNG được viết ngắn gọn, phải đảm bảo nội dung phong phú, chi tiết
+                    
+                    ## ĐỊNH DẠNG VÀ TRÌNH BÀY
+                    6.1. Tất cả các URL PHẢI ở định dạng markdown chuẩn [Tên](URL)
+                    6.2. URL không được chứa các ký tự đặc biệt [ ] ( ) 
+                    6.3. Mỗi tài liệu hoặc khóa học phải có một URL riêng
+                    6.4. KHÔNG được bịa ra khóa học, tài liệu không có trong danh sách được cung cấp
+                    6.5. Sử dụng nhiều heading (## và ###) và formatting (bold, italic, lists) 
+                    6.6. Đảm bảo văn bản trả về DÀI, CHI TIẾT, ĐẦY ĐỦ (tối thiểu 2000 từ)
+                    
+                    ## 6. KẾT LUẬN
+                    6.1. Tóm tắt lại toàn bộ lộ trình một cách súc tích
+                    6.2. Nhấn mạnh lợi ích và kết quả mong đợi
+                    6.3. Đưa ra lời khuyên, động viên người học
+                    6.4. Đề xuất các bước tiếp theo sau khi hoàn thành lộ trình
+                    
+                    📌 QUAN TRỌNG: Lộ trình cần PHẢI CHI TIẾT, CỤ THỂ, TOÀN DIỆN và DÀI. Đảm bảo mọi thông tin đều rõ ràng và có thể thực hiện được.`;
 
                     // Thêm gợi ý tài liệu nếu có tài liệu phù hợp
                     if (relevantDocuments.length > 0) {
                         systemContent += `
-                        Hãy tích hợp các tài liệu sau đây vào lộ trình học tập một cách phù hợp: ${formatDocsVar}
+                        ## 8. CHI TIẾT TÀI LIỆU CẦN TÍCH HỢP VÀO LỘ TRÌNH
                         
-                        QUAN TRỌNG VỀ TÀI LIỆU:
-                        1. Mỗi tài liệu PHẢI được sử dụng đúng cách trong lộ trình, đặt vào đúng giai đoạn phù hợp với trình độ.
-                        2. Khi đề cập đến tài liệu trong lộ trình, PHẢI bao gồm:
-                           - Tên đầy đủ của tài liệu
-                           - Mô tả ngắn gọn về nội dung và cách sử dụng
+                        Hãy tích hợp TẤT CẢ các tài liệu sau đây vào lộ trình học tập một cách phù hợp và PHÂN BỔ đều vào các giai đoạn: 
+                        
+                        ${formatDocsVar}
+                        
+                        ### HƯỚNG DẪN TÍCH HỢP TÀI LIỆU:
+                        
+                        8.1. PHÂN BỔ HỢP LÝ:
+                        - Mỗi tài liệu PHẢI được phân bổ vào đúng giai đoạn phù hợp với trình độ và mục tiêu
+                        - Tất cả tài liệu PHẢI được sử dụng trong lộ trình, phân bổ đều giữa các giai đoạn
+                        - Với mỗi tài liệu, chỉ định rõ THỜI ĐIỂM sử dụng (tuần nào, tháng nào)
+                        
+                        8.2. MÔ TẢ CHI TIẾT:
+                        - Tên đầy đủ của tài liệu (in đậm)
+                        - Mô tả CHI TIẾT về nội dung (tối thiểu 2-3 câu)
+                        - Hướng dẫn CỤ THỂ cách sử dụng (tối thiểu 3-5 bước)
+                        - Lợi ích của tài liệu đối với giai đoạn học tập
                            - Đường link đầy đủ dạng markdown [Tên tài liệu](URL)
-                        3. Không bịa ra tài liệu không có trong danh sách được cung cấp`;
+                        
+                        8.3. KẾ HOẠCH SỬ DỤNG:
+                        - Chi tiết nên học PHẦN NÀO của tài liệu trong TUẦN NÀO
+                        - Số giờ/ngày nên dành cho tài liệu này
+                        - Cách kết hợp với các tài liệu khác
+                        - Bài tập/hoạt động thực hành kèm theo
+                        
+                        8.4. TUYỆT ĐỐI KHÔNG:
+                        - KHÔNG bịa ra tài liệu không có trong danh sách được cung cấp
+                        - KHÔNG sử dụng URL sai định dạng
+                        - KHÔNG lặp lại nội dung giữa các tài liệu`;
                     }
 
                     // Thêm gợi ý khóa học nếu có khóa học phù hợp
@@ -802,17 +1147,44 @@ Link: ${courseLink}`;
                         relevantCourses.results.length > 0
                     ) {
                         systemContent += `
-                        Hãy tích hợp các khóa học sau đây vào lộ trình học tập một cách phù hợp: ${formatCoursesVar}
+                        ## 9. CHI TIẾT KHÓA HỌC CẦN TÍCH HỢP VÀO LỘ TRÌNH
                         
-                        QUAN TRỌNG VỀ KHÓA HỌC:
-                        1. Mỗi khóa học PHẢI được sử dụng đúng cách trong lộ trình, đặt vào đúng giai đoạn phù hợp với trình độ.
-                        2. Khi đề cập đến khóa học trong lộ trình, PHẢI bao gồm:
-                           - Tên đầy đủ của khóa học
-                           - Mô tả ngắn gọn về nội dung khóa học
-                           - Thông tin về giá (nếu có)
+                        Hãy tích hợp TẤT CẢ các khóa học sau đây vào lộ trình học tập, phân bổ hợp lý theo các giai đoạn:
+                        
+                        ${formatCoursesVar}
+                        
+                        ### HƯỚNG DẪN TÍCH HỢP KHÓA HỌC:
+                        
+                        9.1. PHÂN BỔ KHÓA HỌC:
+                        - Mỗi khóa học PHẢI được đặt vào đúng giai đoạn phù hợp với mục tiêu của giai đoạn đó
+                        - Tất cả khóa học PHẢI được sử dụng trong lộ trình, phân bổ hợp lý
+                        - Với mỗi khóa học, chỉ định rõ THỜI ĐIỂM bắt đầu và kết thúc (tháng/tuần nào)
+                        
+                        9.2. MÔ TẢ KHÓA HỌC CHI TIẾT:
+                        - Tên đầy đủ của khóa học (in đậm)
+                        - Mô tả CHI TIẾT nội dung khóa học (tối thiểu 3-4 câu)
+                        - LỢI ÍCH CHÍNH của khóa học đối với giai đoạn hiện tại
+                        - Thông tin đầy đủ về giá gốc, giá khuyến mãi (nếu có)
+                        - Ước tính thời gian cần hoàn thành toàn bộ khóa học
                            - Đường link đầy đủ dạng markdown [Tên khóa học](URL)
-                        3. Đề xuất cách học cụ thể, ví dụ: "Hoàn thành 3 bài học đầu tiên trong tuần 1"
-                        4. Không bịa ra khóa học không có trong danh sách được cung cấp`;
+                        
+                        9.3. KẾ HOẠCH HỌC TẬP CHI TIẾT:
+                        - Chia nhỏ khóa học thành TỪNG TUẦN học cụ thể
+                        - Chỉ định cụ thể các bài học nào cần hoàn thành mỗi tuần
+                        - Số giờ/ngày nên dành cho khóa học này
+                        - Cách kết hợp với các tài liệu và khóa học khác
+                        - Hoạt động thực hành và bài tập đi kèm
+                        
+                        9.4. ĐÁNH GIÁ TIẾN ĐỘ:
+                        - Tiêu chí đánh giá sự tiến bộ trong khóa học
+                        - Cách theo dõi và kiểm tra kết quả học tập
+                        - Điểm cần lưu ý hoặc khó khăn có thể gặp phải
+                        
+                        9.5. TUYỆT ĐỐI KHÔNG:
+                        - KHÔNG bịa ra khóa học không có trong danh sách được cung cấp
+                        - KHÔNG sử dụng URL sai định dạng
+                        - KHÔNG sắp xếp quá nhiều khóa học vào cùng một giai đoạn
+                        - KHÔNG thiếu thông tin giá cả và chi tiết khóa học`;
                     }
 
                     // Thêm hướng dẫn cho trợ lý định dạng đường dẫn đúng
@@ -921,11 +1293,11 @@ Link: ${courseLink}`;
                 {
                     method: "POST",
                     headers: {
-                        Authorization: `Bearer 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`,
+                        Authorization: `Bearer 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`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        model: "llama3-8b-8192",
+                        model: "meta-llama/llama-4-scout-17b-16e-instruct",
                         messages: promptMessages,
                         temperature: 0.7,
                         max_tokens: 4000,
@@ -937,16 +1309,44 @@ Link: ${courseLink}`;
             const responseText =
                 data.choices?.[0]?.message?.content?.trim() ||
                 "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này!";
+            console.log("🟢 data:", data);
 
             console.log("🟢 Phản hồi AI:", responseText);
 
-            // Cập nhật lộ trình học tập nếu đó là yêu cầu về lộ trình
+            // Xử lý yêu cầu lộ trình đặc biệt
             if (isRequestPath) {
                 try {
-                    console.log("🟢 Lưu lộ trình học tập");
+                    console.log("🟢 Xử lý lộ trình học tập");
+
+                    // Kiểm tra xem phản hồi có phải là JSON không
+                    let jsonData = null;
+                    let isJsonResponse = false;
+                    let formattedResponse = responseText;
+
+                    try {
+                        // Tìm phần JSON trong phản hồi
+                        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const jsonString = jsonMatch[0];
+                            jsonData = JSON.parse(jsonString);
+                            isJsonResponse = true;
+                            console.log(
+                                "🟢 Phát hiện JSON trong phản hồi:",
+                                jsonData
+                            );
+
+                            // Chuyển đổi JSON thành Markdown
+                            if (jsonData.learning_plan) {
+                                formattedResponse =
+                                    formatLearningPathToMarkdown(jsonData);
+                            }
+                        }
+                    } catch (jsonError) {
+                        console.error("❌ Lỗi khi phân tích JSON:", jsonError);
+                    }
 
                     // Làm sạch URL trong phản hồi trước khi lưu
-                    const cleanedResponse = responseText
+                    const cleanedResponse = formattedResponse
                         .replace(/\]\(http:\/localhost/g, "](http://localhost")
                         .replace(/\%5D\(/g, "/")
                         .replace(/\%5B/g, "")
@@ -964,11 +1364,35 @@ Link: ${courseLink}`;
                                 .replace(/\s+/g, " "); // Xử lý nhiều khoảng trắng liên tiếp
                         });
 
-                    await updatePath(userId, { pathDetails: cleanedResponse });
-                    console.log("🟢 Đã cập nhật lộ trình học tập");
+                    // Thêm nút xác nhận và tạo lại lộ trình thay vì lưu ngay
+                    setMessages((prev) => [
+                        ...prev.filter((msg) => !msg.isTyping),
+                        {
+                            sender: "bot" as const,
+                            text: cleanedResponse,
+                            isLearningPath: true, // Đánh dấu là tin nhắn lộ trình
+                            pathData:
+                                isJsonResponse && jsonData
+                                    ? JSON.stringify(jsonData)
+                                    : cleanedResponse, // Lưu JSON gốc nếu có
+                        },
+                    ]);
+
+                    console.log("🟢 Đã tạo lộ trình học tập, chờ xác nhận");
                 } catch (error) {
-                    console.error("❌ Lỗi khi cập nhật lộ trình:", error);
+                    console.error("❌ Lỗi khi xử lý lộ trình:", error);
+                    setMessages((prev) =>
+                        prev
+                            .filter((msg) => !msg.isTyping)
+                            .concat([
+                                {
+                                    sender: "bot",
+                                    text: "Xin lỗi, đã xảy ra lỗi khi xử lý lộ trình học tập. Vui lòng thử lại sau.",
+                                },
+                            ])
+                    );
                 }
+                return; // Kết thúc xử lý sớm nếu đây là lộ trình
             }
 
             // Reset biến trạng thái
@@ -977,23 +1401,37 @@ Link: ${courseLink}`;
             isCourseOnlyQuery = false;
 
             // Lưu tin nhắn phản hồi từ bot
-            await fetch(
-                `${API_BASE_URL}/conversation/${conversationId}/message`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        senderId: null,
-                        content: responseText,
-                    }),
+            try {
+                const saveResponse = await fetch(
+                    `${API_BASE_URL}/conversation/${conversationId}/message`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            senderId: null,
+                            content: responseText,
+                        }),
+                        credentials: "include", // Thêm credentials để đảm bảo cookie được gửi đi
+                    }
+                );
+
+                if (!saveResponse.ok) {
+                    console.error(
+                        "❌ Lỗi khi lưu tin nhắn bot:",
+                        await saveResponse.text()
+                    );
+                } else {
+                    console.log("✅ Đã lưu tin nhắn bot thành công");
                 }
-            );
+            } catch (saveError) {
+                console.error("❌ Exception khi lưu tin nhắn bot:", saveError);
+            }
 
             // Cập nhật UI với tin nhắn bot mới và xóa tin nhắn "đang nhập"
             setMessages((prev) =>
                 prev
                     .filter((msg) => !msg.isTyping) // Xóa tin nhắn "đang nhập"
-                    .concat([{ sender: "bot", text: responseText }])
+                    .concat([{ sender: "bot" as const, text: responseText }])
             );
         } catch (error) {
             console.error("❌ Lỗi trong quá trình xử lý:", error);
@@ -1012,6 +1450,22 @@ Link: ${courseLink}`;
         }
     };
     const formatMarkdown = (text: string) => {
+        // Kiểm tra xem text có phải là JSON không
+        if (text.trim().startsWith("{") && text.trim().endsWith("}")) {
+            try {
+                // Thử phân tích JSON
+                const jsonData = JSON.parse(text);
+
+                // Nếu là JSON lộ trình học tập, chuyển đổi thành định dạng Markdown đẹp
+                if (jsonData.learning_plan) {
+                    return formatLearningPathToMarkdown(jsonData);
+                }
+            } catch (error) {
+                // Nếu không phải JSON hợp lệ, tiếp tục xử lý như văn bản thông thường
+                console.error("Không phải JSON hợp lệ:", error);
+            }
+        }
+
         // Xử lý lỗi URL có chứa dấu ngoặc hoặc bị trùng lặp
         let formattedText = text.replace(
             /\[(.*?)\]\[(.*?)\](\(.*?\))/g,
@@ -1176,6 +1630,397 @@ Link: ${courseLink}`;
 
         return formattedText;
     };
+
+    // Hàm chuyển đổi JSON lộ trình thành Markdown đẹp
+    const formatLearningPathToMarkdown = (jsonData: any) => {
+        try {
+            const plan = jsonData.learning_plan;
+            if (!plan) return JSON.stringify(jsonData, null, 2);
+
+            const {
+                basic_information,
+                phases,
+                learning_strategy,
+                evaluation_and_adjustment,
+                additional_resources,
+                advice,
+            } = plan;
+
+            let markdown = `# 📚 Lộ Trình Học Tập Cá Nhân Hóa\n\n`;
+
+            // Thông tin cơ bản
+            markdown += `## 📋 Thông Tin Cơ Bản\n\n`;
+
+            if (basic_information?.goal) {
+                markdown += `### 🎯 Mục Tiêu\n`;
+                markdown += `- **Mô tả:** ${
+                    basic_information.goal.description || "Không có thông tin"
+                }\n`;
+                if (basic_information.goal.target_score) {
+                    markdown += `- **Điểm mục tiêu:** ${basic_information.goal.target_score}\n`;
+                }
+                if (
+                    basic_information.goal.focus_skills &&
+                    basic_information.goal.focus_skills.length > 0
+                ) {
+                    markdown += `- **Kỹ năng trọng tâm:** ${basic_information.goal.focus_skills.join(
+                        ", "
+                    )}\n`;
+                }
+                markdown += `\n`;
+            }
+
+            if (basic_information?.current_level) {
+                markdown += `### 📊 Trình Độ Hiện Tại\n`;
+                markdown += `- **Mô tả:** ${
+                    basic_information.current_level.description ||
+                    "Không có thông tin"
+                }\n`;
+                if (basic_information.current_level.test_results) {
+                    markdown += `- **Kết quả kiểm tra:** ${
+                        basic_information.current_level.test_results
+                            .test_name || ""
+                    } - ${
+                        basic_information.current_level.test_results.score || ""
+                    }\n`;
+                }
+                if (basic_information.current_level.vocabulary_size) {
+                    markdown += `- **Lượng từ vựng:** ${basic_information.current_level.vocabulary_size}\n`;
+                }
+                markdown += `\n`;
+            }
+
+            if (basic_information?.duration) {
+                markdown += `### ⏱️ Thời Gian Học Tập\n`;
+                markdown += `- **Tổng thời gian:** ${
+                    basic_information.duration.total_months || "?"
+                } tháng\n`;
+                markdown += `- **Ngày bắt đầu:** ${
+                    basic_information.duration.start_date || "Không xác định"
+                }\n`;
+                markdown += `- **Ngày kết thúc:** ${
+                    basic_information.duration.end_date || "Không xác định"
+                }\n\n`;
+            }
+
+            if (
+                basic_information?.expected_outcomes &&
+                basic_information.expected_outcomes.length > 0
+            ) {
+                markdown += `### 🏆 Kết Quả Mong Đợi\n`;
+                basic_information.expected_outcomes.forEach(
+                    (outcome: any, index: number) => {
+                        markdown += `- ${outcome.description}\n`;
+                    }
+                );
+                markdown += `\n`;
+            }
+
+            // Các giai đoạn học tập
+            if (phases && phases.length > 0) {
+                markdown += `## 🗓️ Các Giai Đoạn Học Tập\n\n`;
+
+                phases.forEach((phase: any, index: number) => {
+                    markdown += `### 📅 ${
+                        phase.title || `Giai đoạn ${phase.phase_number}`
+                    } (${phase.timeframe?.start_date || ""} - ${
+                        phase.timeframe?.end_date || ""
+                    })\n\n`;
+
+                    if (phase.goals && phase.goals.length > 0) {
+                        markdown += `#### Mục Tiêu:\n`;
+                        phase.goals.forEach((goal: any) => {
+                            markdown += `- ${goal.description}\n`;
+                        });
+                        markdown += `\n`;
+                    }
+
+                    if (phase.focus_skills && phase.focus_skills.length > 0) {
+                        markdown += `#### Kỹ Năng Trọng Tâm:\n`;
+                        markdown += `${phase.focus_skills
+                            .map((skill: string) => `\`${skill}\``)
+                            .join(" | ")}\n\n`;
+                    }
+
+                    if (phase.resources && phase.resources.length > 0) {
+                        markdown += `#### 📚 Tài Liệu Học Tập:\n`;
+                        phase.resources.forEach((resource: any) => {
+                            markdown += `- **[${resource.name}](${resource.link})** - ${resource.type}\n`;
+                            markdown += `  ${resource.description}\n`;
+                        });
+                        markdown += `\n`;
+                    }
+
+                    if (phase.courses && phase.courses.length > 0) {
+                        markdown += `#### 🎓 Khóa Học:\n`;
+                        phase.courses.forEach((course: any) => {
+                            markdown += `- **[${course.name}](${course.link})**\n`;
+                            markdown += `  ${course.description}\n`;
+                        });
+                        markdown += `\n`;
+                    }
+
+                    if (
+                        phase.weekly_schedule &&
+                        phase.weekly_schedule.length > 0
+                    ) {
+                        markdown += `#### 📆 Lịch Trình Hàng Tuần:\n`;
+                        phase.weekly_schedule.forEach((week: any) => {
+                            markdown += `- **${week.weeks}**\n`;
+                            week.activities.forEach((activity: string) => {
+                                markdown += `  - ${activity}\n`;
+                            });
+                        });
+                        markdown += `\n`;
+                    }
+
+                    if (
+                        phase.practice_tasks &&
+                        phase.practice_tasks.length > 0
+                    ) {
+                        markdown += `#### ✍️ Bài Tập Thực Hành:\n`;
+                        phase.practice_tasks.forEach((task: any) => {
+                            markdown += `- ${task.description}\n`;
+                        });
+                        markdown += `\n`;
+                    }
+
+                    if (
+                        phase.progress_evaluation &&
+                        phase.progress_evaluation.length > 0
+                    ) {
+                        markdown += `#### 📊 Đánh Giá Tiến Độ:\n`;
+                        phase.progress_evaluation.forEach((evaluation: any) => {
+                            markdown += `- **${evaluation.description}** (${evaluation.frequency})\n`;
+                        });
+                        markdown += `\n`;
+                    }
+
+                    markdown += `---\n\n`;
+                });
+            }
+
+            // Chiến lược học tập
+            if (learning_strategy) {
+                markdown += `## 🧠 Chiến Lược Học Tập\n\n`;
+
+                if (
+                    learning_strategy.methods &&
+                    learning_strategy.methods.length > 0
+                ) {
+                    markdown += `### 📝 Phương Pháp Học:\n`;
+                    learning_strategy.methods.forEach((method: string) => {
+                        markdown += `- ${method}\n`;
+                    });
+                    markdown += `\n`;
+                }
+
+                if (
+                    learning_strategy.daily_plan &&
+                    learning_strategy.daily_plan.length > 0
+                ) {
+                    markdown += `### ⏰ Kế Hoạch Hàng Ngày:\n`;
+                    learning_strategy.daily_plan.forEach((plan: any) => {
+                        markdown += `- **${plan.activity}:** ${plan.duration}\n`;
+                    });
+                    markdown += `\n`;
+                }
+
+                if (
+                    learning_strategy.tools &&
+                    learning_strategy.tools.length > 0
+                ) {
+                    markdown += `### 🛠️ Công Cụ Hỗ Trợ:\n`;
+                    learning_strategy.tools.forEach((tool: any) => {
+                        markdown += `- **${tool.name}:** ${tool.description}\n`;
+                    });
+                    markdown += `\n`;
+                }
+
+                if (
+                    learning_strategy.overcoming_challenges &&
+                    learning_strategy.overcoming_challenges.length > 0
+                ) {
+                    markdown += `### 💪 Vượt Qua Khó Khăn:\n`;
+                    learning_strategy.overcoming_challenges.forEach(
+                        (challenge: string) => {
+                            markdown += `- ${challenge}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+            }
+
+            // Đánh giá và điều chỉnh
+            if (evaluation_and_adjustment) {
+                markdown += `## 📈 Đánh Giá và Điều Chỉnh\n\n`;
+
+                if (
+                    evaluation_and_adjustment.milestones &&
+                    evaluation_and_adjustment.milestones.length > 0
+                ) {
+                    markdown += `### 🏁 Cột Mốc Đánh Giá:\n`;
+                    evaluation_and_adjustment.milestones.forEach(
+                        (milestone: string) => {
+                            markdown += `- ${milestone}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+
+                if (
+                    evaluation_and_adjustment.criteria &&
+                    evaluation_and_adjustment.criteria.length > 0
+                ) {
+                    markdown += `### ✅ Tiêu Chí Đánh Giá:\n`;
+                    evaluation_and_adjustment.criteria.forEach(
+                        (criterion: string) => {
+                            markdown += `- ${criterion}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+
+                if (
+                    evaluation_and_adjustment.adjustment_strategy &&
+                    evaluation_and_adjustment.adjustment_strategy.length > 0
+                ) {
+                    markdown += `### 🔄 Chiến Lược Điều Chỉnh:\n`;
+                    evaluation_and_adjustment.adjustment_strategy.forEach(
+                        (strategy: string) => {
+                            markdown += `- ${strategy}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+            }
+
+            // Tài nguyên bổ sung
+            if (additional_resources) {
+                markdown += `## 📚 Tài Nguyên Bổ Sung\n\n`;
+
+                if (
+                    additional_resources.reference_materials &&
+                    additional_resources.reference_materials.length > 0
+                ) {
+                    markdown += `### 📖 Tài Liệu Tham Khảo:\n`;
+                    additional_resources.reference_materials.forEach(
+                        (material: any) => {
+                            markdown += `- **[${material.name}](${material.link}):** ${material.description}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+
+                if (
+                    additional_resources.communities &&
+                    additional_resources.communities.length > 0
+                ) {
+                    markdown += `### 👥 Cộng Đồng Học Tập:\n`;
+                    additional_resources.communities.forEach(
+                        (community: any) => {
+                            markdown += `- **${community.name}:** ${community.description}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+
+                if (
+                    additional_resources.free_resources &&
+                    additional_resources.free_resources.length > 0
+                ) {
+                    markdown += `### 🆓 Nguồn Tài Nguyên Miễn Phí:\n`;
+                    additional_resources.free_resources.forEach(
+                        (resource: any) => {
+                            markdown += `- **[${resource.name}](${resource.link}):** ${resource.description}\n`;
+                        }
+                    );
+                    markdown += `\n`;
+                }
+            }
+
+            // Lời khuyên
+            if (advice && advice.length > 0) {
+                markdown += `## 💡 Lời Khuyên\n\n`;
+                advice.forEach((tip: string) => {
+                    markdown += `- ${tip}\n`;
+                });
+                markdown += `\n`;
+            }
+
+            return markdown;
+        } catch (error) {
+            console.error("Lỗi khi chuyển đổi JSON thành Markdown:", error);
+            return JSON.stringify(jsonData, null, 2);
+        }
+    };
+
+    // Thêm hàm xử lý việc lưu lộ trình
+    const handleSavePath = async (pathData: string) => {
+        if (!pathData) return;
+
+        try {
+            console.log("🟢 Lưu lộ trình học tập");
+
+            // Kiểm tra xem pathData có phải là JSON không
+            let dataToSave = pathData;
+            try {
+                // Nếu là chuỗi JSON, phân tích và lấy dữ liệu
+                const jsonData = JSON.parse(pathData);
+                if (jsonData && typeof jsonData === "object") {
+                    console.log("🟢 Phát hiện dữ liệu JSON hợp lệ");
+                    dataToSave = pathData; // Lưu chuỗi JSON nguyên bản
+                }
+            } catch (jsonError) {
+                // Không phải JSON, tiếp tục với dữ liệu văn bản
+                console.log("🟢 Dữ liệu không phải JSON, lưu dưới dạng text");
+            }
+
+            await updatePath(userId, { pathDetails: dataToSave });
+
+            // Cập nhật tin nhắn đã được lưu
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg.isLearningPath
+                        ? {
+                              ...msg,
+                              text:
+                                  msg.text +
+                                  "\n\n✅ **Lộ trình đã được lưu thành công!**",
+                          }
+                        : msg
+                )
+            );
+
+            console.log("🟢 Đã cập nhật lộ trình học tập");
+        } catch (error) {
+            console.error("❌ Lỗi khi cập nhật lộ trình:", error);
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg.isLearningPath
+                        ? {
+                              ...msg,
+                              text:
+                                  msg.text +
+                                  "\n\n❌ **Lỗi khi lưu lộ trình. Vui lòng thử lại.**",
+                          }
+                        : msg
+                )
+            );
+        }
+    };
+
+    // Thêm hàm tạo lại lộ trình
+    const handleRecreatePath = () => {
+        const lastUserMessage = messages
+            .filter((msg) => msg.sender === "user")
+            .pop();
+        if (lastUserMessage) {
+            setInput(lastUserMessage.text + " (tạo mới)");
+            setTimeout(() => sendMessage(), 100);
+        }
+    };
+
     return (
         <>
             <button
@@ -1244,131 +2089,166 @@ Link: ${courseLink}`;
                                 {messages.map((msg, index) => (
                                     <div
                                         key={index}
-                                        className={`flex ${
+                                        className={`flex flex-col ${
                                             msg.sender === "user"
-                                                ? "justify-end"
-                                                : "justify-start"
+                                                ? "items-end"
+                                                : "items-start"
                                         }`}
                                     >
-                                        {msg.sender === "bot" && (
-                                            <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex-shrink-0">
-                                                <img
-                                                    src="/icons/chatbot.png"
-                                                    alt="AI"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                        )}
                                         <div
-                                            className={`px-4 py-2 rounded-lg max-w-[80%] break-words ${
+                                            className={`flex ${
                                                 msg.sender === "user"
-                                                    ? "bg-violet-500 text-white"
-                                                    : msg.isTyping
-                                                    ? "bg-gray-200 text-gray-500 flex items-center"
-                                                    : "bg-gray-100 text-gray-800"
-                                            }`}
+                                                    ? "justify-end"
+                                                    : "justify-start"
+                                            } w-full`}
                                         >
-                                            {msg.isTyping ? (
-                                                <div className="typing-animation flex space-x-1">
-                                                    <span className="dot animate-bounce">
-                                                        ●
-                                                    </span>
-                                                    <span
-                                                        className="dot animate-bounce"
-                                                        style={{
-                                                            animationDelay:
-                                                                "0.2s",
+                                            {msg.sender === "bot" && (
+                                                <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex-shrink-0">
+                                                    <img
+                                                        src="/icons/chatbot.png"
+                                                        alt="AI"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div
+                                                className={`px-4 py-2 rounded-lg max-w-[80%] break-words ${
+                                                    msg.sender === "user"
+                                                        ? "bg-violet-500 text-white"
+                                                        : msg.isTyping
+                                                        ? "bg-gray-200 text-gray-500 flex items-center"
+                                                        : "bg-gray-100 text-gray-800"
+                                                }`}
+                                            >
+                                                {msg.isTyping ? (
+                                                    <div className="typing-animation flex space-x-1">
+                                                        <span className="dot animate-bounce">
+                                                            ●
+                                                        </span>
+                                                        <span
+                                                            className="dot animate-bounce"
+                                                            style={{
+                                                                animationDelay:
+                                                                    "0.2s",
+                                                            }}
+                                                        >
+                                                            ●
+                                                        </span>
+                                                        <span
+                                                            className="dot animate-bounce"
+                                                            style={{
+                                                                animationDelay:
+                                                                    "0.4s",
+                                                            }}
+                                                        >
+                                                            ●
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <ReactMarkdown
+                                                        components={{
+                                                            h1: (props) => (
+                                                                <h1
+                                                                    className="text-xl font-bold my-2"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            h2: (props) => (
+                                                                <h2
+                                                                    className="text-lg font-semibold my-2"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            p: (props) => (
+                                                                <p
+                                                                    className="text-base my-1.5"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            ol: (props) => (
+                                                                <ol
+                                                                    className="list-decimal ml-5 my-1.5"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            ul: (props) => (
+                                                                <ul
+                                                                    className="list-disc ml-5 my-1.5"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            li: (props) => (
+                                                                <li
+                                                                    className="my-0.5"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            a: (props) => (
+                                                                <a
+                                                                    className="text-blue-500 underline hover:text-blue-700"
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            blockquote: (
+                                                                props
+                                                            ) => (
+                                                                <blockquote
+                                                                    className="border-l-4 border-violet-300 pl-3 italic my-2 text-gray-600"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            code: (props) => (
+                                                                <code
+                                                                    className="bg-gray-200 px-1 rounded text-sm"
+                                                                    {...props}
+                                                                />
+                                                            ),
+                                                            pre: (props) => (
+                                                                <pre
+                                                                    className="bg-gray-800 text-white p-2 rounded my-2 overflow-x-auto text-sm"
+                                                                    {...props}
+                                                                />
+                                                            ),
                                                         }}
                                                     >
-                                                        ●
-                                                    </span>
-                                                    <span
-                                                        className="dot animate-bounce"
-                                                        style={{
-                                                            animationDelay:
-                                                                "0.4s",
-                                                        }}
-                                                    >
-                                                        ●
+                                                        {formatMarkdown(
+                                                            msg.text
+                                                        )}
+                                                    </ReactMarkdown>
+                                                )}
+                                            </div>
+                                            {msg.sender === "user" && (
+                                                <div className="w-8 h-8 rounded-full bg-violet-200 ml-2 flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-violet-600 font-medium text-sm">
+                                                        {user?.name?.[0]?.toUpperCase() ||
+                                                            "U"}
                                                     </span>
                                                 </div>
-                                            ) : (
-                                                <ReactMarkdown
-                                                    components={{
-                                                        h1: (props) => (
-                                                            <h1
-                                                                className="text-xl font-bold my-2"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        h2: (props) => (
-                                                            <h2
-                                                                className="text-lg font-semibold my-2"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        p: (props) => (
-                                                            <p
-                                                                className="text-base my-1.5"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        ol: (props) => (
-                                                            <ol
-                                                                className="list-decimal ml-5 my-1.5"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        ul: (props) => (
-                                                            <ul
-                                                                className="list-disc ml-5 my-1.5"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        li: (props) => (
-                                                            <li
-                                                                className="my-0.5"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        a: (props) => (
-                                                            <a
-                                                                className="text-blue-500 underline hover:text-blue-700"
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        blockquote: (props) => (
-                                                            <blockquote
-                                                                className="border-l-4 border-violet-300 pl-3 italic my-2 text-gray-600"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        code: (props) => (
-                                                            <code
-                                                                className="bg-gray-200 px-1 rounded text-sm"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                        pre: (props) => (
-                                                            <pre
-                                                                className="bg-gray-800 text-white p-2 rounded my-2 overflow-x-auto text-sm"
-                                                                {...props}
-                                                            />
-                                                        ),
-                                                    }}
-                                                >
-                                                    {formatMarkdown(msg.text)}
-                                                </ReactMarkdown>
                                             )}
                                         </div>
-                                        {msg.sender === "user" && (
-                                            <div className="w-8 h-8 rounded-full bg-violet-200 ml-2 flex items-center justify-center flex-shrink-0">
-                                                <span className="text-violet-600 font-medium text-sm">
-                                                    {user?.name?.[0]?.toUpperCase() ||
-                                                        "U"}
-                                                </span>
+
+                                        {/* Thêm nút xác nhận lộ trình nếu là tin nhắn lộ trình */}
+                                        {msg.isLearningPath && msg.pathData && (
+                                            <div className="flex justify-center mt-3 mb-4 space-x-4 w-full">
+                                                <button
+                                                    onClick={() =>
+                                                        msg.pathData &&
+                                                        handleSavePath(
+                                                            msg.pathData
+                                                        )
+                                                    }
+                                                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+                                                >
+                                                    Đồng ý và lưu lộ trình
+                                                </button>
+                                                <button
+                                                    onClick={handleRecreatePath}
+                                                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                                                >
+                                                    Tạo lại lộ trình
+                                                </button>
                                             </div>
                                         )}
                                     </div>
