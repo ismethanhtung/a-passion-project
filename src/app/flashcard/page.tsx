@@ -36,8 +36,11 @@ import {
     Layout,
     Grid,
     List,
+    Loader,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { speakText } from "@/lib/text-to-speech";
 
 interface Flashcard {
     id?: number;
@@ -128,6 +131,7 @@ const FlashcardPage: React.FC = () => {
         "recent"
     );
     const [showSettings, setShowSettings] = useState(false);
+    const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [studyPreferences, setStudyPreferences] = useState({
         autoPlayAudio: true,
         shuffleCards: true,
@@ -136,6 +140,12 @@ const FlashcardPage: React.FC = () => {
         autoFlip: false,
         autoFlipDelay: 5, // seconds
     });
+
+    // State for creating new flashcard
+    const [newCardWord, setNewCardWord] = useState("");
+    const [newCardTopic, setNewCardTopic] = useState("TOEIC");
+    const [newCardLevel, setNewCardLevel] = useState("Intermediate");
+    const [isGeneratingCard, setIsGeneratingCard] = useState(false);
 
     // Refs
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -346,13 +356,25 @@ const FlashcardPage: React.FC = () => {
         if (flashcards.length === 0) return;
 
         const currentWord = flashcards[currentIndex].word;
-        const utterance = new SpeechSynthesisUtterance(currentWord);
-        utterance.lang = "en-US";
-        speechSynthesis.speak(utterance);
+
+        speakText(currentWord, {
+            voice: "en-US",
+            rate: 0.9,
+            onStart: () => {
+                console.log("Bắt đầu phát âm");
+            },
+            onEnd: () => {
+                console.log("Kết thúc phát âm");
+            },
+            onError: (error) => {
+                console.error("Lỗi phát âm:", error);
+                toast.error("Không thể phát âm từ này");
+            },
+        });
 
         // Auto-play audio when card is shown, if enabled
         if (studyPreferences.autoPlayAudio && !isFlipped) {
-            speechSynthesis.speak(utterance);
+            speakText(currentWord, { voice: "en-US" });
         }
     };
 
@@ -475,6 +497,131 @@ const FlashcardPage: React.FC = () => {
             ...prev,
             [key]: value,
         }));
+    };
+
+    // Hàm tạo flashcard mới bằng AI
+    const generateFlashcard = async () => {
+        if (!newCardWord.trim()) {
+            toast.error("Vui lòng nhập từ cần tạo");
+            return;
+        }
+
+        setIsGeneratingCard(true);
+        console.log("Đang gửi yêu cầu tạo flashcard...");
+
+        try {
+            console.log("Dữ liệu gửi đi:", {
+                word: newCardWord.trim(),
+                topic: newCardTopic,
+                level: newCardLevel,
+            });
+
+            const response = await fetch("/api/flashcard/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    word: newCardWord.trim(),
+                    topic: newCardTopic,
+                    level: newCardLevel,
+                }),
+            });
+
+            console.log("Nhận phản hồi từ API:", response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Lỗi từ server:", errorText);
+                throw new Error(
+                    `Có lỗi khi tạo flashcard: ${response.status} ${errorText}`
+                );
+            }
+
+            const data = await response.json();
+            console.log("Dữ liệu nhận được:", data);
+
+            // Tạo một flashcard mới từ dữ liệu trả về
+            const newFlashcard: Flashcard = {
+                id: Math.floor(Math.random() * 1000000), // ID tạm thời
+                word: data.word || newCardWord.trim(),
+                meaning: data.meaning || "Không có nghĩa",
+                example: data.example || "Không có ví dụ",
+                exampleVi: data.exampleVi || "Không có ví dụ tiếng Việt",
+                tags: data.tags || [newCardTopic.toLowerCase(), "vocabulary"],
+                difficulty: data.difficulty || "medium",
+                lastReviewed: new Date().toISOString().split("T")[0],
+                reviewCount: 0,
+                mastered: false,
+                favorited: false,
+            };
+
+            console.log("Flashcard đã tạo:", newFlashcard);
+
+            // Thêm flashcard mới vào danh sách
+            // Thêm flashcard mới vào bộ thẻ hiện tại và hiển thị nó ngay lập tức
+            if (view === "decks") {
+                // Nếu đang ở màn hình bộ thẻ, tự động thêm vào mockDecks
+                const newDeck =
+                    mockDecks.find((d) => d.id === 1) || mockDecks[0];
+                if (newDeck) {
+                    newDeck.cardCount += 1;
+                    setSelectedDeck(newDeck);
+                    setFlashcards([newFlashcard]);
+                    setView("study");
+                    setCurrentIndex(0);
+                    setIsFlipped(false);
+                    setKnownCards([]);
+                    setUnknownCards([]);
+                    setReviewMode(false);
+                }
+            } else {
+                // Nếu đang trong study mode, thêm vào danh sách hiện tại
+                setFlashcards((prev) => {
+                    const updatedCards = [newFlashcard, ...prev];
+                    console.log(
+                        "Danh sách flashcard cập nhật:",
+                        updatedCards.length
+                    );
+                    return updatedCards;
+                });
+            }
+
+            // Cập nhật số lượng thẻ trong bộ đang chọn nếu có
+            if (selectedDeck) {
+                setSelectedDeck((prevDeck) => {
+                    if (!prevDeck) return null;
+                    const updated = {
+                        ...prevDeck,
+                        cardCount: prevDeck.cardCount + 1,
+                    };
+                    console.log("Cập nhật bộ thẻ:", updated);
+                    return updated;
+                });
+            }
+
+            // Thông báo thành công với thông tin chi tiết hơn
+            toast.success(
+                `Đã tạo flashcard "${newFlashcard.word}" thành công!`,
+                {
+                    description:
+                        view === "decks"
+                            ? "Đang mở bộ thẻ để xem flashcard mới"
+                            : "Đã thêm vào danh sách hiện tại",
+                    duration: 3000,
+                }
+            );
+
+            // Đóng dialog và reset form
+            setShowCreateDialog(false);
+            setNewCardWord("");
+            console.log("Đã tạo flashcard thành công, view hiện tại:", view);
+        } catch (error) {
+            console.error("Error generating flashcard:", error);
+            toast.error("Có lỗi xảy ra khi tạo flashcard");
+        } finally {
+            setIsGeneratingCard(false);
+        }
     };
 
     // Helper functions
@@ -706,6 +853,42 @@ const FlashcardPage: React.FC = () => {
                                 <p className="text-gray-500 text-sm">
                                     Tạo bộ thẻ tùy chỉnh với từ vựng của riêng
                                     bạn
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Create with AI card */}
+                        <div
+                            onClick={() => setShowCreateDialog(true)}
+                            className={`${
+                                viewMode === "grid"
+                                    ? "border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center h-64 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors"
+                                    : "border-2 border-dashed border-gray-300 rounded-xl p-6 flex items-center justify-center text-center hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors"
+                            }`}
+                        >
+                            <div>
+                                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="h-7 w-7 text-purple-600"
+                                    >
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                                        <path d="M12 16v-4"></path>
+                                        <path d="M12 8h.01"></path>
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-1">
+                                    Tạo flashcard với AI
+                                </h3>
+                                <p className="text-gray-500 text-sm">
+                                    Sử dụng AI để tạo thẻ mới với nghĩa, ví dụ
+                                    và phát âm
                                 </p>
                             </div>
                         </div>
@@ -979,6 +1162,150 @@ const FlashcardPage: React.FC = () => {
                                         className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                                     >
                                         Lưu thay đổi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Create flashcard dialog */}
+                    {showCreateDialog && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-semibold text-gray-900">
+                                        Tạo flashcard mới với AI
+                                    </h3>
+                                    <button
+                                        onClick={() =>
+                                            setShowCreateDialog(false)
+                                        }
+                                        className="p-1 rounded-full hover:bg-gray-100"
+                                    >
+                                        <X className="h-5 w-5 text-gray-500" />
+                                    </button>
+                                </div>
+
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        generateFlashcard();
+                                    }}
+                                    className="space-y-4"
+                                >
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Từ cần tạo
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={newCardWord}
+                                            onChange={(e) =>
+                                                setNewCardWord(e.target.value)
+                                            }
+                                            placeholder="Nhập từ tiếng Anh cần tạo flashcard"
+                                            className="w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Chủ đề
+                                        </label>
+                                        <select
+                                            value={newCardTopic}
+                                            onChange={(e) =>
+                                                setNewCardTopic(e.target.value)
+                                            }
+                                            className="w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="TOEIC">TOEIC</option>
+                                            <option value="IELTS">IELTS</option>
+                                            <option value="Kinh doanh">
+                                                Kinh doanh
+                                            </option>
+                                            <option value="Du lịch">
+                                                Du lịch
+                                            </option>
+                                            <option value="Học thuật">
+                                                Học thuật
+                                            </option>
+                                            <option value="Chung">
+                                                Chủ đề chung
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Cấp độ
+                                        </label>
+                                        <select
+                                            value={newCardLevel}
+                                            onChange={(e) =>
+                                                setNewCardLevel(e.target.value)
+                                            }
+                                            className="w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="Beginner">
+                                                Beginner
+                                            </option>
+                                            <option value="Intermediate">
+                                                Intermediate
+                                            </option>
+                                            <option value="Advanced">
+                                                Advanced
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div className="flex justify-center text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+                                        <div className="flex items-start">
+                                            <HelpCircle className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                                            <p>
+                                                AI sẽ tạo flashcard với nghĩa,
+                                                ví dụ và phát âm dựa trên thông
+                                                tin bạn cung cấp.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div className="mt-6 flex justify-end space-x-3">
+                                    <button
+                                        onClick={() =>
+                                            setShowCreateDialog(false)
+                                        }
+                                        className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                        type="button"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log(
+                                                "Đã nhấn nút tạo flashcard"
+                                            );
+                                            generateFlashcard();
+                                        }}
+                                        disabled={
+                                            isGeneratingCard ||
+                                            !newCardWord.trim()
+                                        }
+                                        type="button"
+                                        className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    >
+                                        {isGeneratingCard ? (
+                                            <>
+                                                <Loader className="animate-spin h-4 w-4 mr-2" />
+                                                Đang tạo...
+                                            </>
+                                        ) : (
+                                            <>Tạo flashcard</>
+                                        )}
                                     </button>
                                 </div>
                             </div>

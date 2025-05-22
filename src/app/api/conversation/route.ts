@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
             const response = await axios.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 {
-                    model: "llama3-8b-8192", // Model miễn phí của Groq
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct", // Model miễn phí của Groq
                     messages,
                     temperature: 0.7,
                     max_tokens: 1024,

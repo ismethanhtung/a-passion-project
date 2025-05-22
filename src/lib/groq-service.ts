@@ -75,7 +75,7 @@ export async function assessPronunciationWithGroq(
 
         console.log("Gửi yêu cầu đến Groq API...");
         console.log("Thông tin yêu cầu:", {
-            model: "llama3-8b-8192",
+            model: "meta-llama/llama-4-scout-17b-16e-instruct",
             recordedTextLength: recordedText.length,
             originalTextLength: originalText.length,
             language,
@@ -84,7 +84,7 @@ export async function assessPronunciationWithGroq(
         const response = await axios.post(
             "https://api.groq.com/openai/v1/chat/completions",
             {
-                model: "llama3-8b-8192", // Model miễn phí của Groq
+                model: "meta-llama/llama-4-scout-17b-16e-instruct", // Model miễn phí của Groq
                 messages: [
                     {
                         role: "system",

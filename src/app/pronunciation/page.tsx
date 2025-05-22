@@ -2089,12 +2089,22 @@ const PronunciationPage = () => {
                     "Bắt đầu ghi âm cho AI Conversation với MediaRecorder"
                 );
 
-                // Đảm bảo MediaRecorder được khởi tạo
-                if (!mediaRecorderRef.current) {
-                    const initialized = await initMediaRecorder();
-                    if (!initialized) {
-                        throw new Error("Không thể khởi tạo MediaRecorder");
-                    }
+                // Làm sạch tài nguyên cũ nếu có
+                if (streamRef.current) {
+                    streamRef.current
+                        .getTracks()
+                        .forEach((track) => track.stop());
+                    streamRef.current = null;
+                }
+
+                if (mediaRecorderRef.current) {
+                    mediaRecorderRef.current = null;
+                }
+
+                // Luôn khởi tạo mới MediaRecorder
+                const initialized = await initMediaRecorder();
+                if (!initialized) {
+                    throw new Error("Không thể khởi tạo MediaRecorder");
                 }
 
                 if (!mediaRecorderRef.current) {
@@ -2177,6 +2187,15 @@ const PronunciationPage = () => {
                         );
                     } finally {
                         setIsListening(false);
+
+                        // Làm sạch tài nguyên cho lần tiếp theo
+                        if (streamRef.current) {
+                            streamRef.current
+                                .getTracks()
+                                .forEach((track) => track.stop());
+                            streamRef.current = null;
+                        }
+                        mediaRecorderRef.current = null;
                     }
                 };
 
@@ -2185,6 +2204,15 @@ const PronunciationPage = () => {
                     console.error("Lỗi MediaRecorder:", error);
                     setErrorMessage("Lỗi khi ghi âm. Vui lòng thử lại.");
                     setIsListening(false);
+
+                    // Làm sạch tài nguyên khi có lỗi
+                    if (streamRef.current) {
+                        streamRef.current
+                            .getTracks()
+                            .forEach((track) => track.stop());
+                        streamRef.current = null;
+                    }
+                    mediaRecorderRef.current = null;
                 };
 
                 // Bắt đầu ghi âm với timeout tự động (tối đa 30 giây)
@@ -2222,10 +2250,16 @@ const PronunciationPage = () => {
                 const SpeechRecognition =
                     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-                if (!recognitionRef.current) {
-                    recognitionRef.current = new SpeechRecognition();
+                // Reset và tạo mới đối tượng nhận dạng giọng nói
+                if (recognitionRef.current) {
+                    try {
+                        recognitionRef.current.abort();
+                    } catch (e) {
+                        console.log("Lỗi khi dừng recognitionRef cũ:", e);
+                    }
                 }
 
+                recognitionRef.current = new SpeechRecognition();
                 recognitionRef.current.continuous = false;
                 recognitionRef.current.interimResults = false;
                 recognitionRef.current.lang = selectedLanguage;

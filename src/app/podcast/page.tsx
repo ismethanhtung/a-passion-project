@@ -2,20 +2,55 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-    Search,
-    Download,
-    HeartIcon,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { speakText } from "@/lib/text-to-speech";
+import {
     Play,
     Pause,
-    BookOpen,
-    X,
+    SkipBack,
+    SkipForward,
+    Volume2,
+    VolumeX,
+    Heart as HeartIcon,
+    ListMusic,
+    Download,
+    Share,
+    Search,
     Filter,
     ChevronDown,
+    Plus,
+    X,
+    ChevronRight,
+    AlertCircle,
+    BookmarkPlus,
+    CheckCircle,
+    Clock,
+    Copy,
+    ListPlus,
+    Brain,
+    BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
+import PodcastQuiz from "@/components/PodcastQuiz";
 
 const podcastCategories = [
     "Tất cả",
@@ -28,7 +63,50 @@ const podcastCategories = [
     "Văn hóa",
 ];
 
-const podcasts = [
+interface PodcastQuizQuestion {
+    question: string;
+    options: string[];
+    answer: number;
+    explanation: string;
+}
+
+interface GeneratedPodcast {
+    title: string;
+    description: string;
+    transcript: string;
+    summary: string;
+    vocabulary: {
+        word: string;
+        definition: string;
+        example: string;
+    }[];
+    quiz: PodcastQuizQuestion[];
+}
+
+interface Podcast {
+    id: number;
+    title: string;
+    desc: string;
+    audio: string;
+    image: string;
+    duration: string;
+    level: string;
+    date: string;
+    category: string;
+    views: number;
+    transcript: string;
+    quiz?: PodcastQuizQuestion[];
+    vocabulary?: {
+        word: string;
+        definition: string;
+        example: string;
+    }[];
+    summary?: string;
+    generatedByAI?: boolean;
+    audioText?: string;
+}
+
+const podcasts: Podcast[] = [
     {
         id: 1,
         title: "Everyday English Conversations",
@@ -40,6 +118,46 @@ const podcasts = [
         date: "2023-06-15",
         category: "Hội thoại",
         views: 1240,
+        summary:
+            "Bài học hội thoại tiếng Anh giao tiếp hàng ngày với nhiều tình huống thực tế.",
+        vocabulary: [
+            {
+                word: "complaint",
+                definition: "lời phàn nàn",
+                example: "I can't complain about the weather today.",
+            },
+            {
+                word: "impressive",
+                definition: "ấn tượng",
+                example: "Your English skills are impressive!",
+            },
+            {
+                word: "strategy",
+                definition: "chiến lược",
+                example: "That's a great learning strategy.",
+            },
+        ],
+        quiz: [
+            {
+                question: "What is the weather like in the conversation?",
+                options: ["Rainy", "Cloudy", "Beautiful", "Cold"],
+                answer: 2,
+                explanation:
+                    "Speaker A mentions 'The weather is beautiful today.'",
+            },
+            {
+                question: "Why are the speakers at the location?",
+                options: [
+                    "For a party",
+                    "For an English conversation meetup",
+                    "For a job interview",
+                    "For a class",
+                ],
+                answer: 1,
+                explanation:
+                    "Speaker A asks if B is there for the English conversation meetup, and B confirms.",
+            },
+        ],
         transcript: `
       A: Hi there! How are you doing today?
       B: I'm doing great, thanks for asking. How about you?
@@ -175,10 +293,24 @@ export default function PodcastPage() {
     const [showTranscript, setShowTranscript] = useState(false);
     const [favorites, setFavorites] = useState<number[]>([]);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
+    const [showQuiz, setShowQuiz] = useState(false);
+    const [showCreatePodcastDialog, setShowCreatePodcastDialog] =
+        useState(false);
+    const [generatingPodcast, setGeneratingPodcast] = useState(false);
+    const [podcastTopic, setPodcastTopic] = useState("");
+    const [podcastLevel, setPodcastLevel] = useState("intermediate");
+    const [podcastFormat, setPodcastFormat] = useState("dialogue");
+    const [podcastDuration, setPodcastDuration] = useState("5-10");
+    const [generatedPodcast, setGeneratedPodcast] =
+        useState<GeneratedPodcast | null>(null);
+    const [quizCompleted, setQuizCompleted] = useState<Record<number, boolean>>(
+        {}
+    );
+    const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Cập nhật thời gian phát khi audio đang phát
     useEffect(() => {
         if (audioRef.current) {
             const handleTimeUpdate = () => {
@@ -217,14 +349,44 @@ export default function PodcastPage() {
         }
     }, [currentPodcast]);
 
-    // Lọc podcast theo danh mục và tìm kiếm
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (isPlaying && isSpeaking) {
+            // Giả lập tiến trình cho speech synthesis
+            const totalDuration = 300; // Giả sử 5 phút
+            setDuration(totalDuration);
+            setCurrentTime(0);
+
+            interval = setInterval(() => {
+                setCurrentTime((prev) => {
+                    if (prev < totalDuration) {
+                        return prev + 1;
+                    } else {
+                        if (interval) clearInterval(interval);
+                        return 0;
+                    }
+                });
+            }, 1000);
+        }
+
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+
+            // Dừng speech synthesis khi unmount
+            if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, [isPlaying, isSpeaking]);
+
     const filteredPodcasts = podcasts.filter((pod) => {
-        // Lọc theo danh mục
         if (activeCategory !== "Tất cả" && pod.category !== activeCategory) {
             return false;
         }
 
-        // Lọc theo từ khóa tìm kiếm
         if (
             searchQuery &&
             !pod.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -236,37 +398,61 @@ export default function PodcastPage() {
         return true;
     });
 
-    // Xử lý phát/dừng podcast
     const togglePlayPause = (podcast: (typeof podcasts)[0]) => {
         if (currentPodcast?.id === podcast.id) {
             if (isPlaying) {
-                audioRef.current?.pause();
+                if (podcast.generatedByAI) {
+                    // Dừng Web Speech API nếu đang sử dụng
+                    window.speechSynthesis.cancel();
+                    setIsSpeaking(false);
+                } else if (audioRef.current) {
+                    // Dừng audio element nếu đang sử dụng
+                    audioRef.current.pause();
+                }
+                setIsPlaying(false);
             } else {
-                audioRef.current?.play();
+                if (podcast.generatedByAI) {
+                    // Phát âm thanh từ text-to-speech
+                    playGeneratedAudio(podcast);
+                } else if (audioRef.current) {
+                    // Phát âm thanh từ audio element
+                    audioRef.current.play();
+                    setIsPlaying(true);
+                }
             }
-            setIsPlaying(!isPlaying);
         } else {
+            // Dừng podcast đang phát nếu có
+            if (isPlaying) {
+                if (currentPodcast?.generatedByAI) {
+                    window.speechSynthesis.cancel();
+                    setIsSpeaking(false);
+                } else if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+            }
+
             setCurrentPodcast(podcast);
             setShowTranscript(false);
             setIsPlaying(true);
 
-            // Cho thời gian để cập nhật audioRef
-            setTimeout(() => {
-                if (audioRef.current) {
-                    audioRef.current.play();
-                }
-            }, 100);
+            if (podcast.generatedByAI) {
+                // Phát âm thanh từ text-to-speech
+                playGeneratedAudio(podcast);
+            } else {
+                // Phát âm thanh từ audio element
+                setTimeout(() => {
+                    if (audioRef.current) {
+                        audioRef.current.play();
+                    }
+                }, 100);
+            }
         }
     };
 
-    // Xử lý tải xuống podcast
     const handleDownload = (podcast: (typeof podcasts)[0]) => {
-        // Trong thực tế, đây sẽ là một link tải xuống thực sự
-        // Hiện tại chỉ hiện thông báo
         toast.success(`Đang tải xuống "${podcast.title}"`);
     };
 
-    // Xử lý yêu thích podcast
     const toggleFavorite = (podcastId: number) => {
         if (favorites.includes(podcastId)) {
             setFavorites(favorites.filter((id) => id !== podcastId));
@@ -277,11 +463,131 @@ export default function PodcastPage() {
         }
     };
 
-    // Format thời gian
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    const handleQuizComplete = (score: number) => {
+        if (currentPodcast) {
+            setQuizCompleted({
+                ...quizCompleted,
+                [currentPodcast.id]: true,
+            });
+
+            toast.success(`Bạn đã hoàn thành bài quiz với điểm số ${score}%`);
+            setShowQuiz(false);
+        }
+    };
+
+    const generatePodcast = async () => {
+        if (!podcastTopic.trim()) {
+            toast.error("Vui lòng nhập chủ đề podcast");
+            return;
+        }
+
+        setGeneratingPodcast(true);
+
+        try {
+            const response = await fetch("/api/podcast/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    topic: podcastTopic.trim(),
+                    level: podcastLevel,
+                    format: podcastFormat,
+                    duration: podcastDuration,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Có lỗi khi tạo podcast");
+            }
+
+            const data = await response.json();
+            setGeneratedPodcast(data);
+
+            const newPodcast: Podcast = {
+                id: podcasts.length + 1,
+                title: data.title,
+                desc: data.description,
+                audio: "/audio/mock-podcast-1.mp3", // Chúng ta sẽ sử dụng web Speech API thay vì file âm thanh thực
+                image: "https://images.unsplash.com/photo-1478737270239-2f02b340ee3e?q=80&w=1000&auto=format&fit=crop",
+                duration: podcastDuration + " phút",
+                level: podcastLevel,
+                date: new Date().toISOString().split("T")[0],
+                category: "AI Generated",
+                views: 0,
+                transcript: data.transcript,
+                quiz: data.quiz,
+                vocabulary: data.vocabulary,
+                summary: data.summary,
+                generatedByAI: true,
+                audioText: data.audioText || data.transcript,
+            };
+
+            // Thêm podcast mới vào danh sách
+            podcasts.unshift(newPodcast);
+
+            toast.success("Đã tạo podcast thành công!");
+            setShowCreatePodcastDialog(false);
+
+            setTimeout(() => {
+                setCurrentPodcast(newPodcast);
+                setIsPlaying(true);
+                playGeneratedAudio(newPodcast);
+            }, 500);
+        } catch (error) {
+            console.error("Error generating podcast:", error);
+            toast.error("Có lỗi xảy ra khi tạo podcast");
+        } finally {
+            setGeneratingPodcast(false);
+        }
+    };
+
+    // Hàm phát âm thanh từ văn bản
+    const playGeneratedAudio = async (podcast: Podcast) => {
+        if (!podcast.audioText) {
+            toast.error("Không có nội dung âm thanh để phát");
+            setIsPlaying(false);
+            return;
+        }
+
+        setIsGeneratingAudio(true);
+
+        try {
+            // Sử dụng Web Speech API để phát âm thanh
+            setIsSpeaking(true);
+            await speakText(podcast.audioText, {
+                voice: podcast.level === "beginner" ? "en-US" : "en-GB",
+                rate: 0.9,
+                onStart: () => {
+                    setIsSpeaking(true);
+                    setIsGeneratingAudio(false);
+                },
+                onEnd: () => {
+                    setIsSpeaking(false);
+                    setIsPlaying(false);
+                },
+                onError: (error) => {
+                    console.error("Lỗi khi phát âm thanh:", error);
+                    toast.error("Có lỗi khi phát âm thanh");
+                    setIsSpeaking(false);
+                    setIsPlaying(false);
+                    setIsGeneratingAudio(false);
+                },
+            });
+        } catch (error) {
+            console.error("Lỗi khi tạo âm thanh:", error);
+            toast.error("Có lỗi khi tạo âm thanh");
+            setIsSpeaking(false);
+            setIsPlaying(false);
+        } finally {
+            setIsGeneratingAudio(false);
+        }
     };
 
     return (
@@ -291,21 +597,29 @@ export default function PodcastPage() {
                     <h1 className="text-3xl font-bold text-indigo-800 mb-2">
                         Podcast tiếng Anh
                     </h1>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-gray-600 max-w-2xl mx-auto mb-4">
                         Luyện nghe tiếng Anh với các podcast chọn lọc, có
                         transcript và phân cấp trình độ. Học mọi lúc, mọi nơi
                         với các chủ đề đa dạng.
                     </p>
+                    <Button
+                        onClick={() => setShowCreatePodcastDialog(true)}
+                        className="flex items-center gap-2"
+                    >
+                        <Plus size={16} />
+                        Tạo podcast mới với AI
+                    </Button>
                 </div>
 
-                {/* Player bar - Hiện khi có podcast đang phát */}
                 {currentPodcast && (
                     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-200 shadow-lg p-3 z-50">
                         <div className="max-w-6xl mx-auto">
                             <div className="flex flex-col md:flex-row items-center gap-4">
                                 <div className="flex items-center gap-4 w-full md:w-auto">
                                     <img
-                                        src={currentPodcast.image}
+                                        src={
+                                            "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c3R1ZGVudCUyMGxpc3RlbmluZ3xlbnwwfHwwfHx8MA%3D%3D"
+                                        }
                                         alt={currentPodcast.title}
                                         className="w-12 h-12 object-cover rounded-md"
                                     />
@@ -421,22 +735,85 @@ export default function PodcastPage() {
                                 </div>
                             </div>
 
-                            {/* Audio element - hidden */}
                             <audio
                                 ref={audioRef}
                                 src={currentPodcast.audio}
                                 className="hidden"
                             />
 
-                            {/* Transcript panel */}
                             {showTranscript && (
-                                <div className="mt-4 bg-indigo-50 p-4 rounded-md border border-indigo-200 max-h-60 overflow-y-auto">
-                                    <h3 className="font-medium text-indigo-800 mb-2">
-                                        Transcript:
-                                    </h3>
-                                    <div className="whitespace-pre-wrap text-gray-700 text-sm">
-                                        {currentPodcast.transcript}
-                                    </div>
+                                <div className="mt-4 bg-indigo-50 p-4 rounded-md border border-indigo-200 max-h-[70vh] overflow-y-auto">
+                                    <Tabs defaultValue="transcript">
+                                        <TabsList className="mb-2">
+                                            <TabsTrigger value="transcript">
+                                                Transcript
+                                            </TabsTrigger>
+                                            {currentPodcast?.summary && (
+                                                <TabsTrigger value="summary">
+                                                    Tóm tắt
+                                                </TabsTrigger>
+                                            )}
+                                            {currentPodcast?.vocabulary &&
+                                                currentPodcast.vocabulary
+                                                    .length > 0 && (
+                                                    <TabsTrigger value="vocabulary">
+                                                        Từ vựng
+                                                    </TabsTrigger>
+                                                )}
+                                        </TabsList>
+
+                                        <TabsContent value="transcript">
+                                            <h3 className="font-medium text-indigo-800 mb-2">
+                                                Transcript:
+                                            </h3>
+                                            <div className="whitespace-pre-wrap text-gray-700 text-sm">
+                                                {currentPodcast?.transcript}
+                                            </div>
+                                        </TabsContent>
+
+                                        <TabsContent value="summary">
+                                            <h3 className="font-medium text-indigo-800 mb-2">
+                                                Tóm tắt nội dung:
+                                            </h3>
+                                            <div className="text-gray-700">
+                                                {currentPodcast?.summary}
+                                            </div>
+                                        </TabsContent>
+
+                                        <TabsContent value="vocabulary">
+                                            <h3 className="font-medium text-indigo-800 mb-2">
+                                                Từ vựng quan trọng:
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {currentPodcast?.vocabulary?.map(
+                                                    (item, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="bg-white p-3 rounded-md border border-indigo-100"
+                                                        >
+                                                            <div className="font-medium text-indigo-700">
+                                                                {item.word}
+                                                            </div>
+                                                            <div className="text-gray-600 text-sm">
+                                                                {
+                                                                    item.definition
+                                                                }
+                                                            </div>
+                                                            {item.example && (
+                                                                <div className="text-gray-500 text-sm mt-1 italic">
+                                                                    "
+                                                                    {
+                                                                        item.example
+                                                                    }
+                                                                    "
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                    </Tabs>
                                 </div>
                             )}
                         </div>
@@ -444,7 +821,6 @@ export default function PodcastPage() {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <Card className="sticky top-4">
                             <CardHeader>
@@ -538,7 +914,6 @@ export default function PodcastPage() {
                         </Card>
                     </div>
 
-                    {/* Main content */}
                     <div className="lg:col-span-3">
                         {filteredPodcasts.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -549,7 +924,10 @@ export default function PodcastPage() {
                                     >
                                         <div className="relative h-40 w-full">
                                             <img
-                                                src={pod.image}
+                                                src={
+                                                    pod.image ||
+                                                    "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c3R1ZGVudCUyMGxpc3RlbmluZ3xlbnwwfHwwfHx8MA%3D%3D"
+                                                }
                                                 alt={pod.title}
                                                 className="absolute inset-0 w-full h-full object-cover"
                                             />
@@ -604,6 +982,41 @@ export default function PodcastPage() {
                                                     )}
                                                 </Button>
 
+                                                {pod.quiz && (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setCurrentPodcast(
+                                                                pod
+                                                            );
+                                                            setShowQuiz(true);
+                                                        }}
+                                                        className={
+                                                            quizCompleted[
+                                                                pod.id
+                                                            ]
+                                                                ? "bg-green-50 text-green-600 border-green-200"
+                                                                : ""
+                                                        }
+                                                    >
+                                                        {quizCompleted[
+                                                            pod.id
+                                                        ] ? (
+                                                            <CheckCircle
+                                                                size={18}
+                                                                className="mr-1"
+                                                            />
+                                                        ) : (
+                                                            <Brain
+                                                                size={18}
+                                                                className="mr-1"
+                                                            />
+                                                        )}
+                                                        Quiz
+                                                    </Button>
+                                                )}
+
                                                 <Button
                                                     variant="outline"
                                                     onClick={() =>
@@ -637,6 +1050,117 @@ export default function PodcastPage() {
                     </div>
                 </div>
             </div>
+
+            <Dialog
+                open={showCreatePodcastDialog}
+                onOpenChange={setShowCreatePodcastDialog}
+            >
+                <DialogContent className="max-w-md bg-white">
+                    <DialogHeader>
+                        <DialogTitle>Tạo podcast mới</DialogTitle>
+                        <DialogDescription>
+                            Nhập thông tin để tạo podcast mới sử dụng công nghệ
+                            AI
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                Chủ đề podcast
+                            </label>
+                            <input
+                                type="text"
+                                className="w-full border border-gray-300 rounded-md p-2"
+                                placeholder="Nhập chủ đề (VD: Business Communication)"
+                                value={podcastTopic}
+                                onChange={(e) =>
+                                    setPodcastTopic(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                Trình độ
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md p-2"
+                                value={podcastLevel}
+                                onChange={(e) =>
+                                    setPodcastLevel(e.target.value)
+                                }
+                            >
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">
+                                    Intermediate
+                                </option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                Định dạng
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md p-2"
+                                value={podcastFormat}
+                                onChange={(e) =>
+                                    setPodcastFormat(e.target.value)
+                                }
+                            >
+                                <option value="dialogue">Dialogue</option>
+                                <option value="monologue">Monologue</option>
+                                <option value="interview">Interview</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                Thời lượng
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md p-2"
+                                value={podcastDuration}
+                                onChange={(e) =>
+                                    setPodcastDuration(e.target.value)
+                                }
+                            >
+                                <option value="3-5">3-5 phút</option>
+                                <option value="5-10">5-10 phút</option>
+                                <option value="10-15">10-15 phút</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowCreatePodcastDialog(false)}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={generatePodcast}
+                            disabled={generatingPodcast || !podcastTopic.trim()}
+                        >
+                            {generatingPodcast ? "Đang tạo..." : "Tạo podcast"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {showQuiz && currentPodcast && currentPodcast.quiz && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <PodcastQuiz
+                        questions={currentPodcast.quiz}
+                        podcastTitle={currentPodcast.title}
+                        onClose={() => setShowQuiz(false)}
+                        onComplete={handleQuizComplete}
+                    />
+                </div>
+            )}
         </div>
     );
 }

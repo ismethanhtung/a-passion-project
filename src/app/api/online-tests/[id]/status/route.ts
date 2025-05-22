@@ -31,6 +31,7 @@ export async function GET(
             select: {
                 id: true,
                 title: true,
+                description: true,
                 isPublished: true,
                 isAIGenerated: true,
                 createdAt: true,
@@ -67,16 +68,40 @@ export async function GET(
             sections[section.sectionType] = section._count.id;
         });
 
+        // Xác định trạng thái của bài kiểm tra
+        let status = "READY";
+        let errorMessage: string | null = null;
+
+        if (test.description.includes("[Đang tạo...]")) {
+            status = "GENERATING";
+        } else if (test.description.includes("[Lỗi:")) {
+            status = "ERROR";
+            const match = test.description.match(/\[Lỗi: (.*?)\]/);
+            errorMessage = match ? match[1] : null;
+        } else if (!test.isPublished) {
+            status = "PENDING";
+        } else if (test._count.testQuestions === 0) {
+            status = "EMPTY";
+        }
+
+        // Làm sạch description trước khi trả về
+        const cleanDescription = test.description
+            .replace(" [Đang tạo...]", "")
+            .replace(/\[Lỗi: .*?\]/, "");
+
         return NextResponse.json({
             id: test.id,
             title: test.title,
+            description: cleanDescription,
             isPublished: test.isPublished,
             isAIGenerated: test.isAIGenerated,
             questionCount: test._count.testQuestions,
             sections,
             createdAt: test.createdAt,
             updatedAt: test.updatedAt,
-            isReady: test.isPublished && test._count.testQuestions > 0,
+            isReady: status === "READY",
+            status,
+            errorMessage,
         });
     } catch (error) {
         console.error("Error fetching test status:", error);

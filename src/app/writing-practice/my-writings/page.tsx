@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { WritingService, WritingResponse } from "@/lib/writing/writing-service";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function MyWritingsPage() {
     const [writings, setWritings] = useState<WritingResponse[]>([]);

@@ -60,17 +60,41 @@ const AiGenerateTest = () => {
                     const statusData = await response.json();
                     console.log("Test status:", statusData);
 
-                    if (statusData.isReady) {
+                    if (statusData.status === "READY") {
                         setSuccess(
                             `Bài kiểm tra "${statusData.title}" đã được tạo thành công với ${statusData.questionCount} câu hỏi!`
                         );
 
                         // Chuyển hướng sau 2 giây
                         setTimeout(() => {
-                            router.push(`/online-tests/${createdTestId}`);
+                            // Đảm bảo ID là số trước khi điều hướng
+                            const numericId = parseInt(
+                                createdTestId.toString()
+                            );
+                            if (!isNaN(numericId)) {
+                                router.push(`/online-tests/${numericId}`);
+                            } else {
+                                router.push(`/online-tests/${createdTestId}`);
+                            }
                         }, 2000);
+                    } else if (statusData.status === "ERROR") {
+                        setSuccess("");
+                        setError(
+                            `Không thể tạo bài kiểm tra: ${
+                                statusData.errorMessage || "Lỗi không xác định"
+                            }`
+                        );
+                        setErrorDetails(
+                            "Hệ thống AI không thể tạo bài kiểm tra. Vui lòng thử lại sau hoặc điều chỉnh các tùy chọn."
+                        );
+                    } else if (statusData.status === "GENERATING") {
+                        setSuccess(
+                            `Bài kiểm tra "${statusData.title}" đang được tạo. Quá trình này có thể mất 1-2 phút...`
+                        );
+                        // Nếu đang tạo, kiểm tra lại sau 5 giây
+                        setTimeout(checkTestStatus, 5000);
                     } else {
-                        // Nếu chưa sẵn sàng, kiểm tra lại sau 3 giây
+                        // Nếu chưa sẵn sàng hoặc trạng thái khác, kiểm tra lại sau 3 giây
                         setTimeout(checkTestStatus, 3000);
                     }
                 } else {
@@ -166,7 +190,7 @@ const AiGenerateTest = () => {
 
             // Thông báo cho người dùng biết quá trình có thể mất thời gian
             setSuccess(
-                "Đang tạo bài kiểm tra bằng AI, quá trình này có thể mất từ 30-60 giây..."
+                "Đang khởi tạo bài kiểm tra với AI, quá trình này có thể mất 1-2 phút..."
             );
 
             // Gọi API để tạo bài kiểm tra với AI
@@ -187,7 +211,7 @@ const AiGenerateTest = () => {
             // Lưu ID bài kiểm tra mới tạo để kiểm tra trạng thái
             setCreatedTestId(data.id);
             setSuccess(
-                `Bài kiểm tra "${data.title}" đang được tạo. Chờ một chút để hoàn thành câu hỏi...`
+                `Bài kiểm tra "${data.title}" đang được tạo. Đang tạo nội dung từ AI, vui lòng đợi...`
             );
         } catch (err: any) {
             setSuccess("");

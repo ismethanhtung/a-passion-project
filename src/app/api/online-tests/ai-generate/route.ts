@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
             isFullTest, // true for full test, false for mini test
             specificSections, // array of sections to include (optional)
             specificTopics, // specific topics to focus on (optional)
+            customTitle, // custom title for the test (optional)
         } = body;
 
         // Validate required fields
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
         if (testType === "TOEIC") {
             if (isFullTest) {
                 testConfig = {
-                    title: `TOEIC Full Test (${difficulty})`,
+                    title: customTitle || `TOEIC Full Test (${difficulty})`,
                     description: `Bài thi TOEIC đầy đủ với cấu trúc và độ khó ${difficulty.toLowerCase()}.`,
                     instructions:
                         "Bài thi gồm hai phần: Listening (100 câu hỏi) và Reading (100 câu hỏi). Thời gian làm bài: 120 phút.",
@@ -108,9 +109,11 @@ export async function POST(request: NextRequest) {
                 // Mini test configuration
                 const includedSections = specificSections || ["listening"];
                 testConfig = {
-                    title: `TOEIC Mini Test - ${includedSections
-                        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                        .join(" & ")} (${difficulty})`,
+                    title:
+                        customTitle ||
+                        `TOEIC Mini Test - ${includedSections
+                            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                            .join(" & ")} (${difficulty})`,
                     description: `Bài thi TOEIC tập trung vào phần ${includedSections.join(
                         " và "
                     )} với độ khó ${difficulty.toLowerCase()}.`,
@@ -146,7 +149,7 @@ export async function POST(request: NextRequest) {
         } else if (testType === "IELTS") {
             if (isFullTest) {
                 testConfig = {
-                    title: `IELTS Full Test (${difficulty})`,
+                    title: customTitle || `IELTS Full Test (${difficulty})`,
                     description: `Bài thi IELTS đầy đủ với cấu trúc và độ khó ${difficulty.toLowerCase()}.`,
                     instructions:
                         "Bài thi gồm bốn phần: Listening, Reading, Writing, và Speaking. Thời gian làm bài: 165 phút (không bao gồm phần Speaking).",
@@ -163,9 +166,11 @@ export async function POST(request: NextRequest) {
                 // Mini test configuration
                 const includedSections = specificSections || ["reading"];
                 testConfig = {
-                    title: `IELTS Mini Test - ${includedSections
-                        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                        .join(" & ")} (${difficulty})`,
+                    title:
+                        customTitle ||
+                        `IELTS Mini Test - ${includedSections
+                            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                            .join(" & ")} (${difficulty})`,
                     description: `Bài thi IELTS tập trung vào phần ${includedSections.join(
                         " và "
                     )} với độ khó ${difficulty.toLowerCase()}.`,
@@ -210,28 +215,22 @@ export async function POST(request: NextRequest) {
 
         // Add any specific topics to the title and description if provided
         if (specificTopics && specificTopics.length > 0) {
+            if (!customTitle) {
+                const topicsStr = specificTopics.join(", ");
+                testConfig.title += ` - ${topicsStr}`;
+            }
             const topicsStr = specificTopics.join(", ");
-            testConfig.title += ` - ${topicsStr}`;
             testConfig.description += ` Chủ đề: ${topicsStr}.`;
             testConfig.tags = [...testConfig.tags, ...specificTopics];
         }
 
         try {
-            // Generate test content with AI
-            console.log("Generating test content with AI...");
-            const testContent = await generateTestWithAI(
-                testType,
-                difficulty,
-                testConfig.sections,
-                specificTopics
-            );
-
-            // Create test in database
-            console.log("Creating test in database...");
-            const newTest = await prisma.onlineTest.create({
+            // Tạo bài kiểm tra trống trước để có ID
+            console.log("Creating empty test to get ID...");
+            const emptyTest = await prisma.onlineTest.create({
                 data: {
                     title: testConfig.title,
-                    description: testConfig.description,
+                    description: testConfig.description + " [Đang tạo...]", // Đánh dấu đang tạo trong description
                     instructions: testConfig.instructions,
                     testType,
                     difficulty,
@@ -239,41 +238,103 @@ export async function POST(request: NextRequest) {
                     tags: testConfig.tags.join(", "),
                     sections: testConfig.sections,
                     isAIGenerated: true,
-                    isPublished: true, // Xuất bản ngay lập tức vì đã có đủ câu hỏi
-                    creatorId: userId,
-                    popularity: 0,
-                    completionRate: 0,
+                    isPublished: false, // Chưa publish cho đến khi có đủ câu hỏi
+                    creator: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
                 },
             });
 
-            // Create questions for the test
-            console.log("Creating questions for test...");
-            await createQuestionsFromAIResponse(newTest.id, testContent);
+            console.log(`Created empty test with ID: ${emptyTest.id}`);
 
-            return NextResponse.json(
-                {
-                    id: newTest.id,
-                    title: newTest.title,
-                    message: "Test generated successfully",
-                },
-                { status: 201 }
-            );
-        } catch (aiError: any) {
-            console.error("Error creating AI-generated test:", aiError);
+            // Bắt đầu tiến trình tạo nội dung bất đồng bộ
+            // Không chờ tiến trình này hoàn tất trước khi trả về response
+            (async () => {
+                try {
+                    // Cập nhật trạng thái bài kiểm tra là đang tạo
+                    await prisma.onlineTest.update({
+                        where: { id: emptyTest.id },
+                        data: {
+                            popularity: 30, // Đặt popularity ban đầu
+                            completionRate: 0, // Chưa ai làm bài này
+                        },
+                    });
 
-            // Xử lý trường hợp lỗi - tạo một bài kiểm tra mẫu nếu AI thất bại
+                    // Generate test content with AI
+                    console.log(
+                        `Generating test content with AI for test ${emptyTest.id}...`
+                    );
+                    const testContent = await generateTestWithAI(
+                        testType,
+                        difficulty,
+                        testConfig.sections,
+                        specificTopics
+                    );
+
+                    // Create questions from AI response
+                    console.log(
+                        `Creating questions for test ${emptyTest.id}...`
+                    );
+                    await createQuestionsFromAIResponse(
+                        emptyTest.id,
+                        testContent
+                    );
+
+                    // Cập nhật trạng thái bài kiểm tra là đã sẵn sàng
+                    const cleanDescription = testConfig.description.replace(
+                        " [Đang tạo...]",
+                        ""
+                    ); // Xóa trạng thái cũ
+                    await prisma.onlineTest.update({
+                        where: { id: emptyTest.id },
+                        data: {
+                            isPublished: true,
+                            updatedAt: new Date(),
+                            description: cleanDescription, // Cập nhật mô tả không có trạng thái
+                        },
+                    });
+
+                    console.log(`Test ${emptyTest.id} is now ready for use`);
+                } catch (aiError: any) {
+                    // Thêm kiểu cho biến aiError
+                    console.error(
+                        `Error generating test ${emptyTest.id}:`,
+                        aiError
+                    );
+
+                    // Cập nhật trạng thái bài kiểm tra là lỗi
+                    await prisma.onlineTest.update({
+                        where: { id: emptyTest.id },
+                        data: {
+                            description:
+                                testConfig.description +
+                                " [Lỗi: Không thể tạo bài kiểm tra. Vui lòng thử lại.]",
+                        },
+                    });
+                }
+            })();
+
+            // Trả về ngay lập tức để người dùng không phải chờ đợi
+            return NextResponse.json({
+                id: emptyTest.id,
+                title: emptyTest.title,
+                message:
+                    "Bài kiểm tra đang được tạo. Kiểm tra lại sau vài phút.",
+                status: "GENERATING", // Status chỉ để client hiển thị, không lưu vào DB
+            });
+        } catch (error) {
+            console.error("Error creating test:", error);
             return NextResponse.json(
-                {
-                    error: "Failed to generate test with AI. Please try again later.",
-                    message: aiError.message || "Unknown error",
-                },
+                { error: "Failed to create test" },
                 { status: 500 }
             );
         }
     } catch (error) {
         console.error("Error in API route:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { error: "Internal server error" },
             { status: 500 }
         );
     }
@@ -310,46 +371,96 @@ async function generateTestWithAI(
             topics
         );
 
-        // Lấy API key
-        const groqApiKey =
-            process.env.GROQ_API_KEY ||
-            "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";
+        // Lấy API key từ biến môi trường
+        const groqApiKey = process.env.GROQ_API_KEY;
+
+        // Kiểm tra API key
+        if (!groqApiKey) {
+            console.warn(
+                "GROQ_API_KEY không được cấu hình. Sử dụng chế độ fallback."
+            );
+            return createSampleTest(testType, difficulty, sections, topics);
+        }
 
         console.log("Calling Groq API with prompt...");
 
-        // Gọi Groq API
-        const response = await fetch(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer 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`,
-                },
-                body: JSON.stringify({
-                    model: "llama3-8b-8192", // Sử dụng model với ngữ cảnh dài hơn
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: userPrompt },
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 8000, // Tăng max_tokens để có thể tạo nhiều nội dung hơn
-                    response_format: { type: "json_object" }, // Yêu cầu trả về JSON
-                }),
-            }
-        );
+        // Gọi Groq API với retry logic
+        let response;
+        let retryCount = 0;
+        const maxRetries = 2;
 
-        if (!response.ok) {
-            const errorText = await response.text();
+        while (retryCount <= maxRetries) {
+            try {
+                response = await fetch(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${groqApiKey}`,
+                        },
+                        body: JSON.stringify({
+                            model: "meta-llama/llama-4-scout-17b-16e-instruct", // Sử dụng model với ngữ cảnh dài hơn
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                { role: "user", content: userPrompt },
+                            ],
+                            temperature: 0.3,
+                            max_tokens: 8000, // Tăng max_tokens để có thể tạo nhiều nội dung hơn
+                            response_format: { type: "json_object" }, // Yêu cầu trả về JSON
+                        }),
+                    }
+                );
+
+                if (response.ok) {
+                    break; // Thành công, thoát vòng lặp
+                } else {
+                    // Kiểm tra mã lỗi để quyết định có retry hay không
+                    const status = response.status;
+                    if (status === 429 || status >= 500) {
+                        // Rate limit hoặc lỗi server
+                        retryCount++;
+                        console.log(
+                            `API gọi thất bại với mã ${status}. Thử lại lần ${retryCount}...`
+                        );
+                        // Chờ một khoảng thời gian trước khi thử lại (tăng dần)
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, retryCount * 2000)
+                        );
+                    } else {
+                        // Lỗi khác, không retry
+                        break;
+                    }
+                }
+            } catch (fetchError) {
+                retryCount++;
+                console.error("Lỗi kết nối khi gọi Groq API:", fetchError);
+
+                if (retryCount <= maxRetries) {
+                    console.log(`Thử lại lần ${retryCount}...`);
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, retryCount * 2000)
+                    );
+                }
+            }
+        }
+
+        // Kiểm tra kết quả sau các lần retry
+        if (!response || !response.ok) {
+            const errorText = response
+                ? await response.text()
+                : "Không thể kết nối đến API";
             console.error("Groq API error response:", errorText);
-            throw new Error(`Groq API error: ${response.statusText}`);
+            console.log("Falling back to sample test...");
+            return createSampleTest(testType, difficulty, sections, topics);
         }
 
         const result = await response.json();
         const content = result.choices[0]?.message?.content;
 
         if (!content) {
-            throw new Error("No content received from Groq");
+            console.error("No content received from Groq");
+            return createSampleTest(testType, difficulty, sections, topics);
         }
 
         console.log("Received response from Groq API");
@@ -443,7 +554,9 @@ async function generateTestWithAI(
         }
     } catch (error) {
         console.error("Error generating test with AI:", error);
-        throw error;
+        // Luôn trả về dữ liệu mẫu thay vì throw lỗi
+        console.log("Falling back to sample test due to error...");
+        return createSampleTest(testType, difficulty, sections, topics);
     }
 }
 
@@ -798,6 +911,7 @@ function validateTestFormat(testData: any, testType: string): void {
 function createSystemPrompt(testType: string): string {
     if (testType === "TOEIC") {
         return `You are an expert in creating TOEIC test content. 
+    You have helped design many official TOEIC tests for ETS and understand the format perfectly.
     Your task is to generate authentic TOEIC test questions following the official ETS TOEIC test format.
     Your output must be a valid JSON object with the sections and parts as described below.
     
@@ -812,15 +926,25 @@ function createSystemPrompt(testType: string): string {
       - Part 6: Text Completion (questions 131-146) - Select the word that best completes the passage
       - Part 7: Reading Comprehension (questions 147-200) - Read a passage and answer questions
     
-    Make sure all content is appropriate for professional testing and follows real TOEIC patterns.
+    Make sure all content is appropriate for professional testing, business-oriented, and follows real TOEIC patterns.
     
-    IMPORTANT: For each section, each part MUST be structured properly with questions having: id, type, text, options (array), correctAnswer, and explanation.
-    For listening sections, also include 'audioScript' that represents what would be heard.
+    IMPORTANT REQUIREMENTS FOR QUESTION CREATION:
+    1. For each section, each part MUST be structured properly with questions having: id, type, text, options (array), correctAnswer, and explanation.
+    2. For listening sections, include 'audioScript' that represents what would be heard.
+    3. Create realistic and professional questions similar to real TOEIC tests.
+    4. For Part 1, include image descriptions relevant to business environments.
+    5. For Part 5-7, use vocabulary and grammar appropriate for the difficulty level.
+    6. Make sure all multiple choice questions have clear, distinct options with one correct answer.
+    7. For each part, create at least 3-10 questions to provide a good sample.
     
-    IMPORTANT: Try to create as many questions as possible, at least 10-15 questions per part. The more complete the test, the better.
-    Make sure your response remains a valid JSON object throughout, and every question should have a unique ID and meaningful content.`;
+    JSON STRUCTURE REQUIREMENTS:
+    - Maintain valid JSON format throughout your response
+    - Each question should have a unique ID
+    - Follow the exact structure from the user prompt
+    - Specify the correct answer clearly for each question`;
     } else {
         return `You are an expert in creating IELTS test content.
+    You have extensive experience developing official IELTS exams for Cambridge Assessment.
     Your task is to generate authentic IELTS test questions following the official format for IELTS Academic tests.
     Your output must be a valid JSON object with the sections and parts as described below.
     
@@ -834,22 +958,27 @@ function createSystemPrompt(testType: string): string {
       - Academic texts from books, journals, magazines, and newspapers
       - Question types: multiple choice, identifying information, matching, sentence completion, etc.
     - Writing: 2 tasks
-      - Task 1: Describe visual information (graph, table, chart, diagram)
-      - Task 2: Write an essay in response to a point of view, argument or problem
+      - Task 1: Describe visual information (graph, table, chart, diagram) - 20 minutes
+      - Task 2: Write an essay in response to a point of view, argument or problem - 40 minutes
     - Speaking: 3 parts
-      - Part 1: Introduction and interview
+      - Part 1: Introduction and interview (4-5 minutes)
       - Part 2: Long turn (speak for 1-2 minutes on a given topic)
-      - Part 3: Discussion related to Part 2
+      - Part 3: Discussion related to Part 2 (4-5 minutes)
     
-    Make sure all content is appropriate for academic testing and follows real IELTS patterns.
+    IMPORTANT REQUIREMENTS FOR QUESTION CREATION:
+    1. For each section, each part MUST be structured properly with questions having: id, type, text, options (array for multiple choice), correctAnswer, and explanation.
+    2. For listening sections, include detailed 'audioScript' representing realistic conversations.
+    3. For reading, create authentic academic passages with varied question types.
+    4. For writing tasks, include detailed task descriptions and assessment criteria.
+    5. For speaking sections, include specific questions and prompts similar to actual IELTS exams.
+    6. Ensure academic vocabulary and topics are appropriate for the difficulty level.
+    7. For each part, create at least 3-10 questions to provide a good sample.
     
-    IMPORTANT: For each section, each part MUST be structured properly with questions having: id, type, text, options (array for multiple choice), correctAnswer, and explanation.
-    For listening sections, also include 'audioScript' that represents what would be heard.
-    For writing sections, include a detailed task description and assessment criteria.
-    For speaking sections, include specific questions and prompts.
-    
-    IMPORTANT: Try to create as many questions as possible for each section, at least 10-15 questions per part. The more complete the test, the better.
-    Make sure your response remains a valid JSON object throughout, and every question should have a unique ID and meaningful content.`;
+    JSON STRUCTURE REQUIREMENTS:
+    - Maintain valid JSON format throughout your response
+    - Each question should have a unique ID
+    - Follow the exact structure from the user prompt
+    - Specify assessment criteria for subjective questions`;
     }
 }
 
@@ -862,7 +991,32 @@ function createUserPrompt(
     sections: any,
     topics?: string[]
 ): string {
-    let prompt = `Generate a ${difficulty.toLowerCase()} level ${testType} `;
+    // Mô tả chi tiết về mức độ khó dựa trên chuẩn thực tế
+    const difficultyDescriptions = {
+        Beginner: {
+            TOEIC: "suitable for those with very basic English (equivalent to CEFR A1-A2, targeting scores 10-400)",
+            IELTS: "suitable for basic English learners (targeting band scores 3.0-4.0)",
+        },
+        Intermediate: {
+            TOEIC: "suitable for those with functional English skills (equivalent to CEFR B1, targeting scores 405-650)",
+            IELTS: "suitable for intermediate English learners (targeting band scores 4.5-5.5)",
+        },
+        Advanced: {
+            TOEIC: "suitable for those with professional English skills (equivalent to CEFR B2, targeting scores 655-900)",
+            IELTS: "suitable for advanced English learners (targeting band scores 6.0-7.0)",
+        },
+        Expert: {
+            TOEIC: "suitable for those with near-native English proficiency (equivalent to CEFR C1-C2, targeting scores 905-990)",
+            IELTS: "suitable for expert English users (targeting band scores 7.5-9.0)",
+        },
+    };
+
+    // Lấy mô tả chi tiết về độ khó
+    const difficultyDetail =
+        difficultyDescriptions[difficulty]?.[testType] ||
+        `${difficulty.toLowerCase()} level`;
+
+    let prompt = `Generate a ${difficultyDetail} ${testType} `;
 
     if (Object.keys(sections).length === 0) {
         prompt += "practice test";
@@ -876,59 +1030,70 @@ function createUserPrompt(
         prompt += ` focusing on the topics: ${topics.join(", ")}`;
     }
 
+    // Thêm chi tiết về từng phần cụ thể
     if (testType === "TOEIC") {
-        prompt += `\n\nFor each section, generate realistic questions following the TOEIC format:`;
+        prompt += `\n\nPlease generate realistic TOEIC questions following the actual TOEIC format. The questions should be ${difficulty.toLowerCase()} level difficulty (${difficultyDetail}).`;
 
         if (sections.listening) {
             prompt += `
       \n- Listening (${sections.listening.questions} questions):
-        - Part 1: Photographs with descriptions (6 questions)
-        - Part 2: Question-Response pairs (25 questions)
-        - Part 3: Conversations with questions (39 questions)
-        - Part 4: Talks with questions (30 questions)`;
+        - Part 1: Photographs with descriptions (6 questions). Create realistic business scenarios that might appear in photographs.
+        - Part 2: Question-Response pairs (25 questions). Create natural conversational questions and appropriate responses.
+        - Part 3: Conversations with questions (39 questions). Create realistic workplace conversations with comprehension questions.
+        - Part 4: Talks/Announcements with questions (30 questions). Create realistic monologues with comprehension questions.`;
         }
 
         if (sections.reading) {
             prompt += `
       \n- Reading (${sections.reading.questions} questions):
-        - Part 5: Incomplete Sentences (30 questions)
-        - Part 6: Text Completion (16 questions)
-        - Part 7: Reading Comprehension passages with questions (54 questions)`;
+        - Part 5: Incomplete Sentences (30 questions). Focus on grammar, vocabulary, and business expressions appropriate for ${difficulty.toLowerCase()} level.
+        - Part 6: Text Completion (16 questions). Create business-related paragraphs with missing words or phrases.
+        - Part 7: Reading Comprehension (54 questions). Create business documents, emails, reports, or articles with comprehension questions.`;
         }
     } else {
-        prompt += `\n\nFor each section, generate realistic questions following the IELTS format:`;
+        prompt += `\n\nPlease generate realistic IELTS Academic questions following the actual IELTS format. The questions should be ${difficulty.toLowerCase()} level difficulty (${difficultyDetail}).`;
 
         if (sections.listening) {
             prompt += `
       \n- Listening (${sections.listening.questions} questions total):
-        - Part 1: Conversation in everyday social context (10 questions)
-        - Part 2: Monologue in everyday social context (10 questions)
-        - Part 3: Conversation in educational context (10 questions)
-        - Part 4: Academic monologue (10 questions)
-        - Provide transcript text that would be the audio content`;
+        - Section 1: Conversation in everyday social context (10 questions). Create a realistic dialogue between two people on practical matters.
+        - Section 2: Monologue in everyday social context (10 questions). Create an informative talk on a general topic.
+        - Section 3: Conversation in educational context (10 questions). Create a dialogue between students or with a professor about academic matters.
+        - Section 4: Academic monologue (10 questions). Create a lecture-style presentation on an academic subject.
+        - For each section, provide detailed transcript text that would be the audio content.`;
         }
 
         if (sections.reading) {
             prompt += `
       \n- Reading (${sections.reading.questions} questions total):
-        - 3 academic passages with various question types
-        - Include detailed passages and appropriate questions`;
+        - Create 3 academic passages of appropriate length and difficulty with various question types (multiple choice, True/False/Not Given, matching, etc.)
+        - Passages should be on academic topics relevant to a general audience.`;
         }
 
         if (sections.writing) {
             prompt += `
       \n- Writing (${sections.writing.questions} tasks):
-        - Task 1: Visual information description (provide description of a chart/graph)
-        - Task 2: Essay topic on an academic subject`;
+        - Task 1: Visual information description. Provide a detailed description of a chart, graph, process, or map with specific assessment criteria.
+        - Task 2: Essay on an academic subject. Provide a debatable topic appropriate for ${difficulty.toLowerCase()} level with detailed instructions.`;
         }
 
         if (sections.speaking) {
             prompt += `
       \n- Speaking (${sections.speaking.questions} parts):
-        - Part 1: Introduction questions about familiar topics
-        - Part 2: Long turn topics with preparation time
-        - Part 3: Discussion questions related to Part 2 topic`;
+        - Part 1: Introduction questions about familiar topics (identity, work, studies, hometown, etc.)
+        - Part 2: Long turn topics with cue card instructions for a 1-2 minute speech.
+        - Part 3: Discussion questions related to Part 2 topic, requiring more abstract thinking.`;
         }
+    }
+
+    // Thêm chủ đề cụ thể vào prompt
+    if (topics && topics.length > 0) {
+        prompt += `\n\nMake sure to incorporate these specific topics in your questions: ${topics.join(
+            ", "
+        )}.`;
+
+        // Thêm gợi ý chi tiết cho từng chủ đề
+        prompt += `\nFor each topic, focus on modern, relevant aspects that would appear in a real ${testType} test.`;
     }
 
     prompt += `\n\nReturn ONLY a valid JSON object with the following structure:
@@ -944,13 +1109,15 @@ function createUserPrompt(
               "id": 1,
               "type": "single", // single, multiple, fill, etc.
               "text": "question text",
-              "options": ["A", "B", "C", "D"],
+              "options": ["A. Option text", "B. Option text", "C. Option text", "D. Option text"],
               "correctAnswer": "A",
               "audioScript": "text that would be in the audio file",
               "explanation": "explanation of the answer"
             }
+            // more questions...
           ]
         }
+        // more parts...
       ]
     },
     "reading": {
@@ -959,19 +1126,13 @@ function createUserPrompt(
           "part": 5,
           "instructions": "string",
           "questions": [
-            {
-              "id": 101,
-              "type": "single",
-              "text": "question text",
-              "options": ["A", "B", "C", "D"],
-              "correctAnswer": "A",
-              "explanation": "explanation of the answer"
-            }
+            // similar structure as above
           ]
         }
       ]
     }`;
 
+    // Đối với IELTS, thêm cả writing và speaking
     if (testType === "IELTS") {
         prompt += `,
     "writing": {
@@ -984,8 +1145,9 @@ function createUserPrompt(
               "id": 1,
               "type": "essay",
               "text": "task description",
+              "options": null,
               "correctAnswer": null,
-              "explanation": "assessment criteria"
+              "explanation": "assessment criteria and example answer"
             }
           ]
         }
@@ -1016,10 +1178,11 @@ function createUserPrompt(
 }
   
 Make sure:
-1. The difficulty level (${difficulty}) is appropriate throughout all questions and content
+1. The difficulty level (${difficulty}) is appropriate throughout all questions and content as described: ${difficultyDetail}
 2. All JSON is properly formatted with no syntax errors
 3. All questions have appropriate structure based on their type
-4. The generated content follows the official ${testType} test structure exactly`;
+4. The generated content follows the official ${testType} test structure exactly
+5. Questions are realistic and professionally written, similar to official tests`;
 
     return prompt;
 }

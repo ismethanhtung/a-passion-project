@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             response = await axios.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 {
-                    model: "llama3-8b-8192", // Sử dụng model nhỏ hơn để giảm độ trễ
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct", // Sử dụng model nhỏ hơn để giảm độ trễ
                     messages: recentMessages,
                     temperature: 0.7,
                     max_tokens: 4000, // Giảm max_tokens để phản hồi nhanh hơn

@@ -61,7 +61,7 @@ ${content}
                     Authorization: `Bearer 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`,
                 },
                 body: JSON.stringify({
-                    model: "llama3-8b-8192",
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
                     messages: [
                         { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt },

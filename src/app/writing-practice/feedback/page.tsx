@@ -9,7 +9,7 @@ import {
     WritingResponse,
     WritingFeedback,
 } from "@/lib/writing/writing-service";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function FeedbackPage() {
     const router = useRouter();

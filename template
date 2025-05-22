@@ -24,15 +24,9 @@ import {
     PenTool,
     FileText,
     ArrowUp,
-    Plus,
-    Sparkles,
-    Zap,
-    BrainCircuit,
-    X,
 } from "lucide-react";
 import Link from "next/link";
 import TestsChatbot from "@/components/TestsChatbot";
-import TestList from "@/components/test/TestList";
 
 // Types định nghĩa cho bài thi
 type TestType = "TOEIC" | "IELTS" | "General" | "Placement";
@@ -81,14 +75,6 @@ const Tests = () => {
     >("");
     const [sortBy, setSortBy] = useState("popular");
     const [isLoading, setIsLoading] = useState(true);
-    const [showChatbot, setShowChatbot] = useState(true);
-    const [showCreateTestModal, setShowCreateTestModal] = useState(false);
-    const [creatingTest, setCreatingTest] = useState(false);
-    const [newTestType, setNewTestType] = useState<TestType>("TOEIC");
-    const [newTestDifficulty, setNewTestDifficulty] =
-        useState<TestDifficulty>("Intermediate");
-    const [newTestPrompt, setNewTestPrompt] = useState("");
-    const [newTestTitle, setNewTestTitle] = useState("");
 
     // Simulate loading state
     useEffect(() => {
@@ -435,169 +421,6 @@ const Tests = () => {
         }
     };
 
-    // Mẫu cấu trúc bài thi TOEIC
-    const toeicTestTemplate = {
-        listening: {
-            part1: {
-                name: "Photographs",
-                description: "Nghe mô tả, chọn hình ảnh phù hợp",
-                questionCount: 6,
-            },
-            part2: {
-                name: "Question-Response",
-                description: "Nghe câu hỏi, chọn câu trả lời phù hợp",
-                questionCount: 25,
-            },
-            part3: {
-                name: "Conversations",
-                description: "Nghe đoạn hội thoại, trả lời câu hỏi",
-                questionCount: 39,
-            },
-            part4: {
-                name: "Talks",
-                description: "Nghe bài nói, trả lời câu hỏi",
-                questionCount: 30,
-            },
-        },
-        reading: {
-            part5: {
-                name: "Incomplete Sentences",
-                description: "Hoàn thành câu với từ thích hợp",
-                questionCount: 30,
-            },
-            part6: {
-                name: "Text Completion",
-                description: "Hoàn thành đoạn văn với từ/cụm từ thích hợp",
-                questionCount: 16,
-            },
-            part7: {
-                name: "Reading Comprehension",
-                description: "Đọc hiểu và trả lời câu hỏi",
-                questionCount: 54,
-            },
-        },
-    };
-
-    // Mẫu cấu trúc bài thi IELTS
-    const ieltsTestTemplate = {
-        listening: {
-            section1: {
-                name: "Section 1",
-                description: "Hội thoại hàng ngày giữa 2 người",
-                questionCount: 10,
-            },
-            section2: {
-                name: "Section 2",
-                description: "Bài nói độc thoại về tình huống hàng ngày",
-                questionCount: 10,
-            },
-            section3: {
-                name: "Section 3",
-                description:
-                    "Hội thoại giữa tối đa 4 người trong môi trường học thuật",
-                questionCount: 10,
-            },
-            section4: {
-                name: "Section 4",
-                description: "Bài nói độc thoại về chủ đề học thuật",
-                questionCount: 10,
-            },
-        },
-        reading: {
-            passages: {
-                name: "Academic Reading",
-                description: "3 bài đọc dài từ sách, tạp chí học thuật",
-                questionCount: 40,
-            },
-        },
-        writing: {
-            task1: {
-                name: "Task 1",
-                description: "Mô tả biểu đồ, bảng, sơ đồ hoặc quá trình",
-                questionCount: 1,
-            },
-            task2: {
-                name: "Task 2",
-                description: "Viết luận về một chủ đề",
-                questionCount: 1,
-            },
-        },
-        speaking: {
-            parts: {
-                name: "Speaking Test",
-                description:
-                    "Phỏng vấn với 3 phần: giới thiệu, độc thoại và thảo luận",
-                questionCount: 3,
-            },
-        },
-    };
-
-    // Hàm tạo bài test mới bằng AI (giả lập)
-    const createAITest = () => {
-        if (!newTestTitle.trim() || !newTestPrompt.trim()) {
-            alert("Vui lòng nhập đầy đủ thông tin");
-            return;
-        }
-
-        setCreatingTest(true);
-
-        // Giả lập thời gian xử lý AI
-        setTimeout(() => {
-            const newTestId = `${newTestType.toLowerCase()}-${Math.floor(
-                Math.random() * 1000
-            )}`;
-
-            const newTest: TestItem = {
-                id: newTestId,
-                title: newTestTitle,
-                description: newTestPrompt,
-                duration: newTestType === "TOEIC" ? "120 phút" : "165 phút",
-                questions: newTestType === "TOEIC" ? 200 : 120,
-                participants: 0,
-                testType: newTestType,
-                tags: [newTestType, "AI Generated", newTestDifficulty],
-                difficulty: newTestDifficulty,
-                popularity: 50,
-                isFeatured: false,
-                completionRate: 0,
-                lastUpdated: new Date().toISOString().split("T")[0],
-                sections:
-                    newTestType === "TOEIC"
-                        ? {
-                              listening: {
-                                  parts: 4,
-                                  questions: 100,
-                              },
-                              reading: {
-                                  parts: 3,
-                                  questions: 100,
-                              },
-                          }
-                        : {
-                              listening: {
-                                  parts: 4,
-                                  questions: 40,
-                              },
-                              reading: {
-                                  parts: 3,
-                                  questions: 40,
-                              },
-                          },
-            };
-
-            // Thêm test mới vào danh sách
-            tests.unshift(newTest);
-
-            setCreatingTest(false);
-            setShowCreateTestModal(false);
-            setNewTestTitle("");
-            setNewTestPrompt("");
-
-            // Chuyển đến bài test vừa tạo
-            router.push(`/online-tests/${newTestId}`);
-        }, 2000);
-    };
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Hero Banner - Updated with cleaner design */}
@@ -636,46 +459,13 @@ const Tests = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-12 px-6 lg:px-32">
-                {/* Banner tạo bài Test bằng AI - New */}
-                <div className="mb-8 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl shadow-md overflow-hidden">
-                    <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center">
-                        <div className="text-white mb-4 sm:mb-0">
-                            <div className="flex items-center mb-2">
-                                <Sparkles className="h-5 w-5 mr-2 text-amber-300" />
-                                <h3 className="text-xl font-bold">
-                                    Tạo bài kiểm tra bằng AI
-                                </h3>
-                            </div>
-                            <p className="opacity-90 mb-2 max-w-xl">
-                                Tạo nhanh bài kiểm tra theo chuẩn TOEIC hoặc
-                                IELTS với nội dung tùy chỉnh theo nhu cầu của
-                                bạn.
-                            </p>
-                            <div className="flex items-center text-amber-200 text-sm">
-                                <BrainCircuit className="h-4 w-4 mr-1.5" />
-                                <span>
-                                    AI tạo nội dung đạt tiêu chuẩn quốc tế
-                                </span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setShowCreateTestModal(true)}
-                            className="bg-white text-indigo-700 hover:bg-indigo-50 px-6 py-3 rounded-lg font-medium 
-                            flex items-center shadow-sm transition-all duration-200 whitespace-nowrap"
-                        >
-                            <Zap className="h-5 w-5 mr-2" />
-                            Tạo bài kiểm tra
-                        </button>
-                    </div>
-                </div>
-
+            <div className="container mx-auto px-4 py-12 px-32">
                 {/* Filter and Sort Controls - Modernized */}
                 <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-100 p-5">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <h2 className="text-xl font-bold text-gray-800 flex items-center">
                             <Filter className="h-5 w-5 mr-2 text-slate-500" />
-                            Lọc và sắp xếp
+                            Filter and Sort
                         </h2>
                         <div className="flex flex-wrap gap-2">
                             <select
@@ -686,13 +476,13 @@ const Tests = () => {
                                 className="px-4 py-2 rounded-lg bg-slate-100 border-0 text-sm font-medium 
                                 text-slate-700 focus:ring-2 focus:ring-slate-400"
                             >
-                                <option value="popular">Phổ biến nhất</option>
-                                <option value="newest">Mới nhất</option>
+                                <option value="popular">Most Popular</option>
+                                <option value="newest">Newest</option>
                                 <option value="completion">
-                                    Tỷ lệ hoàn thành cao nhất
+                                    Highest Completion Rate
                                 </option>
                                 <option value="questions">
-                                    Nhiều câu hỏi nhất
+                                    Most Questions
                                 </option>
                             </select>
                         </div>
@@ -701,7 +491,7 @@ const Tests = () => {
                     <div className="flex flex-col space-y-5">
                         <div>
                             <h3 className="text-sm font-medium text-slate-700 mb-2">
-                                Loại bài kiểm tra
+                                Test Type
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {categories.map((category) => (
@@ -724,7 +514,7 @@ const Tests = () => {
 
                         <div>
                             <h3 className="text-sm font-medium text-slate-700 mb-2">
-                                Độ khó
+                                Difficulty
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {difficultyLevels.map((difficulty) => (
@@ -901,60 +691,6 @@ const Tests = () => {
                             </div>
                         </div>
                     )}
-
-                {/* Test Categories section */}
-                <div className="mb-12">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        Danh mục bài kiểm tra
-                    </h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Link
-                            href="/online-tests?testType=TOEIC"
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-xl text-white hover:shadow-lg transition-shadow"
-                        >
-                            <h3 className="text-xl font-bold mb-2">TOEIC</h3>
-                            <p className="text-blue-100 text-sm">
-                                Luyện tập và chuẩn bị cho kỳ thi TOEIC với đầy
-                                đủ các phần.
-                            </p>
-                        </Link>
-
-                        <Link
-                            href="/online-tests?testType=IELTS"
-                            className="bg-gradient-to-r from-green-500 to-teal-600 p-6 rounded-xl text-white hover:shadow-lg transition-shadow"
-                        >
-                            <h3 className="text-xl font-bold mb-2">IELTS</h3>
-                            <p className="text-green-100 text-sm">
-                                Rèn luyện 4 kỹ năng Nghe, Nói, Đọc, Viết với bài
-                                thi IELTS.
-                            </p>
-                        </Link>
-
-                        <Link
-                            href="/online-tests?testType=Placement"
-                            className="bg-gradient-to-r from-orange-500 to-red-600 p-6 rounded-xl text-white hover:shadow-lg transition-shadow"
-                        >
-                            <h3 className="text-xl font-bold mb-2">
-                                Placement
-                            </h3>
-                            <p className="text-orange-100 text-sm">
-                                Kiểm tra và xác định trình độ tiếng Anh hiện tại
-                                của bạn.
-                            </p>
-                        </Link>
-
-                        <Link
-                            href="/online-tests?testType=General"
-                            className="bg-gradient-to-r from-purple-500 to-pink-600 p-6 rounded-xl text-white hover:shadow-lg transition-shadow"
-                        >
-                            <h3 className="text-xl font-bold mb-2">General</h3>
-                            <p className="text-purple-100 text-sm">
-                                Các bài kiểm tra kỹ năng tiếng Anh tổng quát.
-                            </p>
-                        </Link>
-                    </div>
-                </div>
 
                 {/* All Tests Section - Completely redesigned */}
                 <div>
@@ -1155,451 +891,10 @@ const Tests = () => {
                         </div>
                     )}
                 </div>
-
-                {/* Thêm Chatbot cho tests */}
-                <TestsChatbot />
             </div>
 
-            {/* Modal tạo bài kiểm tra */}
-            {showCreateTestModal && (
-                <div className="fixed inset-0 bg-gray-900/70 flex items-center justify-center z-50 px-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                                    <Sparkles className="h-5 w-5 mr-2 text-purple-500" />
-                                    Tạo bài kiểm tra bằng AI
-                                </h3>
-                                <button
-                                    onClick={() =>
-                                        setShowCreateTestModal(false)
-                                    }
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Tiêu đề bài kiểm tra
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newTestTitle}
-                                    onChange={(e) =>
-                                        setNewTestTitle(e.target.value)
-                                    }
-                                    placeholder="Ví dụ: TOEIC Reading Practice Test"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                                />
-                            </div>
-
-                            {/* Mẫu bài test có sẵn */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Mẫu nhanh
-                                </label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => {
-                                            setNewTestType("TOEIC");
-                                            setNewTestTitle(
-                                                "TOEIC Test - Business and Office"
-                                            );
-                                            setNewTestPrompt(
-                                                "Tạo bài kiểm tra TOEIC với chủ đề văn phòng và kinh doanh. Bài test nên tập trung vào từ vựng môi trường công sở, email doanh nghiệp, và các tình huống giao tiếp trong kinh doanh."
-                                            );
-                                            setNewTestDifficulty(
-                                                "Intermediate"
-                                            );
-                                        }}
-                                        className="p-3 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors text-left"
-                                    >
-                                        <h4 className="font-medium text-blue-800 mb-1">
-                                            TOEIC - Kinh doanh & Văn phòng
-                                        </h4>
-                                        <p className="text-xs text-blue-600">
-                                            Từ vựng môi trường công sở, email
-                                            doanh nghiệp, hội thoại kinh doanh
-                                        </p>
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setNewTestType("TOEIC");
-                                            setNewTestTitle(
-                                                "TOEIC Test - Travel and Tourism"
-                                            );
-                                            setNewTestPrompt(
-                                                "Tạo bài kiểm tra TOEIC với chủ đề du lịch và khách sạn. Nội dung liên quan đến đặt phòng, giao tiếp tại điểm du lịch, sân bay, và các tình huống khi đi du lịch."
-                                            );
-                                            setNewTestDifficulty(
-                                                "Intermediate"
-                                            );
-                                        }}
-                                        className="p-3 border border-green-200 rounded-lg bg-green-50 hover:bg-green-100 transition-colors text-left"
-                                    >
-                                        <h4 className="font-medium text-green-800 mb-1">
-                                            TOEIC - Du lịch & Khách sạn
-                                        </h4>
-                                        <p className="text-xs text-green-600">
-                                            Từ vựng du lịch, khách sạn, đặt
-                                            phòng, giao tiếp tại điểm du lịch
-                                        </p>
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setNewTestType("IELTS");
-                                            setNewTestTitle(
-                                                "IELTS Academic Test - Science and Technology"
-                                            );
-                                            setNewTestPrompt(
-                                                "Tạo bài kiểm tra IELTS Academic với chủ đề khoa học và công nghệ. Bài Reading sử dụng các bài đọc về công nghệ mới, nghiên cứu khoa học. Bài Listening có các bài giảng và thảo luận học thuật."
-                                            );
-                                            setNewTestDifficulty("Advanced");
-                                        }}
-                                        className="p-3 border border-purple-200 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-left"
-                                    >
-                                        <h4 className="font-medium text-purple-800 mb-1">
-                                            IELTS - Khoa học & Công nghệ
-                                        </h4>
-                                        <p className="text-xs text-purple-600">
-                                            Chủ đề công nghệ, phát minh, xu
-                                            hướng khoa học, nghiên cứu học thuật
-                                        </p>
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setNewTestType("IELTS");
-                                            setNewTestTitle(
-                                                "IELTS Academic Test - Environment and Society"
-                                            );
-                                            setNewTestPrompt(
-                                                "Tạo bài kiểm tra IELTS Academic với chủ đề môi trường và xã hội. Bao gồm nội dung về biến đổi khí hậu, phát triển bền vững, bảo vệ môi trường và các vấn đề xã hội."
-                                            );
-                                            setNewTestDifficulty("Advanced");
-                                        }}
-                                        className="p-3 border border-amber-200 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors text-left"
-                                    >
-                                        <h4 className="font-medium text-amber-800 mb-1">
-                                            IELTS - Môi trường & Xã hội
-                                        </h4>
-                                        <p className="text-xs text-amber-600">
-                                            Biến đổi khí hậu, phát triển bền
-                                            vững, vấn đề xã hội đương đại
-                                        </p>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Loại bài kiểm tra
-                                    </label>
-                                    <select
-                                        value={newTestType}
-                                        onChange={(e) =>
-                                            setNewTestType(
-                                                e.target.value as TestType
-                                            )
-                                        }
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                                    >
-                                        <option value="TOEIC">TOEIC</option>
-                                        <option value="IELTS">IELTS</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Độ khó
-                                    </label>
-                                    <select
-                                        value={newTestDifficulty}
-                                        onChange={(e) =>
-                                            setNewTestDifficulty(
-                                                e.target.value as TestDifficulty
-                                            )
-                                        }
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                                    >
-                                        {difficultyLevels.map((level) => (
-                                            <option key={level} value={level}>
-                                                {level}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Mô tả yêu cầu cho AI
-                                </label>
-                                <textarea
-                                    value={newTestPrompt}
-                                    onChange={(e) =>
-                                        setNewTestPrompt(e.target.value)
-                                    }
-                                    placeholder="Mô tả chi tiết về bài kiểm tra bạn muốn tạo. Ví dụ: Tạo bài kiểm tra TOEIC tập trung vào ngữ pháp và từ vựng trong môi trường công sở, với chủ đề là marketing và quảng cáo."
-                                    rows={5}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                                ></textarea>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Gợi ý: Bạn có thể chỉ định chủ đề cụ thể
-                                    (kinh doanh, du lịch, giáo dục...), mục tiêu
-                                    bài test (luyện ngữ pháp, từ vựng, kỹ năng
-                                    nghe...) và độ khó chi tiết hơn (từ vựng
-                                    trình độ nào, cấu trúc câu phức tạp hay đơn
-                                    giản...).
-                                </p>
-                            </div>
-
-                            <div className="mb-6">
-                                <h4 className="text-md font-medium text-gray-800 mb-3">
-                                    Cấu trúc bài kiểm tra {newTestType}
-                                </h4>
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    {newTestType === "TOEIC" ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <h5 className="font-medium text-gray-700 mb-2 flex items-center">
-                                                    <Headphones className="h-4 w-4 mr-1.5 text-blue-500" />
-                                                    Phần Nghe (100 câu)
-                                                </h5>
-                                                <ul className="space-y-2 text-sm">
-                                                    {Object.values(
-                                                        toeicTestTemplate.listening
-                                                    ).map((part, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="flex justify-between"
-                                                        >
-                                                            <span>
-                                                                {part.name}:{" "}
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        part.description
-                                                                    }
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-500">
-                                                                {
-                                                                    part.questionCount
-                                                                }{" "}
-                                                                câu
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                            <div>
-                                                <h5 className="font-medium text-gray-700 mb-2 flex items-center">
-                                                    <BookMarked className="h-4 w-4 mr-1.5 text-emerald-500" />
-                                                    Phần Đọc (100 câu)
-                                                </h5>
-                                                <ul className="space-y-2 text-sm">
-                                                    {Object.values(
-                                                        toeicTestTemplate.reading
-                                                    ).map((part, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="flex justify-between"
-                                                        >
-                                                            <span>
-                                                                {part.name}:{" "}
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        part.description
-                                                                    }
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-500">
-                                                                {
-                                                                    part.questionCount
-                                                                }{" "}
-                                                                câu
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <div>
-                                                <h5 className="font-medium text-gray-700 mb-2 flex items-center">
-                                                    <Headphones className="h-4 w-4 mr-1.5 text-blue-500" />
-                                                    Listening (40 câu)
-                                                </h5>
-                                                <ul className="space-y-2 text-sm">
-                                                    {Object.values(
-                                                        ieltsTestTemplate.listening
-                                                    ).map((section, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="flex justify-between"
-                                                        >
-                                                            <span>
-                                                                {section.name}:{" "}
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        section.description
-                                                                    }
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-500">
-                                                                {
-                                                                    section.questionCount
-                                                                }{" "}
-                                                                câu
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                            <div>
-                                                <h5 className="font-medium text-gray-700 mb-2 flex items-center">
-                                                    <BookMarked className="h-4 w-4 mr-1.5 text-emerald-500" />
-                                                    Reading
-                                                </h5>
-                                                <ul className="space-y-2 text-sm">
-                                                    {Object.values(
-                                                        ieltsTestTemplate.reading
-                                                    ).map((section, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="flex justify-between"
-                                                        >
-                                                            <span>
-                                                                {section.name}:{" "}
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        section.description
-                                                                    }
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-500">
-                                                                {
-                                                                    section.questionCount
-                                                                }{" "}
-                                                                câu
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                            <div>
-                                                <h5 className="font-medium text-gray-700 mb-2 flex items-center">
-                                                    <PenTool className="h-4 w-4 mr-1.5 text-purple-500" />
-                                                    Writing
-                                                </h5>
-                                                <ul className="space-y-2 text-sm">
-                                                    {Object.values(
-                                                        ieltsTestTemplate.writing
-                                                    ).map((task, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className="flex justify-between"
-                                                        >
-                                                            <span>
-                                                                {task.name}:{" "}
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        task.description
-                                                                    }
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-500">
-                                                                {
-                                                                    task.questionCount
-                                                                }{" "}
-                                                                câu
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-100 mt-4">
-                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                                <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
-                                    <MessageSquare className="h-4 w-4 mr-1.5 text-blue-600" />
-                                    Về bài kiểm tra AI tạo
-                                </h4>
-                                <p className="text-sm text-blue-700">
-                                    Bài kiểm tra được tạo bởi AI sẽ dựa trên
-                                    định dạng chuẩn{" "}
-                                    {newTestType === "TOEIC"
-                                        ? "TOEIC từ ETS"
-                                        : "IELTS từ British Council và IDP"}
-                                    . Nội dung sẽ được sinh tự động theo yêu cầu
-                                    của bạn với độ khó phù hợp. Bài kiểm tra
-                                    được tạo ra sẽ được lưu trong tài khoản của
-                                    bạn và có thể sử dụng lại nhiều lần.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-200 flex justify-end">
-                            <button
-                                onClick={() => setShowCreateTestModal(false)}
-                                className="px-5 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 font-medium mr-3"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={createAITest}
-                                disabled={creatingTest}
-                                className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium 
-                                flex items-center disabled:opacity-70 disabled:cursor-not-allowed"
-                            >
-                                {creatingTest ? (
-                                    <>
-                                        <svg
-                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            ></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            ></path>
-                                        </svg>
-                                        Đang tạo bài kiểm tra...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Tạo bài kiểm tra
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Thêm Chatbot cho tests */}
+            <TestsChatbot />
         </div>
     );
 };

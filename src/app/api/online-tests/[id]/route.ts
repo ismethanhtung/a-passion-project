@@ -9,6 +9,14 @@ export const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 /**
+ * Kiểm tra định dạng ID có hợp lệ không
+ */
+function isValidTestId(id: string): boolean {
+    // ID phải là số nguyên dương
+    return /^\d+$/.test(id) && parseInt(id) > 0;
+}
+
+/**
  * GET /api/online-tests/[id] - Lấy thông tin chi tiết một bài kiểm tra
  */
 export async function GET(
@@ -16,14 +24,14 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-
-        if (isNaN(id)) {
+        if (!isValidTestId(params.id)) {
             return NextResponse.json(
                 { error: "Invalid test ID" },
                 { status: 400 }
             );
         }
+
+        const id = parseInt(params.id);
 
         // Tìm bài kiểm tra theo ID
         const test = await prisma.onlineTest.findUnique({
@@ -69,14 +77,14 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-
-        if (isNaN(id)) {
+        if (!isValidTestId(params.id)) {
             return NextResponse.json(
                 { error: "Invalid test ID" },
                 { status: 400 }
             );
         }
+
+        const id = parseInt(params.id);
 
         // Kiểm tra xem bài kiểm tra có tồn tại không
         const test = await prisma.onlineTest.findUnique({
@@ -130,14 +138,14 @@ export async function PATCH(
     { params }: { params: { id: string } }
 ) {
     try {
-        const id = parseInt(params.id);
-
-        if (isNaN(id)) {
+        if (!isValidTestId(params.id)) {
             return NextResponse.json(
                 { error: "Invalid test ID" },
                 { status: 400 }
             );
         }
+
+        const id = parseInt(params.id);
 
         // Lấy dữ liệu cập nhật từ request
         const updateData = await request.json();

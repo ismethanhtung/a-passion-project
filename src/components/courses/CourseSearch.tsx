@@ -52,7 +52,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     placeholder={placeholder}
-                    className="w-full py-3 pl-10 pr-10 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    className="w-full text-black py-3 pl-10 pr-10 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500"
                 />
 
                 {localSearchTerm && (

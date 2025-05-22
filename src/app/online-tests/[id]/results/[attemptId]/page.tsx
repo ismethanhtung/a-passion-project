@@ -13,6 +13,7 @@ import {
     Share2,
     Download,
     FileText,
+    AlertCircle,
 } from "lucide-react";
 
 interface ResultsPageProps {
@@ -20,6 +21,17 @@ interface ResultsPageProps {
         id: string;
         attemptId: string;
     };
+}
+
+interface MockTestResult {
+    testId: string;
+    attemptId: string;
+    score: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    correctAnswers: number;
+    completed: boolean;
+    completedAt: string;
 }
 
 const TestResultsPage = ({ params }: ResultsPageProps) => {
@@ -30,6 +42,8 @@ const TestResultsPage = ({ params }: ResultsPageProps) => {
     const [attemptData, setAttemptData] = useState<any>(null);
     const [answers, setAnswers] = useState<any[]>([]);
     const [questions, setQuestions] = useState<any[]>([]);
+    const [usingMockData, setUsingMockData] = useState(false);
+    const [mockResult, setMockResult] = useState<MockTestResult | null>(null);
 
     useEffect(() => {
         const fetchResults = async () => {
@@ -37,33 +51,151 @@ const TestResultsPage = ({ params }: ResultsPageProps) => {
                 setLoading(true);
                 setError("");
 
-                console.log(
-                    `Fetching test results: ${params.id}/${params.attemptId}`
-                );
-                const response = await fetch(
-                    `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+                // Kiểm tra có kết quả giả lập không
+                const storedMockResult = localStorage.getItem(
+                    `mockTestResult_${params.attemptId}`
                 );
 
-                if (!response.ok) {
-                    if (response.status === 404) {
+                if (storedMockResult) {
+                    console.log("Found mock test result in localStorage");
+                    const parsedMockResult = JSON.parse(
+                        storedMockResult
+                    ) as MockTestResult;
+                    setMockResult(parsedMockResult);
+
+                    // Kiểm tra có thông tin test giả lập không
+                    const mockTestInfo = localStorage.getItem(
+                        `mockTestInfo_${params.id}`
+                    );
+                    if (mockTestInfo) {
+                        // Sử dụng thông tin test từ mock data
+                        const parsedMockTestInfo = JSON.parse(mockTestInfo);
+                        setTestData(parsedMockTestInfo);
+                    } else {
+                        // Vẫn cần thông tin về test từ API
+                        try {
+                            const response = await fetch(
+                                `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+                            );
+
+                            if (!response.ok) {
+                                if (response.status === 404) {
+                                    throw new Error(
+                                        "Bài kiểm tra hoặc lần thử không tồn tại"
+                                    );
+                                }
+                                const errorData = await response.json();
+                                throw new Error(
+                                    errorData.error ||
+                                        "Không thể tải thông tin kết quả bài kiểm tra"
+                                );
+                            }
+
+                            const data = await response.json();
+                            setTestData(data.test);
+                        } catch (err) {
+                            console.error(
+                                "Error fetching test data, creating mock one"
+                            );
+                            // Tạo test data giả nếu API không hoạt động
+                            const mockTestData = {
+                                id: parseInt(params.id) || 1,
+                                title: "Bài kiểm tra mẫu",
+                                testType: parsedMockResult.testId
+                                    .toString()
+                                    .includes("toeic")
+                                    ? "TOEIC"
+                                    : "IELTS",
+                                difficulty: "Intermediate",
+                                duration: 120,
+                                sections: {
+                                    listening: { parts: 4, questions: 100 },
+                                    reading: { parts: 3, questions: 100 },
+                                },
+                                instructions: "Đây là bài kiểm tra mẫu",
+                                isPublished: true,
+                                tags: "",
+                                popularity: 0,
+                                completionRate: 0,
+                                isAIGenerated: false,
+                            };
+                            setTestData(mockTestData);
+                        }
+                    }
+
+                    // Tạo attemptData giả lập từ mockResult
+                    setAttemptData({
+                        id: params.attemptId,
+                        testId: params.id,
+                        score: parsedMockResult.score,
+                        completed: true,
+                        startTime: new Date(
+                            new Date().getTime() - 3600000
+                        ).toISOString(), // Giả lập 1 giờ trước
+                        endTime: parsedMockResult.completedAt,
+                        sectionScores: {
+                            listening: Math.round(65 + Math.random() * 20),
+                            reading: Math.round(70 + Math.random() * 20),
+                        },
+                    });
+
+                    // Lấy mock questions từ localStorage
+                    const mockTestData = localStorage.getItem(
+                        `mockTest_${params.id}`
+                    );
+                    if (mockTestData) {
+                        const parsedMockTestData = JSON.parse(mockTestData);
+                        setQuestions(parsedMockTestData.questions);
+
+                        // Tạo answers giả
+                        const mockAnswers = Array(
+                            parsedMockResult.answeredQuestions
+                        )
+                            .fill(null)
+                            .map((_, index) => {
+                                const isCorrect =
+                                    index < parsedMockResult.correctAnswers;
+                                return {
+                                    id: index + 1,
+                                    questionId:
+                                        parsedMockTestData.questions[index].id,
+                                    answer: "0", // Giả lập câu trả lời
+                                    isCorrect,
+                                };
+                            });
+                        setAnswers(mockAnswers);
+                    }
+
+                    setUsingMockData(true);
+                } else {
+                    console.log(
+                        `Fetching test results: ${params.id}/${params.attemptId}`
+                    );
+                    const response = await fetch(
+                        `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+                    );
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error(
+                                "Bài kiểm tra hoặc lần thử không tồn tại"
+                            );
+                        }
+                        const errorData = await response.json();
                         throw new Error(
-                            "Bài kiểm tra hoặc lần thử không tồn tại"
+                            errorData.error ||
+                                "Không thể tải thông tin kết quả bài kiểm tra"
                         );
                     }
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.error ||
-                            "Không thể tải thông tin kết quả bài kiểm tra"
-                    );
+
+                    const data = await response.json();
+                    console.log("Successfully fetched test result data");
+
+                    setTestData(data.test);
+                    setAttemptData(data.attempt);
+                    setQuestions(data.questions.list);
+                    setAnswers(data.attempt.answers || []);
                 }
-
-                const data = await response.json();
-                console.log("Successfully fetched test result data");
-
-                setTestData(data.test);
-                setAttemptData(data.attempt);
-                setQuestions(data.questions.list);
-                setAnswers(data.attempt.answers || []);
             } catch (err: any) {
                 setError(
                     err.message || "Đã xảy ra lỗi khi tải kết quả bài kiểm tra"
@@ -84,12 +216,22 @@ const TestResultsPage = ({ params }: ResultsPageProps) => {
 
     // Tính tổng số câu đúng
     const calculateCorrectAnswers = () => {
+        if (usingMockData && mockResult) {
+            return mockResult.correctAnswers;
+        }
+
         if (!answers || !questions) return 0;
         return answers.filter((a) => a.isCorrect).length;
     };
 
     // Tính phần trăm chính xác
     const calculateAccuracy = () => {
+        if (usingMockData && mockResult) {
+            return Math.round(
+                (mockResult.correctAnswers / mockResult.answeredQuestions) * 100
+            );
+        }
+
         if (!answers || !questions || answers.length === 0) return 0;
         return Math.round((calculateCorrectAnswers() / answers.length) * 100);
     };
@@ -157,6 +299,24 @@ const TestResultsPage = ({ params }: ResultsPageProps) => {
                     Quay lại danh sách bài kiểm tra
                 </Link>
             </div>
+
+            {usingMockData && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-amber-800 text-sm font-medium">
+                                Kết quả từ dữ liệu mẫu
+                            </p>
+                            <p className="text-amber-700 text-xs mt-1">
+                                Đây là kết quả bài kiểm tra dựa trên dữ liệu mẫu
+                                được tạo tự động. Kết quả và số liệu chỉ mang
+                                tính chất minh họa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <div className="bg-blue-600 p-8 text-white">

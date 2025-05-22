@@ -71,6 +71,7 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [saving, setSaving] = useState(false);
     const [timeLeft, setTimeLeft] = useState<number>(0);
+    const [usingMockData, setUsingMockData] = useState(false);
 
     // Tải thông tin bài kiểm tra và lần thử
     useEffect(() => {
@@ -82,69 +83,320 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
                 console.log(
                     `Fetching test attempt: ${params.id}/${params.attemptId}`
                 );
-                const response = await fetch(
-                    `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+
+                // Kiểm tra nếu có mock data trong localStorage
+                const mockData = localStorage.getItem(`mockTest_${params.id}`);
+                const mockInfo = localStorage.getItem(
+                    `mockTestInfo_${params.id}`
+                );
+                const mockAttempt = localStorage.getItem(
+                    `mockAttempt_${params.attemptId}`
                 );
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error(
-                            "Bài kiểm tra hoặc lần thử không tồn tại"
+                // Nếu có cả thông tin bài kiểm tra giả và lần thử giả
+                if (mockInfo && mockData && mockAttempt) {
+                    console.log("Found complete mock data in localStorage");
+                    const parsedMockInfo = JSON.parse(mockInfo);
+                    const parsedMockData = JSON.parse(mockData);
+                    const parsedMockAttempt = JSON.parse(mockAttempt);
+
+                    setTest(parsedMockInfo);
+                    setAttempt(parsedMockAttempt);
+                    setQuestions(parsedMockData.questions);
+
+                    // Tạo grouped questions từ mock data
+                    const grouped: Record<
+                        string,
+                        Record<number, Question[]>
+                    > = {};
+                    parsedMockData.questions.forEach((q: Question) => {
+                        const section = q.sectionType;
+                        const part = q.part;
+
+                        if (!grouped[section]) {
+                            grouped[section] = {};
+                        }
+
+                        if (!grouped[section][part]) {
+                            grouped[section][part] = [];
+                        }
+
+                        grouped[section][part].push(q);
+                    });
+
+                    setGroupedQuestions(grouped);
+                    setUsingMockData(true);
+
+                    // Thiết lập phần và part đầu tiên
+                    if (parsedMockData.questions.length > 0) {
+                        const firstSection = Object.keys(grouped)[0];
+                        setCurrentSection(firstSection);
+
+                        const firstPart = Object.keys(grouped[firstSection])[0];
+                        setCurrentPart(parseInt(firstPart));
+
+                        console.log(
+                            `Set initial section to ${firstSection} and part to ${firstPart} (mock data)`
                         );
                     }
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.error ||
-                            "Không thể tải thông tin bài kiểm tra"
-                    );
-                }
 
-                const data = await response.json();
-                console.log("Successfully fetched test attempt data");
-
-                setTest(data.test);
-                setAttempt(data.attempt);
-                setQuestions(data.questions.list);
-                setGroupedQuestions(data.questions.grouped);
-
-                // Thiết lập phần và part đầu tiên
-                if (data.questions.list.length > 0) {
-                    const firstSection = Object.keys(data.questions.grouped)[0];
-                    setCurrentSection(firstSection);
-
-                    const firstPart = Object.keys(
-                        data.questions.grouped[firstSection]
-                    )[0];
-                    setCurrentPart(parseInt(firstPart));
-
-                    console.log(
-                        `Set initial section to ${firstSection} and part to ${firstPart}`
-                    );
-                }
-
-                // Thiết lập thời gian làm bài
-                if (data.test && data.attempt) {
+                    // Thiết lập thời gian làm bài
                     const startTime = new Date(
-                        data.attempt.startTime
+                        parsedMockAttempt.startTime
                     ).getTime();
-                    const duration = data.test.duration * 60 * 1000; // convert minutes to milliseconds
+                    const duration = parsedMockInfo.duration * 60 * 1000;
                     const endTime = startTime + duration;
                     const now = Date.now();
                     const remaining = Math.max(0, endTime - now);
                     setTimeLeft(Math.floor(remaining / 1000));
+
+                    setLoading(false);
+                    return;
                 }
 
-                // Tải các câu trả lời đã có
-                if (
-                    data.attempt &&
-                    data.attempt.answers &&
-                    data.attempt.answers.length > 0
-                ) {
-                    const answers: Record<number, string> = {};
-                    data.attempt.answers.forEach((answer: any) => {
-                        answers[answer.questionId] = answer.answer;
-                    });
-                    setUserAnswers(answers);
+                if (mockData) {
+                    console.log("Found mock data in localStorage");
+                    const parsedMockData = JSON.parse(mockData);
+
+                    // Tiếp tục với API call để lấy thông tin test và attempt
+                    try {
+                        const response = await fetch(
+                            `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+                        );
+
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                throw new Error(
+                                    "Bài kiểm tra hoặc lần thử không tồn tại"
+                                );
+                            }
+                            const errorData = await response.json();
+                            throw new Error(
+                                errorData.error ||
+                                    "Không thể tải thông tin bài kiểm tra"
+                            );
+                        }
+
+                        const data = await response.json();
+
+                        // Sử dụng dữ liệu từ API cho test và attempt
+                        setTest(data.test);
+                        setAttempt(data.attempt);
+
+                        // Sử dụng dữ liệu mock cho questions
+                        const mockQuestions = parsedMockData.questions;
+                        setQuestions(mockQuestions);
+
+                        // Tạo grouped questions từ mock data
+                        const grouped: Record<
+                            string,
+                            Record<number, Question[]>
+                        > = {};
+                        mockQuestions.forEach((q: Question) => {
+                            const section = q.sectionType;
+                            const part = q.part;
+
+                            if (!grouped[section]) {
+                                grouped[section] = {};
+                            }
+
+                            if (!grouped[section][part]) {
+                                grouped[section][part] = [];
+                            }
+
+                            grouped[section][part].push(q);
+                        });
+
+                        setGroupedQuestions(grouped);
+                        setUsingMockData(true);
+
+                        // Thiết lập phần và part đầu tiên
+                        if (mockQuestions.length > 0) {
+                            const firstSection = Object.keys(grouped)[0];
+                            setCurrentSection(firstSection);
+
+                            const firstPart = Object.keys(
+                                grouped[firstSection]
+                            )[0];
+                            setCurrentPart(parseInt(firstPart));
+
+                            console.log(
+                                `Set initial section to ${firstSection} and part to ${firstPart} (mock data)`
+                            );
+                        }
+
+                        // Thiết lập thời gian làm bài
+                        if (data.test && data.attempt) {
+                            const startTime = new Date(
+                                data.attempt.startTime
+                            ).getTime();
+                            const duration = data.test.duration * 60 * 1000;
+                            const endTime = startTime + duration;
+                            const now = Date.now();
+                            const remaining = Math.max(0, endTime - now);
+                            setTimeLeft(Math.floor(remaining / 1000));
+                        }
+                    } catch (err) {
+                        console.error("API error, using full mock data", err);
+                        // Nếu API không thành công, sử dụng mock info nếu có
+                        if (mockInfo) {
+                            const parsedMockInfo = JSON.parse(mockInfo);
+                            setTest(parsedMockInfo);
+
+                            // Tạo một attempt giả nếu không có
+                            if (mockAttempt) {
+                                setAttempt(JSON.parse(mockAttempt));
+                            } else {
+                                const newMockAttempt = {
+                                    id:
+                                        parseInt(params.attemptId) ||
+                                        Math.floor(Math.random() * 10000),
+                                    testId:
+                                        parseInt(params.id) ||
+                                        Math.floor(Math.random() * 10000),
+                                    userId: 1,
+                                    startTime: new Date().toISOString(),
+                                    endTime: undefined,
+                                    completed: false,
+                                    answers: [],
+                                    test: parsedMockInfo,
+                                    user: {
+                                        name: "Mock User",
+                                        email: "user@example.com",
+                                        roleId: 2,
+                                        id: 1,
+                                        role: { id: 2, name: "User" },
+                                        isDeleted: false,
+                                        active: true,
+                                    },
+                                };
+                                setAttempt(newMockAttempt);
+                                localStorage.setItem(
+                                    `mockAttempt_${params.attemptId}`,
+                                    JSON.stringify(newMockAttempt)
+                                );
+                            }
+
+                            // Thiết lập câu hỏi từ mock data
+                            const mockQuestions = parsedMockData.questions;
+                            setQuestions(mockQuestions);
+
+                            // Tạo grouped questions từ mock data
+                            const grouped: Record<
+                                string,
+                                Record<number, Question[]>
+                            > = {};
+                            mockQuestions.forEach((q: Question) => {
+                                const section = q.sectionType;
+                                const part = q.part;
+
+                                if (!grouped[section]) {
+                                    grouped[section] = {};
+                                }
+
+                                if (!grouped[section][part]) {
+                                    grouped[section][part] = [];
+                                }
+
+                                grouped[section][part].push(q);
+                            });
+
+                            setGroupedQuestions(grouped);
+                            setUsingMockData(true);
+
+                            // Thiết lập phần và part đầu tiên
+                            if (mockQuestions.length > 0) {
+                                const firstSection = Object.keys(grouped)[0];
+                                setCurrentSection(firstSection);
+
+                                const firstPart = Object.keys(
+                                    grouped[firstSection]
+                                )[0];
+                                setCurrentPart(parseInt(firstPart));
+                            }
+
+                            // Thiết lập thời gian làm bài
+                            const startTime = new Date().getTime();
+                            const duration =
+                                parsedMockInfo.duration * 60 * 1000;
+                            const endTime = startTime + duration;
+                            const now = Date.now();
+                            const remaining = Math.max(0, endTime - now);
+                            setTimeLeft(Math.floor(remaining / 1000));
+                        } else {
+                            throw new Error(
+                                "Không thể tải thông tin bài kiểm tra"
+                            );
+                        }
+                    }
+                } else {
+                    // Không có mock data, sử dụng API bình thường
+                    const response = await fetch(
+                        `/api/online-tests/${params.id}/attempt/${params.attemptId}`
+                    );
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error(
+                                "Bài kiểm tra hoặc lần thử không tồn tại"
+                            );
+                        }
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.error ||
+                                "Không thể tải thông tin bài kiểm tra"
+                        );
+                    }
+
+                    const data = await response.json();
+                    console.log("Successfully fetched test attempt data");
+
+                    setTest(data.test);
+                    setAttempt(data.attempt);
+                    setQuestions(data.questions.list);
+                    setGroupedQuestions(data.questions.grouped);
+
+                    // Thiết lập phần và part đầu tiên
+                    if (data.questions.list.length > 0) {
+                        const firstSection = Object.keys(
+                            data.questions.grouped
+                        )[0];
+                        setCurrentSection(firstSection);
+
+                        const firstPart = Object.keys(
+                            data.questions.grouped[firstSection]
+                        )[0];
+                        setCurrentPart(parseInt(firstPart));
+
+                        console.log(
+                            `Set initial section to ${firstSection} and part to ${firstPart}`
+                        );
+                    }
+
+                    // Thiết lập thời gian làm bài
+                    if (data.test && data.attempt) {
+                        const startTime = new Date(
+                            data.attempt.startTime
+                        ).getTime();
+                        const duration = data.test.duration * 60 * 1000; // convert minutes to milliseconds
+                        const endTime = startTime + duration;
+                        const now = Date.now();
+                        const remaining = Math.max(0, endTime - now);
+                        setTimeLeft(Math.floor(remaining / 1000));
+                    }
+
+                    // Tải các câu trả lời đã có
+                    if (
+                        data.attempt &&
+                        data.attempt.answers &&
+                        data.attempt.answers.length > 0
+                    ) {
+                        const answers: Record<number, string> = {};
+                        data.attempt.answers.forEach((answer: any) => {
+                            answers[answer.questionId] = answer.answer;
+                        });
+                        setUserAnswers(answers);
+                    }
                 }
             } catch (err: any) {
                 setError(err.message || "Đã xảy ra lỗi khi tải bài kiểm tra");
@@ -186,7 +438,17 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
 
         setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
 
-        // Auto save answers
+        // Nếu đang sử dụng mock data, chỉ lưu vào state mà không gọi API
+        if (usingMockData) {
+            setSaving(true);
+            // Mô phỏng delay khi lưu
+            setTimeout(() => {
+                setSaving(false);
+            }, 300);
+            return;
+        }
+
+        // Auto save answers to API
         try {
             setSaving(true);
             const response = await fetch(
@@ -201,7 +463,6 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
                             {
                                 questionId,
                                 answer,
-                                isCorrect: false, // Đánh giá sau khi nộp bài
                             },
                         ],
                     }),
@@ -209,58 +470,107 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
             );
 
             if (!response.ok) {
-                console.error("Failed to save answer");
+                console.error("Failed to save answer:", await response.json());
             }
-        } catch (error) {
-            console.error("Error saving answer:", error);
+        } catch (err) {
+            console.error("Error saving answer:", err);
         } finally {
             setSaving(false);
         }
     };
 
-    // Nộp bài và kết thúc bài kiểm tra
+    // Kết thúc bài kiểm tra
     const endTest = async () => {
-        if (!attempt || !test) return;
+        if (!attempt) return;
 
         try {
-            setSaving(true);
+            setLoading(true);
 
-            // Tính điểm (giả sử)
-            const score = Math.floor(Math.random() * 100);
+            // Nếu đang sử dụng mock data
+            if (usingMockData) {
+                // Tạo kết quả giả lập
+                const correctAnswers = Object.keys(userAnswers).filter(
+                    (key) => {
+                        const question = questions.find(
+                            (q) => q.id.toString() === key
+                        );
+                        if (!question || !question.correctAnswer) return false;
 
-            // Cập nhật trạng thái lần thử
+                        // So sánh câu trả lời với đáp án đúng
+                        try {
+                            const correctAns = JSON.parse(
+                                question.correctAnswer as string
+                            );
+                            return (
+                                userAnswers[parseInt(key)] ===
+                                correctAns.toString()
+                            );
+                        } catch {
+                            return (
+                                userAnswers[parseInt(key)] ===
+                                question.correctAnswer
+                            );
+                        }
+                    }
+                ).length;
+
+                const totalAnswered = Object.keys(userAnswers).length;
+                const score = Math.round(
+                    (correctAnswers / questions.length) * 100
+                );
+
+                // Lưu kết quả vào localStorage
+                const mockResult = {
+                    testId:
+                        parseInt(params.id) ||
+                        Math.floor(Math.random() * 10000),
+                    attemptId:
+                        parseInt(params.attemptId) ||
+                        Math.floor(Math.random() * 10000),
+                    score,
+                    totalQuestions: questions.length,
+                    answeredQuestions: totalAnswered,
+                    correctAnswers,
+                    completed: true,
+                    completedAt: new Date().toISOString(),
+                };
+
+                localStorage.setItem(
+                    `mockTestResult_${params.attemptId}`,
+                    JSON.stringify(mockResult)
+                );
+
+                // Chuyển hướng tới trang kết quả
+                router.push(
+                    `/online-tests/${params.id}/results/${params.attemptId}`
+                );
+                return;
+            }
+
+            // Nếu không sử dụng mock data, gọi API bình thường
             const response = await fetch(
-                `/api/online-tests/${params.id}/attempt/${params.attemptId}`,
+                `/api/online-tests/${params.id}/attempt/${params.attemptId}/complete`,
                 {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        completed: true,
-                        score,
-                        sectionScores: {
-                            listening: Math.floor(Math.random() * 100),
-                            reading: Math.floor(Math.random() * 100),
-                        },
-                        feedback: "Bài làm của bạn đã được nộp.",
-                    }),
+                    method: "POST",
                 }
             );
 
             if (!response.ok) {
-                throw new Error("Không thể nộp bài kiểm tra");
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.error || "Không thể hoàn thành bài kiểm tra"
+                );
             }
 
-            // Chuyển đến trang kết quả
             router.push(
                 `/online-tests/${params.id}/results/${params.attemptId}`
             );
-        } catch (error) {
-            console.error("Error ending test:", error);
-            alert("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.");
-        } finally {
-            setSaving(false);
+        } catch (err: any) {
+            setError(
+                err.message || "Đã xảy ra lỗi khi hoàn thành bài kiểm tra"
+            );
+            console.error("Error ending test:", err);
+            setLoading(false);
         }
     };
 
@@ -563,6 +873,24 @@ const TestAttemptPage = ({ params }: AttemptPageProps) => {
                 {/* Questions content */}
                 <div className="lg:col-span-3">
                     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        {usingMockData && (
+                            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                <div className="flex items-start">
+                                    <AlertCircle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-amber-800 text-sm font-medium">
+                                            Bạn đang sử dụng dữ liệu mẫu
+                                        </p>
+                                        <p className="text-amber-700 text-xs mt-1">
+                                            Đây là bài kiểm tra được tạo tự động
+                                            để mô phỏng trải nghiệm làm bài thi{" "}
+                                            {test?.testType}. Câu hỏi và đáp án
+                                            chỉ mang tính chất minh họa.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {currentSection &&
                         currentPart &&
                         groupedQuestions[currentSection] &&
