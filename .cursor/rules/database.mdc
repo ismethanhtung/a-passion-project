@@ -1,0 +1,562 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String             @unique
+  password          String
+  roleId            Int
+  isDeleted         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime?          @updatedAt
+  active            Boolean            @default(false)
+  emailCheckToken   String
+  assessmentTest    String?
+  knownVocabulary   Int?
+  learningPurpose   String?
+  prioritySkills    String?
+  skillLevel        String?
+  specificGoals     String?
+  assistantRequests AssistantRequest[]
+  blogs             Blog[]             @relation("BlogAuthor")
+  carts             Cart[]
+  conversations     Conversation[]     @relation("UserConversations")
+  createdCourses    Course[]           @relation("CreatedCourses")
+  taughtCourses     Course[]           @relation("TaughtCourses")
+  courses           Enrollment[]
+  forumComments     ForumComment[]     @relation("UserForumComments")
+  forumPosts        ForumPost[]
+  forumThreads      ForumThread[]
+  learningPaths     LearningPath[]
+  liveCourses       LiveCourse[]       @relation("InstructorLiveCourses")
+  receivedMessages  Message[]          @relation("ReceivedMessages")
+  sentMessages      Message[]          @relation("SentMessages")
+  notifications     Notification[]
+  payments          Payment[]
+  progress          Progress[]
+  purchases         Purchase[]
+  refreshTokens     RefreshToken[]     @relation("UserRefreshTokens")
+  reviews           Review[]
+  studyTimes        StudyTime[]        @relation("StudyTimes")
+  createdTests      Test[]             @relation("TestCreator")
+  role              Role               @relation(fields: [roleId], references: [id])
+  settings          UserSettings?
+  tests             Test[]             @relation("TestParticipants")
+  createdOnlineTests OnlineTest[]      @relation("TestCreator")
+  onlineTests       OnlineTest[]       @relation("TestParticipants")
+  testAnswers       TestAnswer[]
+  testAttempts      TestAttempt[]
+
+  @@index([roleId], map: "User_roleId_fkey")
+}
+
+model LearningPath {
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  recommendedBy     String?
+  pathDetails       Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  lastReminderSent  DateTime?          // Thời điểm nhắc nhở cuối cùng
+  reminderCount     Int                @default(0) // Số lần đã nhắc nhở
+  user              User               @relation(fields: [userId], references: [id])
+  recommendedCourses LearningPathCourse[]
+
+  @@index([userId], map: "LearningPath_userId_fkey")
+}
+
+model LearningPathCourse {
+  id            Int           @id @default(autoincrement())
+  pathId        Int
+  courseId      Int  
+  addedAt       DateTime      @default(now())
+  isEnrolled    Boolean       @default(false) // Người dùng đã đăng ký chưa
+  enrolledAt    DateTime?     // Thời điểm đăng ký
+  priority      Int           @default(1) // Mức độ ưu tiên (1: cao nhất)
+  path          LearningPath  @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  course        Course        @relation(fields: [courseId], references: [id])
+
+  @@unique([pathId, courseId])
+  @@index([pathId], map: "LearningPathCourse_pathId_fkey") 
+  @@index([courseId], map: "LearningPathCourse_courseId_fkey")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation("UserRefreshTokens", fields: [userId], references: [id])
+
+  @@index([userId], map: "RefreshToken_userId_fkey")
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  quantity  Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  course    Course    @relation(fields: [courseId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Cart_userId_fkey")
+  @@index([courseId], map: "Cart_courseId_fkey")
+}
+
+model Voucher {
+  id           Int       @id @default(autoincrement())
+  code         String    @unique
+  discount     Int
+  maxDiscount  Int?
+  minPurchase  Int?
+  validFrom    DateTime  @default(now())
+  validTo      DateTime
+  usageCount   Int       @default(0)
+  maxUsage     Int?
+  userSpecific Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+}
+
+model UserSettings {
+  id                      Int     @id @default(autoincrement())
+  phone                   String?
+  language                String  @default("en")
+  learningGoals           String?
+  theme                   String  @default("light")
+  notificationPreferences Json?
+  userId                  Int     @unique
+  assistantPreferences    Json?
+  user                    User    @relation(fields: [userId], references: [id])
+}
+
+model ForumThread {
+  id         Int            @id @default(autoincrement())
+  title      String
+  content    String
+  authorId   Int
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime?      @updatedAt
+  comments   ForumComment[] @relation("ThreadComments")
+  forumPosts ForumPost[]
+  author     User           @relation(fields: [authorId], references: [id])
+
+  @@index([authorId], map: "ForumThread_authorId_fkey")
+}
+
+model ForumPost {
+  id        Int         @id @default(autoincrement())
+  content   String
+  threadId  Int
+  authorId  Int
+  createdAt DateTime    @default(now())
+  updatedAt DateTime?   @updatedAt
+  author    User        @relation(fields: [authorId], references: [id])
+  thread    ForumThread @relation(fields: [threadId], references: [id])
+
+  @@index([authorId], map: "ForumPost_authorId_fkey")
+  @@index([threadId], map: "ForumPost_threadId_fkey")
+}
+
+model ForumComment {
+  id        Int            @id @default(autoincrement())
+  content   String
+  authorId  Int
+  threadId  Int
+  parentId  Int?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime?      @updatedAt
+  author    User           @relation("UserForumComments", fields: [authorId], references: [id])
+  parent    ForumComment?  @relation("ParentComment", fields: [parentId], references: [id])
+  replies   ForumComment[] @relation("ParentComment")
+  thread    ForumThread    @relation("ThreadComments", fields: [threadId], references: [id])
+
+  @@index([authorId], map: "ForumComment_authorId_fkey")
+  @@index([threadId], map: "ForumComment_threadId_fkey")
+  @@index([parentId], map: "ForumComment_parentId_fkey")
+}
+
+model Conversation {
+  id           Int       @id @default(autoincrement())
+  title        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+  userId       Int?
+  participants User?     @relation("UserConversations", fields: [userId], references: [id])
+  messages     Message[]
+
+  @@index([createdAt], map: "Conversation_createdAt_fkey")
+  @@index([userId], map: "Conversation_userId_fkey")
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  content        String       @db.Text
+  senderId       Int?
+  receiverId     Int?
+  createdAt      DateTime     @default(now())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  receivedBy     User?        @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender         User?        @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([senderId], map: "Message_senderId_fkey")
+  @@index([conversationId], map: "Message_conversationId_fkey")
+  @@index([receiverId], map: "Message_receiverId_fkey")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  type      String?  @default("general") // Loại thông báo: learning_path_reminder, course_update, etc.
+  data      String?  // Dữ liệu JSON cho thông báo (nếu cần)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Notification_userId_fkey")
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  amount      Int
+  paymentDate DateTime @default(now())
+  method      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Payment_userId_fkey")
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String
+  parentId Int?
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+  courses  Course[]
+
+  @@index([parentId], map: "Category_parentId_fkey")
+}
+
+model Course {
+  id                Int               @id @default(autoincrement())
+  title             String?           @db.VarChar(255)
+  description       String?           @db.Text
+  objectives        String?           @db.Text
+  price             Int
+  newPrice          Int?
+  thumbnail         String?
+  videoUrl          String?
+  categoryId        Int               @default(1)
+  creatorId         Int
+  teacherId         Int?
+  createdAt         DateTime?
+  updatedAt         DateTime?         @updatedAt
+  isPublished       Boolean           @default(false)
+  isDeleted         Boolean           @default(false)
+  tags              String?
+  duration          String?
+  level             String?
+  averageRating     Float?
+  totalRatings      Int?              @default(0)
+  totalStudents     Int?              @default(0)
+  language          String?           @default("vi")
+  requirements      String?           @db.Text
+  targetAudience    String?           @db.Text
+  learning_outcomes String?           @db.Text
+  latestRevision    DateTime?
+  cart              Cart[]
+  category          Category          @relation(fields: [categoryId], references: [id])
+  creator           User              @relation("CourseCreator", fields: [creatorId], references: [id])
+  enrollments       Enrollment[]
+  lessons           Lesson[]
+  liveSessions      LiveSession[]     @relation("CourseLiveSessions")
+  purchases         Purchase[]
+  reviews           Review[]
+  teacher           User?             @relation("CourseTeacher", fields: [teacherId], references: [id])
+  recommendedIn     LearningPathCourse[] // Quan hệ với các lộ trình mà khóa học này được đề xuất
+
+  @@index([categoryId], map: "Course_categoryId_fkey")
+  @@index([creatorId], map: "Course_creatorId_fkey")
+  @@index([teacherId], map: "Course_teacherId_fkey")
+}
+
+model Lesson {
+  id         Int        @id @default(autoincrement())
+  title      String
+  content    String?
+  videoUrl   String?
+  videoTime  Int?
+  courseId   Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  course     Course     @relation(fields: [courseId], references: [id])
+  progresses Progress[]
+
+  @@index([courseId], map: "Lesson_courseId_fkey")
+}
+
+model Enrollment {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  courseId   Int
+  enrolledAt DateTime   @default(now())
+  course     Course     @relation(fields: [courseId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  progress   Progress[]
+
+  @@index([courseId], map: "Enrollment_courseId_fkey")
+  @@index([userId], map: "Enrollment_userId_fkey")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([courseId], map: "Review_courseId_fkey")
+  @@index([userId], map: "Review_userId_fkey")
+}
+
+model Progress {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  lessonId     Int
+  enrollmentId Int
+  status       String
+  completedAt  DateTime?
+  score        Int?
+  feedback     String?
+  testScores   Json?
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  lesson       Lesson     @relation(fields: [lessonId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@index([enrollmentId], map: "Progress_enrollmentId_fkey")
+  @@index([lessonId], map: "Progress_lessonId_fkey")
+  @@index([userId], map: "Progress_userId_fkey")
+}
+
+model Purchase {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  courseId    Int
+  amount      Int
+  purchasedAt DateTime @default(now())
+  isDeleted   Boolean  @default(false)
+  course      Course   @relation(fields: [courseId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([courseId], map: "Purchase_courseId_fkey")
+  @@index([userId], map: "Purchase_userId_fkey")
+}
+
+model Test {
+  id           Int        @id @default(autoincrement())
+  title        String
+  description  String
+  creatorId    Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  questions    Question[]
+  creator      User       @relation("TestCreator", fields: [creatorId], references: [id])
+  participants User[]     @relation("TestParticipants")
+
+  @@index([creatorId], map: "Test_creatorId_fkey")
+}
+
+model Question {
+  id      Int    @id @default(autoincrement())
+  content String
+  options Json
+  answer  String
+  testId  Int
+  test    Test   @relation(fields: [testId], references: [id])
+
+  @@index([testId], map: "Question_testId_fkey")
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  authorId  Int
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  author    User     @relation("BlogAuthor", fields: [authorId], references: [id])
+
+  @@index([authorId], map: "Blog_authorId_fkey")
+}
+
+model StudyTime {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  duration  Int?
+  user      User      @relation("StudyTimes", fields: [userId], references: [id])
+
+  @@index([userId], map: "StudyTime_userId_fkey")
+}
+
+model LiveCourse {
+  id           Int           @id @default(autoincrement())
+  title        String
+  description  String
+  instructorId Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime?     @updatedAt
+  instructor   User          @relation("InstructorLiveCourses", fields: [instructorId], references: [id])
+  liveSessions LiveSession[] @relation("LiveCourseSessions")
+
+  @@index([instructorId], map: "LiveCourse_instructorId_fkey")
+}
+
+model LiveSession {
+  id           Int        @id @default(autoincrement())
+  liveCourseId Int
+  sessionDate  DateTime   @default(now())
+  topic        String
+  courseId     Int
+  course       Course     @relation("CourseLiveSessions", fields: [courseId], references: [id])
+  liveCourse   LiveCourse @relation("LiveCourseSessions", fields: [liveCourseId], references: [id])
+
+  @@index([courseId], map: "LiveSession_courseId_fkey")
+  @@index([liveCourseId], map: "LiveSession_liveCourseId_fkey")
+}
+
+model AssistantRequest {
+  id            Int            @id @default(autoincrement())
+  userId        Int
+  request       String
+  response      String?
+  status        String
+  createdAt     DateTime       @default(now())
+  assistantLogs AssistantLog[]
+  user          User           @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "AssistantRequest_userId_fkey")
+}
+
+model AssistantLog {
+  id         Int              @id @default(autoincrement())
+  requestId  Int
+  logMessage String
+  timestamp  DateTime         @default(now())
+  request    AssistantRequest @relation(fields: [requestId], references: [id])
+
+  @@index([requestId], map: "AssistantLog_requestId_fkey")
+}
+
+model OnlineTest {
+  id            Int         @id @default(autoincrement())
+  title         String
+  description   String
+  instructions  String      @db.Text
+  testType      String      // TOEIC, IELTS, Placement, General
+  difficulty    String      // Beginner, Intermediate, Advanced, Expert
+  duration      Int         // Thời gian làm bài (phút)
+  tags          String      // Các tags phân loại
+  popularity    Int         @default(0)
+  completionRate Int        @default(0)
+  isPublished   Boolean     @default(false)
+  isFeatured    Boolean     @default(false)
+  creatorId     Int         
+  creator       User        @relation("TestCreator", fields: [creatorId], references: [id])
+  participants  User[]      @relation("TestParticipants")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  sections      Json?       // Cấu trúc bài thi
+  thumbnail     String?     // URL hình ảnh đại diện
+  isAIGenerated Boolean     @default(false)
+  testQuestions TestQuestion[]
+  testAttempts  TestAttempt[]
+
+  @@index([creatorId], map: "OnlineTest_creatorId_fkey")
+}
+
+model TestQuestion {
+  id              Int         @id @default(autoincrement())
+  testId          Int
+  content         String      @db.Text
+  type            String      // single, multiple, fill, essay, speaking
+  options         Json?       // Các lựa chọn (nếu có)
+  correctAnswer   Json?       // Đáp án đúng
+  part            Int         // Phần của bài thi
+  sectionType     String      // listening, reading, writing, speaking
+  explanation     String?     @db.Text // Giải thích đáp án
+  audioUrl        String?     // URL audio (cho phần nghe)
+  imageUrl        String?     // URL hình ảnh (nếu có)
+  groupId         Int?        // Để nhóm các câu hỏi theo cùng một bài đọc/nghe
+  order           Int         // Thứ tự câu hỏi
+  test            OnlineTest  @relation(fields: [testId], references: [id])
+  answers         TestAnswer[]
+
+  @@index([testId], map: "TestQuestion_testId_fkey")
+}
+
+model TestAnswer {
+  id              Int         @id @default(autoincrement())
+  questionId      Int
+  userId          Int
+  attemptId       Int
+  selectedAnswer  Json?       // Câu trả lời của người dùng
+  isCorrect       Boolean?    // Đánh giá đúng/sai
+  score           Float?      // Điểm số (cho writing/speaking)
+  feedback        String?     @db.Text // Phản hồi của AI (cho writing/speaking)
+  markedForReview Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  question        TestQuestion @relation(fields: [questionId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  attempt         TestAttempt @relation(fields: [attemptId], references: [id])
+
+  @@index([questionId], map: "TestAnswer_questionId_fkey")
+  @@index([userId], map: "TestAnswer_userId_fkey")
+  @@index([attemptId], map: "TestAnswer_attemptId_fkey")
+}
+
+model TestAttempt {
+  id              Int         @id @default(autoincrement())
+  testId          Int
+  userId          Int
+  startTime       DateTime    @default(now())
+  endTime         DateTime?
+  score           Float?      // Điểm số tổng
+  sectionScores   Json?       // Điểm theo từng phần
+  completed       Boolean     @default(false)
+  feedback        String?     @db.Text // Đánh giá tổng quan
+  test            OnlineTest  @relation(fields: [testId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  answers         TestAnswer[]
+
+  @@index([testId], map: "TestAttempt_testId_fkey")
+  @@index([userId], map: "TestAttempt_userId_fkey")
+}

@@ -70,12 +70,14 @@ function Login() {
     };
 
     if (!GOOGLE_CLIENT_ID) {
-        throw new Error("Google Client ID is not defined in environment variables.");
+        throw new Error(
+            "Google Client ID is not defined in environment variables."
+        );
     }
 
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-            <Sticker />
+            {/* <Sticker /> */}
             <div className="container mx-auto">
                 <div className="mx-auto content-center w-4/12">
                     <div className="my-28 mx-8 p-8 bg-white p-6 rounded-3xl shadow-lg border-gray-100 border border-violet-100">
@@ -83,7 +85,9 @@ function Login() {
                             <div className="text-center flex flex-col justify-center w-full mb-10">
                                 <h1 className="my-6 text-2xl font-extrabold tracking-tight">
                                     Welcome back! <br />
-                                    <span className="text-red-300">Login to your account</span>
+                                    <span className="text-red-300">
+                                        Login to your account
+                                    </span>
                                 </h1>
                             </div>
                         </div>
@@ -149,7 +153,9 @@ function Login() {
                         </button>
 
                         <div className="text-center">
-                            <p className="text-gray-600 py-4">or log in with:</p>
+                            <p className="text-gray-600 py-4">
+                                or log in with:
+                            </p>
                             <div className="flex justify-center">
                                 <GoogleLoginButton onError={setError} />
                             </div>
@@ -176,10 +182,18 @@ function Login() {
                                 /> */}
 
                                 <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
-                                    <img src="/logos/facebook.png" className="size-5" alt="" />
+                                    <img
+                                        src="/logos/facebook.png"
+                                        className="size-5"
+                                        alt=""
+                                    />
                                 </button>
                                 <button className="flex justify-center items-center border border-gray-200 py-2.5 w-1/2 rounded-lg">
-                                    <img src="/logos/apple.png" className="size-5" alt="" />
+                                    <img
+                                        src="/logos/apple.png"
+                                        className="size-5"
+                                        alt=""
+                                    />
                                 </button>
                             </div>
                         </div>

@@ -429,9 +429,9 @@ export default function Navbar() {
 
                         {!user ? (
                             <div className="hidden lg:flex items-center space-x-2">
-                                <button className="p-3 rounded-md hover:bg-gray-200 transition-colors duration-150">
+                                {/* <button className="p-3 rounded-md hover:bg-gray-200 transition-colors duration-150">
                                     <Search className="h-4 w-4" />
-                                </button>
+                                </button> */}
                                 <Link href="/auth/login">
                                     <button className="text-sm px-3 py-2 text-gray-700 hover:text-purple-600 border border-gray-300 rounded-lg hover:border-purple-600 transition-all duration-150">
                                         Log In
@@ -445,9 +445,9 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <div className="hidden lg:flex items-center space-x-4">
-                                <button className="p-2 rounded-lg hover:bg-gray-200">
+                                {/* <button className="p-2 rounded-lg hover:bg-gray-200">
                                     <Search className="h-5 w-5" />
-                                </button>
+                                </button> */}
                                 <div className="relative dropdown">
                                     <div className="flex items-center gap-6">
                                         <button

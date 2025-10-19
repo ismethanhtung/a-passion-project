@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+1. khi mới khởi động web, navbar không hiển thị, có thể đang ở loading, hãy đọc code phần này, tìm ra vấn đề và fix
+2. 

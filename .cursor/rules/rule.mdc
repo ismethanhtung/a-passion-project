@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+3. database schema ở trong [database.mdc](mdc:.cursor/rules/database.mdc), hiểu rõ database trước khi dùng.
